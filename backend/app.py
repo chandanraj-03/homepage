@@ -1,6 +1,27 @@
 import os
 from flask import Flask, send_from_directory, request, jsonify
 
+# Load environment variables
+try:
+    from dotenv import load_dotenv
+    load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '.env'))
+    load_dotenv()
+except ImportError:
+    pass
+
+# Supabase configuration
+SUPABASE_URL = os.environ.get('SUPABASE_URL', '')
+SUPABASE_KEY = os.environ.get('SUPABASE_KEY', '')
+
+supabase_client = None
+if SUPABASE_URL and SUPABASE_KEY:
+    try:
+        from supabase import create_client
+        supabase_client = create_client(SUPABASE_URL, SUPABASE_KEY)
+        print("✅ Supabase client initialized on backend.")
+    except Exception as e:
+        print(f"⚠️ Supabase python client could not be initialized: {e}")
+
 # Directory paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', 'frontend'))
@@ -33,7 +54,6 @@ def is_allowed_email_domain(email):
 def index():
     """Serve landing page."""
     return send_from_directory(FRONTEND_DIR, 'index.html')
-
 @app.route('/login')
 @app.route('/register')
 @app.route('/auth')

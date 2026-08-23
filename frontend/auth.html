@@ -11,6 +11,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="stylesheet" href="auth.css">
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabaseClient.js"></script>
 </head>
 
 <body class="auth-body">
@@ -105,7 +108,7 @@
                             </button>
                         </div>
                         <div class="form-helper-row" id="forgot-wrapper">
-                            <a href="#forgot" id="forgot-link" class="form-link-subtle" onclick="alert('Password reset instructions will be sent if configured on your local server.')">Forgot Password?</a>
+                            <a href="#forgot" id="forgot-link" class="form-link-subtle" onclick="handleForgotPassword(); return false;">Forgot Password?</a>
                         </div>
                     </div>
 
@@ -145,21 +148,27 @@
             'gmx.com', 'mail.com'
         ];
 
-        function showAuthAlert(message) {
+        function showAuthAlert(message, isSuccess = false) {
             const alertBox = document.getElementById('auth-alert');
             const alertText = document.getElementById('auth-alert-text');
             const usernameInput = document.getElementById('auth-username');
             
             alertText.textContent = message;
+            if (isSuccess) {
+                alertBox.classList.add('success');
+            } else {
+                alertBox.classList.remove('success');
+                usernameInput.classList.add('input-error');
+                usernameInput.focus();
+            }
             alertBox.classList.remove('hidden');
-            usernameInput.classList.add('input-error');
-            usernameInput.focus();
         }
 
         function clearAuthAlert() {
             const alertBox = document.getElementById('auth-alert');
             const usernameInput = document.getElementById('auth-username');
             alertBox.classList.add('hidden');
+            alertBox.classList.remove('success');
             usernameInput.classList.remove('input-error');
         }
 
@@ -176,10 +185,10 @@
                         message: 'Only major providers are allowed (Gmail, Outlook, Yahoo, Proton, iCloud, Zoho).'
                     };
                 }
-            } else if (currentMode === 'register') {
+            } else {
                 return {
                     valid: false,
-                    message: 'Please use a valid email (e.g. name@gmail.com, name@outlook.com).'
+                    message: 'Please enter a valid email address (e.g. alex@gmail.com).'
                 };
             }
             return { valid: true };
@@ -211,7 +220,7 @@
                 submitBtnText.textContent = "Create Account";
                 labelUsername.textContent = "Email Address";
                 usernameInput.placeholder = "e.g. alex@gmail.com";
-                passwordInput.placeholder = "Create a password";
+                passwordInput.placeholder = "Create a password (min 6 characters)";
                 footerText.innerHTML = 'Already have an account? <a href="#login" onclick="switchAuthMode(\'login\'); return false;">Sign in</a>';
                 
                 if (updateHistory && window.location.hash !== '#register') {
@@ -227,7 +236,7 @@
                 subtitle.textContent = "Welcome back! Sign in to access your cloud storage.";
                 forgotWrapper.style.display = 'flex';
                 submitBtnText.textContent = "Sign In to PrivCloud";
-                labelUsername.textContent = "Username or Email";
+                labelUsername.textContent = "Email Address";
                 usernameInput.placeholder = "e.g. alex@gmail.com";
                 passwordInput.placeholder = "Enter your password";
                 footerText.innerHTML = 'Don\'t have an account? <a href="#register" onclick="switchAuthMode(\'register\'); return false;">Create one now</a>';
@@ -271,16 +280,52 @@
             }
         }
 
-        // Form Submit
-        function handleAuthSubmit(e) {
+        // Handle Forgot Password
+        async function handleForgotPassword() {
+            clearAuthAlert();
+            const emailInput = document.getElementById('auth-username');
+            const email = emailInput.value.trim();
+
+            if (!email) {
+                showAuthAlert("Please enter your email above to receive password reset instructions.");
+                emailInput.focus();
+                return;
+            }
+
+            const validation = validateEmailProvider(email);
+            if (!validation.valid) {
+                showAuthAlert(validation.message);
+                return;
+            }
+
+            try {
+                const { error } = await PrivCloudAuth.resetPassword(email);
+                if (error) {
+                    showAuthAlert(error.message);
+                } else {
+                    showAuthAlert(`Password reset instructions sent to ${email}`, true);
+                }
+            } catch (err) {
+                showAuthAlert(err.message || "Failed to send reset link.");
+            }
+        }
+
+        // Form Submit with Supabase Auth
+        async function handleAuthSubmit(e) {
             e.preventDefault();
             clearAuthAlert();
 
-            const usernameInput = document.getElementById('auth-username');
-            const validation = validateEmailProvider(usernameInput.value);
+            const email = document.getElementById('auth-username').value.trim();
+            const password = document.getElementById('auth-password').value;
+            const validation = validateEmailProvider(email);
 
             if (!validation.valid) {
                 showAuthAlert(validation.message);
+                return;
+            }
+
+            if (!password || password.length < 6) {
+                showAuthAlert("Password must be at least 6 characters.");
                 return;
             }
 
@@ -292,17 +337,43 @@
             btn.disabled = true;
             btn.style.opacity = '0.8';
 
-            setTimeout(() => {
-                if (currentMode === 'login') {
-                    alert('Authentication successful! Welcome to OwnCloudX.');
+            try {
+                if (currentMode === 'register') {
+                    const { data, error } = await PrivCloudAuth.signUp(email, password, {
+                        email: email
+                    });
+
+                    if (error) {
+                        showAuthAlert(error.message);
+                    } else {
+                        if (data.session) {
+                            showAuthAlert("Account created and signed in successfully!", true);
+                            setTimeout(() => {
+                                window.location.href = '/';
+                            }, 1200);
+                        } else {
+                            showAuthAlert("Account registered! Please check your email for the confirmation link.", true);
+                        }
+                    }
                 } else {
-                    alert('Account created successfully! Switching to sign in...');
-                    switchAuthMode('login');
+                    const { data, error } = await PrivCloudAuth.signIn(email, password);
+
+                    if (error) {
+                        showAuthAlert(error.message);
+                    } else {
+                        showAuthAlert("Signed in successfully! Redirecting...", true);
+                        setTimeout(() => {
+                            window.location.href = '/';
+                        }, 1000);
+                    }
                 }
+            } catch (err) {
+                showAuthAlert(err.message || "An unexpected error occurred.");
+            } finally {
                 submitText.textContent = originalText;
                 btn.disabled = false;
                 btn.style.opacity = '1';
-            }, 800);
+            }
         }
     </script>
 </body>
