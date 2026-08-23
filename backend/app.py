@@ -1,43 +1,80 @@
 import os
-import socket
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, request, jsonify
 
-# Get absolute path to frontend folder
+# Directory paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', 'frontend'))
 
+# Ultra-lightweight Flask app
 app = Flask(__name__, static_folder=FRONTEND_DIR)
 
-def get_local_ip():
-    """Retrieve local Wi-Fi IP address."""
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        # Doesn't even have to be reachable
-        s.connect(('10.255.255.255', 1))
-        ip = s.getsockname()[0]
-    except Exception:
-        ip = '127.0.0.1'
-    finally:
-        s.close()
-    return ip
+# Strict Major Email Provider Allowlist
+ALLOWED_EMAIL_DOMAINS = {
+    'gmail.com', 'googlemail.com',
+    'outlook.com', 'hotmail.com', 'live.com', 'msn.com',
+    'yahoo.com', 'yahoo.co.in', 'ymail.com',
+    'proton.me', 'protonmail.com',
+    'icloud.com', 'me.com', 'mac.com',
+    'zoho.com',
+    'aol.com',
+    'gmx.com', 'mail.com'
+}
+
+def is_allowed_email_domain(email):
+    """Check if email domain belongs to the strict allowlist."""
+    if '@' not in email:
+        return False
+    domain = email.split('@')[-1].lower().strip()
+    return domain in ALLOWED_EMAIL_DOMAINS
+
+# ----------------- Frontend Page Routes -----------------
 
 @app.route('/')
 def index():
+    """Serve landing page."""
     return send_from_directory(FRONTEND_DIR, 'index.html')
+
+@app.route('/login')
+@app.route('/register')
+@app.route('/auth')
+def auth():
+    """Serve unified dynamic authentication page."""
+    return send_from_directory(FRONTEND_DIR, 'auth.html')
 
 @app.route('/<path:filename>')
 def serve_static(filename):
+    """Serve static assets (CSS, JS, media)."""
     return send_from_directory(FRONTEND_DIR, filename)
 
+# ----------------- Lightweight API Routes -----------------
+
+@app.route('/api/auth/validate-email', methods=['POST'])
+def validate_email():
+    """API endpoint to validate email domain against the strict allowlist."""
+    data = request.get_json(silent=True) or {}
+    email = data.get('email', '').strip()
+    
+    if not is_allowed_email_domain(email):
+        return jsonify({
+            'valid': False,
+            'message': 'Only major email providers are allowed (Gmail, Outlook, Yahoo, Proton, iCloud, Zoho).'
+        }), 400
+
+    return jsonify({
+        'valid': True,
+        'message': 'Email domain is verified.'
+    })
+
+# ----------------- Server Entrypoint -----------------
+
 if __name__ == '__main__':
-    port = 5001
-    local_ip = get_local_ip()
+    # Render assigns port dynamically via environment variable 'PORT'
+    port = int(os.environ.get('PORT', 5001))
+    debug_mode = os.environ.get('RENDER') is None  # Debug only locally, not on Render
     
-    print("\n" + "=" * 55)
-    print("🚀 PrivCloud Flask Server is running!")
-    print(f"💻 On your Laptop: http://localhost:{port}")
-    print(f"📱 On your Mobile: http://{local_ip}:{port}")
-    print("=" * 55 + "\n")
+    print("\n" + "=" * 50)
+    print("🚀 PrivCloud Clean Lightweight Server running!")
+    print(f"🔗 Local URL: http://localhost:{port}")
+    print("=" * 50 + "\n")
     
-    # host='0.0.0.0' allows connections from any device on your Wi-Fi network
-    app.run(host='0.0.0.0', port=port, debug=True)
+    app.run(host='0.0.0.0', port=port, debug=debug_mode)
