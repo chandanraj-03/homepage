@@ -1,6 +1,6 @@
-# ☁️ OwnCloudX — Personal Cloud & File Management Platform
+# ☁️ PrivCloud — Personal Cloud & File Management Platform
 
-OwnCloudX is a modern, feature-rich personal cloud storage and remote file management platform designed to provide a centralized hub for storing, organizing, previewing, and sharing digital assets.
+PrivCloud is a modern, feature-rich personal cloud storage and remote file management platform designed to provide a centralized hub for storing, organizing, previewing, and sharing digital assets.
 
 ---
 

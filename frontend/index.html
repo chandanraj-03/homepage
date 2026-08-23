@@ -4,22 +4,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OwnCloudX - Features</title>
+    <title>PrivCloud - Features</title>
     <!-- Importing Inter font for modern typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="stylesheet" href="styles.css?v=17">
 </head>
 
 <body>
 
     <!-- Top Navigation Bar -->
     <nav class="navbar">
-        <div class="nav-brand">OwnCloudX</div>
+        <a href="#overview" class="nav-brand">
+            <img src="logo.png" alt="PrivCloud Logo" class="nav-logo">
+            <span class="nav-brand-text">PrivCloud</span>
+        </a>
         <ul class="nav-links">
-            <li><a href="#about" class="active">About</a></li>
+            <li><a href="#overview" class="active">Overview</a></li>
             <li><a href="#features">Features</a></li>
+            <li><a href="#about-us">About Us</a></li>
         </ul>
         <div class="nav-actions">
             <a href="#login" class="btn-login">Login</a>
@@ -27,144 +32,244 @@
         </div>
     </nav>
 
-    <!-- Background is a clean gradient -->
-
-    <!-- Video Section (Full Width) -->
-    <section class="video-section">
+    <!-- Overview Section (Video + Intro) -->
+    <section id="overview" class="overview-section">
+        <!-- Video Container -->
         <div class="video-placeholder-wrapper">
             <video autoplay loop muted playsinline class="product-video">
-                <source src="WhatsApp Video 2026-08-23 at 03.10.24.mp4" type="video/mp4">
+                <source src="retry.mp4" type="video/mp4">
             </video>
+        </div>
+
+        <div class="container">
+            <!-- About Overview Text -->
+            <div class="about-section">
+                <div class="about-text-container">
+                    <p>
+                        PrivCloud is a modern, feature-rich personal cloud storage and remote file management platform
+                        designed to provide a centralized hub for storing, organizing, previewing, and sharing digital
+                        assets. It operates directly on your machine, giving you total privacy and control over your files
+                        from any device.
+                    </p>
+                    <p>
+                        Connecting your devices is as simple as scanning a QR code. PrivCloud lets you share files safely
+                        with password-protected and expiring links, set up collaborative dropboxes for external uploads,
+                        stream rich media, and inspect documents right inside the browser.
+                    </p>
+                </div>
+            </div>
         </div>
     </section>
 
-    <div class="container">
+    <!-- Pinned Scroll-Driven SaaS Feature Showcase -->
+    <section id="features" class="showcase-section-container">
+        <div id="feature-showcase-root"></div>
+    </section>
 
-        <!-- About Section -->
-        <section id="about" class="about-section">
-            <div class="about-text-container">
-                <p>
-                    PrivCloud is a storage hub that works directly on your computer, giving you one place to keep, sort
-                    and find your photos, videos and documents from any phone, tablet or computer. It keeps everything
-                    under your control. PrivCloud offers a way to manage your digital life. PrivCloud helps you keep
-                    track of your storage. PrivCloud does not require any skills to use.
-                </p>
-                <p>
-                    Connecting your devices is as easy, as scanning a QR code. PrivCloud lets you share files safely
-                    with friends and family using password‑protected links. PrivCloud also allows you to set up
-                    dropboxes where others can send files directly to you. Designed for users PrivCloud gives a secure
-                    and easy way to handle your digital life in one place.
-                </p>
+    <!-- About Us Section (Bottom of Page) -->
+    <section id="about-us" class="about-us-section">
+        <div class="container">
+            
+            <!-- About Me Card -->
+            <div class="about-us-card">
+                
+                <div class="about-me-intro-row">
+                    <div class="about-me-avatar-box">
+                        <img src="profile.jpg" alt="Developer Profile" class="about-me-avatar-img" onerror="this.onerror=null;this.src='logo.png';">
+                        <span class="avatar-status-badge">
+                            <span class="avatar-status-dot"></span>
+                            AI Engineer & Builder
+                        </span>
+                    </div>
+
+                    <div class="about-me-title-box">
+                        <div class="about-us-badge">
+                            <span class="about-badge-dot"></span>
+                            ABOUT US
+                        </div>
+                        <h2 class="about-us-title">Building with AI. Solving real problems.</h2>
+                    </div>
+                </div>
+
+                <div class="about-us-grid">
+                    <div class="about-us-text-col">
+                        <p>
+                            I’m passionate about turning ideas into intelligent, practical applications. My primary interests lie in <strong>Artificial Intelligence, Machine Learning, Computer Vision, NLP, and Generative AI</strong>, where I enjoy experimenting with models and transforming them into usable products.
+                        </p>
+                        <p>
+                            I believe the best way to learn technology is by building with it. Every project I work on is an opportunity to understand a problem deeper, experiment with different approaches, and create something that can be useful in the real world.
+                        </p>
+
+                        <!-- Social / Contact Links -->
+                        <div class="about-me-social-links">
+                            <a href="https://www.linkedin.com" target="_blank" rel="noopener noreferrer" class="social-chip linkedin" title="Connect on LinkedIn">
+                                <svg class="social-svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.2V10.9H6.46M7.83 6.45a1.6 1.6 0 0 0-1.6 1.6 1.6 1.6 0 0 0 1.6 1.6 1.6 1.6 0 0 0 1.6-1.6 1.6 1.6 0 0 0-1.6-1.6Z"/></svg>
+                                <span>LinkedIn</span>
+                            </a>
+                            <a href="https://github.com" target="_blank" rel="noopener noreferrer" class="social-chip github" title="Explore GitHub">
+                                <svg class="social-svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.1-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2Z"/></svg>
+                                <span>GitHub</span>
+                            </a>
+                            <a href="mailto:rajchandan739@gmail.com" class="social-chip gmail" title="Send an Email">
+                                <svg class="social-svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                                <span>Gmail</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="about-us-pillars">
+                        <div class="pillar-card">
+                            <div class="pillar-icon">🤖</div>
+                            <div class="pillar-content">
+                                <h4>AI & Generative Models</h4>
+                                <p>Experimenting with LLMs, diffusion models, and transforming them into practical applications.</p>
+                            </div>
+                        </div>
+                        <div class="pillar-card">
+                            <div class="pillar-icon">👁️</div>
+                            <div class="pillar-content">
+                                <h4>Computer Vision & NLP</h4>
+                                <p>Extracting structured insights and semantic understanding from visual and text data.</p>
+                            </div>
+                        </div>
+                        <div class="pillar-card">
+                            <div class="pillar-icon">🛠️</div>
+                            <div class="pillar-content">
+                                <h4>Full-Stack Product Engineering</h4>
+                                <p>Building end-to-end architectures focused on speed, privacy, and real-world utility.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </section>
 
-        <header id="features" class="section-header">
-            <h1 class="glow-text">Powerful Features.</h1>
-            <p class="subtitle">Everything you need to manage your personal cloud efficiently, elegantly, and securely.
-            </p>
-        </header>
-
-        <main class="features-grid">
-            <!-- Card 1 -->
-            <article class="feature-card">
-                <div class="card-icon-wrapper blue-gradient">
-                    <span class="icon">📁</span>
+            <!-- Special Thanks Section Card -->
+            <div class="special-thanks-card">
+                <div class="special-thanks-badge">
+                    <span>❤️</span> SPECIAL THANKS
                 </div>
-                <h3 class="card-title">Complete File Control</h3>
-                <ul class="card-list">
-                    <li>Comprehensive file operations</li>
-                    <li>Interactive folder picker</li>
-                    <li>Multi-select & bulk actions</li>
-                    <li>One-click ZIP archiving</li>
-                </ul>
-            </article>
-
-            <!-- Card 2 -->
-            <article class="feature-card">
-                <div class="card-icon-wrapper purple-gradient">
-                    <span class="icon">📤</span>
+                <div class="special-thanks-content">
+                    <div class="thanks-avatar-box">
+                        <img src="ratnam_singh.jpg" alt="Ratnam Singh" class="thanks-avatar-img" onerror="this.onerror=null;this.src='logo.png';">
+                    </div>
+                    <div class="thanks-info">
+                        <h3 class="thanks-name">Ratnam Singh</h3>
+                        <span class="thanks-role">Mentorship, Guidance & Technical Leadership</span>
+                        <p class="thanks-quote">
+                            "Special thanks to Ratnam Singh for the continuous inspiration, technical guidance, support, and invaluable mentorship throughout the development of this project."
+                        </p>
+                    </div>
                 </div>
-                <h3 class="card-title">Seamless Uploads</h3>
-                <ul class="card-list">
-                    <li>Drag-and-drop anywhere</li>
-                    <li>Preserved folder structures</li>
-                    <li>Chunked large file transfer</li>
-                    <li>Real-time progress tracking</li>
-                </ul>
-            </article>
+            </div>
 
-            <!-- Card 3 -->
-            <article class="feature-card">
-                <div class="card-icon-wrapper pink-gradient">
-                    <span class="icon">▶️</span>
+        </div>
+
+        <!-- Modern Footer -->
+        <footer class="site-footer">
+            <div class="container footer-content">
+                <div class="footer-brand">
+                    <img src="logo.png" alt="PrivCloud Logo" class="footer-logo">
+                    <span class="footer-brand-name">PrivCloud</span>
+                    <span class="footer-tagline">— Self-Hosted Cloud Platform</span>
                 </div>
-                <h3 class="card-title">Built-In Media Suite</h3>
-                <ul class="card-list">
-                    <li>Audio and video streaming</li>
-                    <li>Interactive image gallery</li>
-                    <li>Built-in PDF reader</li>
-                    <li>Markdown & code rendering</li>
-                </ul>
-            </article>
-
-            <!-- Card 4 -->
-            <article class="feature-card">
-                <div class="card-icon-wrapper teal-gradient">
-                    <span class="icon">🔗</span>
+                <div class="footer-copy">
+                    &copy; 2026 PrivCloud. All rights reserved.
                 </div>
-                <h3 class="card-title">Secure Sharing</h3>
-                <ul class="card-list">
-                    <li>Custom download/upload links</li>
-                    <li>Expirations & passcodes</li>
-                    <li>Instant QR code generation</li>
-                    <li>Centralized access management</li>
-                </ul>
-            </article>
+            </div>
+        </footer>
+    </section>
 
-            <!-- Card 5 -->
-            <article class="feature-card">
-                <div class="card-icon-wrapper orange-gradient">
-                    <span class="icon">📊</span>
-                </div>
-                <h3 class="card-title">Intelligent Analytics</h3>
-                <ul class="card-list">
-                    <li>Real-time capacity meters</li>
-                    <li>Visual storage breakdown</li>
-                    <li>Configurable storage limits</li>
-                    <li>Quota safeguarding</li>
-                </ul>
-            </article>
+    <!-- Core Scripts: GSAP & ScrollTrigger -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 
-            <!-- Card 6 -->
-            <article class="feature-card">
-                <div class="card-icon-wrapper magenta-gradient">
-                    <span class="icon">🔍</span>
-                </div>
-                <h3 class="card-title">Lightning-Fast Search</h3>
-                <ul class="card-list">
-                    <li>Pin files to Favorites</li>
-                    <li>Real-time deep searching</li>
-                    <li>Multi-attribute sorting</li>
-                    <li>Grid & List visual modes</li>
-                </ul>
-            </article>
+    <!-- React 18 & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 
-            <!-- Card 7 -->
-            <article class="feature-card featured">
-                <div class="card-icon-wrapper silver-gradient">
-                    <span class="icon">✨</span>
-                </div>
-                <h3 class="card-title">Premium User Experience</h3>
-                <ul class="card-list">
-                    <li>Modern Dark & Light themes</li>
-                    <li>Fully responsive mobile UI</li>
-                    <li>Contextual toast feedback</li>
-                    <li>In-app settings control</li>
-                </ul>
-            </article>
+    <!-- Babel Standalone for In-Browser JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-        </main>
-    </div>
+    <!-- Feature Showcase React Component -->
+    <script type="text/babel" src="FeatureShowcase.jsx?v=17"></script>
+
+    <!-- Active Scrollspy Navigation Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const navLinks = document.querySelectorAll('.nav-links a');
+
+            function getActiveSection() {
+                const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+                const windowHeight = window.innerHeight;
+                const documentHeight = document.documentElement.scrollHeight;
+
+                // Check if user has reached bottom of the page
+                if (scrollY + windowHeight >= documentHeight - 120) {
+                    return 'about-us';
+                }
+
+                const aboutEl = document.getElementById('about-us');
+                const featEl = document.getElementById('features');
+
+                if (aboutEl) {
+                    const aboutTop = aboutEl.offsetTop - 120;
+                    if (scrollY >= aboutTop) {
+                        return 'about-us';
+                    }
+                }
+
+                if (featEl) {
+                    const featTop = featEl.offsetTop - 120;
+                    const featBottom = featTop + featEl.offsetHeight;
+                    if (scrollY >= featTop && scrollY < featBottom) {
+                        return 'features';
+                    }
+                }
+
+                return 'overview';
+            }
+
+            function updateNavHighlight() {
+                const activeId = getActiveSection();
+                navLinks.forEach(link => {
+                    const target = link.getAttribute('href').replace('#', '');
+                    if (target === activeId) {
+                        link.classList.add('active');
+                    } else {
+                        link.classList.remove('active');
+                    }
+                });
+            }
+
+            window.addEventListener('scroll', updateNavHighlight, { passive: true });
+            window.addEventListener('resize', updateNavHighlight, { passive: true });
+            updateNavHighlight();
+
+            // Smooth scroll click handler
+            document.querySelectorAll('.navbar a[href^="#"], .site-footer a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    const href = this.getAttribute('href');
+                    if (href === '#' || href === '#login' || href === '#register') return;
+                    
+                    const targetEl = document.querySelector(href);
+                    if (targetEl) {
+                        e.preventDefault();
+                        const headerOffset = 76;
+                        const elementPosition = targetEl.getBoundingClientRect().top;
+                        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                        window.scrollTo({
+                            top: offsetPosition,
+                            behavior: 'smooth'
+                        });
+
+                        setTimeout(updateNavHighlight, 300);
+                    }
+                });
+            });
+        });
+    </script>
 
 </body>
+
 </html>
