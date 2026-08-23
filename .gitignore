@@ -6,3 +6,7 @@ __pycache__/
 .env.production
 chatbot.py
 supabasepassword.txt
+supabase_schema.sql
+supabase.schema.sql
+*.sql
+
