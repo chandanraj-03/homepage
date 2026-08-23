@@ -2,22 +2,41 @@
  * PrivCloud Supabase Client Configuration
  */
 
-const SUPABASE_URL = "https://qrxjyvezlotjwggtgoqe.supabase.co";
-const SUPABASE_KEY = "sb_publishable_TBuxXwl_-StgMpP1deF7zw_2Z9izNgU";
+// Retrieve runtime configuration (from gitignored config.js or environment)
+const runtimeConfig = (typeof window !== 'undefined' && window.PRIVCLOUD_CONFIG) ? window.PRIVCLOUD_CONFIG : {};
+const SUPABASE_URL = runtimeConfig.supabaseUrl || "";
+const SUPABASE_KEY = runtimeConfig.supabaseKey || "";
 
 // Initialize Supabase Client
 let supabaseClient = null;
 
-if (typeof supabase !== 'undefined' && supabase.createClient) {
-    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-        auth: {
-            persistSession: true,
-            autoRefreshToken: true,
-            detectSessionInUrl: true
-        }
-    });
-} else {
-    console.warn("Supabase SDK script not loaded before supabaseClient.js");
+function initSupabaseClient(url, key) {
+    if (url && key && typeof supabase !== 'undefined' && supabase.createClient) {
+        supabaseClient = supabase.createClient(url, key, {
+            auth: {
+                persistSession: true,
+                autoRefreshToken: true,
+                detectSessionInUrl: true
+            }
+        });
+        window.supabaseClient = supabaseClient;
+        return supabaseClient;
+    }
+    return null;
+}
+
+if (SUPABASE_URL && SUPABASE_KEY) {
+    initSupabaseClient(SUPABASE_URL, SUPABASE_KEY);
+} else if (typeof window !== 'undefined' && window.fetch) {
+    // Dynamic fetch from backend /api/config if not in window.PRIVCLOUD_CONFIG
+    fetch('/api/config')
+        .then(res => res.json())
+        .then(cfg => {
+            if (cfg.supabaseUrl && cfg.supabaseKey) {
+                initSupabaseClient(cfg.supabaseUrl, cfg.supabaseKey);
+            }
+        })
+        .catch(() => {});
 }
 
 // Helper authentication methods
@@ -68,6 +87,23 @@ const PrivCloudAuth = {
     async signOut() {
         if (!supabaseClient) throw new Error("Supabase client is not initialized.");
         return await supabaseClient.auth.signOut();
+    },
+
+    async verifyOtp(email, token, type = 'signup') {
+        if (!supabaseClient) throw new Error("Supabase client is not initialized.");
+        return await supabaseClient.auth.verifyOtp({
+            email: email.trim(),
+            token: token.trim(),
+            type: type
+        });
+    },
+
+    async resendOtp(email, type = 'signup') {
+        if (!supabaseClient) throw new Error("Supabase client is not initialized.");
+        return await supabaseClient.auth.resend({
+            type: type,
+            email: email.trim()
+        });
     },
 
     async resetPassword(email) {

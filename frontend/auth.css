@@ -12,6 +12,10 @@
     box-sizing: border-box;
 }
 
+.hidden {
+    display: none !important;
+}
+
 /* Animations */
 @keyframes fadeInUp {
     from {
@@ -159,18 +163,18 @@
     min-height: 100vh;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     color: var(--text-main);
     font-family: 'Inter', sans-serif;
-    padding: 100px 16px 40px;
+    padding: calc(76px + 16pt) 16px 40px;
     box-sizing: border-box;
     position: relative;
 }
 
 .auth-page-wrapper {
     width: 100%;
-    max-width: 440px;
-    margin: auto;
+    max-width: 480px;
+    margin: 0 auto;
     display: flex;
     flex-direction: column;
     position: relative;
@@ -181,20 +185,19 @@
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 12px;
     animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Ultra-Transparent Glassmorphic Auth Card */
+/* Ultra-Transparent Glassmorphic Auth Card with Perfect Spacing */
 .auth-card {
     width: 100%;
-    background: rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    border-radius: 24px;
-    padding: 34px 28px;
-    box-shadow: 0 16px 40px rgba(0, 70, 160, 0.06), inset 0 1px 1px rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.35);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    border-radius: 26px;
+    padding: 38px 36px 32px;
+    box-shadow: 0 20px 50px rgba(0, 70, 160, 0.08), inset 0 1px 1.5px rgba(255, 255, 255, 0.85);
     position: relative;
     box-sizing: border-box;
 }
@@ -202,7 +205,7 @@
 /* Brand Header */
 .auth-brand-section {
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 22px;
 }
 
 .auth-logo-container {
@@ -215,10 +218,10 @@
 .auth-logo-img {
     height: 52px;
     width: auto;
-    max-width: 60px;
+    max-width: 64px;
     object-fit: contain;
     border-radius: 12px;
-    filter: drop-shadow(0 4px 12px rgba(0, 114, 255, 0.2));
+    filter: drop-shadow(0 6px 14px rgba(0, 114, 255, 0.22));
     transition: transform 0.3s ease;
 }
 
@@ -227,7 +230,7 @@
 }
 
 .auth-brand-title {
-    font-size: 1.65rem;
+    font-size: 1.75rem;
     font-weight: 800;
     letter-spacing: -0.6px;
     color: #0f172a;
@@ -235,33 +238,33 @@
 }
 
 .auth-brand-subtitle {
-    font-size: 0.86rem;
-    color: #334155;
-    line-height: 1.45;
+    font-size: 0.90rem;
+    color: #475569;
+    line-height: 1.5;
     font-weight: 500;
 }
 
 /* Segmented Tab Switcher */
 .auth-tab-group {
-    background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border-radius: 13px;
+    background: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 14px;
     padding: 4px;
     display: flex;
     gap: 4px;
     margin-bottom: 22px;
-    border: 1px solid rgba(255, 255, 255, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.55);
 }
 
 .auth-tab {
     flex: 1;
     border: none;
     background: transparent;
-    padding: 8px 12px;
-    font-size: 0.88rem;
+    padding: 10px 14px;
+    font-size: 0.92rem;
     font-weight: 600;
-    color: #334155;
+    color: #475569;
     border-radius: 10px;
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -270,13 +273,13 @@
 
 .auth-tab:hover:not(.active) {
     color: #0f172a;
-    background: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.35);
 }
 
 .auth-tab.active {
-    background: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.85);
     color: #0f172a;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05), inset 0 1px 1px rgba(255, 255, 255, 0.8);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05), inset 0 1px 1px #ffffff;
 }
 
 /* Auth Panels */
@@ -295,7 +298,7 @@
 .auth-form {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 0;
 }
 
 /* Alert Notification Banner */
@@ -303,14 +306,15 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 10px 14px;
-    background: rgba(254, 242, 242, 0.9);
-    border: 1px solid rgba(248, 113, 113, 0.4);
-    border-radius: 10px;
+    padding: 11px 14px;
+    background: rgba(254, 242, 242, 0.95);
+    border: 1px solid rgba(248, 113, 113, 0.45);
+    border-radius: 12px;
     color: #b91c1c;
-    font-size: 0.82rem;
+    font-size: 0.84rem;
     font-weight: 500;
-    line-height: 1.4;
+    line-height: 1.45;
+    margin-bottom: 8pt;
     animation: fadeIn 0.25s ease-out;
 }
 
@@ -320,7 +324,7 @@
 
 .auth-alert.success {
     background: rgba(240, 253, 244, 0.95);
-    border-color: rgba(74, 222, 128, 0.5);
+    border-color: rgba(74, 222, 128, 0.55);
     color: #15803d;
 }
 
@@ -343,12 +347,19 @@
     display: flex;
     flex-direction: column;
     gap: 5px;
+    margin-bottom: 8pt;
+}
+
+.form-group.hidden {
+    display: none !important;
+    margin: 0 !important;
 }
 
 .form-group label {
-    font-size: 0.82rem;
+    font-size: 0.86rem;
     font-weight: 600;
     color: #334155;
+    margin-left: 2px;
 }
 
 .form-label-row {
@@ -360,14 +371,15 @@
 .form-helper-row {
     display: flex;
     justify-content: flex-end;
-    margin-top: 3px;
+    margin-top: 8pt;
+    margin-bottom: 0;
 }
 
 .form-link-subtle {
-    font-size: 0.8rem;
+    font-size: 0.84rem;
     color: #0072ff;
     text-decoration: none;
-    font-weight: 500;
+    font-weight: 600;
     transition: color 0.2s;
 }
 
@@ -376,7 +388,7 @@
     text-decoration: underline;
 }
 
-/* Inset Input Icon Wrapper with Enhanced Visibility */
+/* Inset Input Icon Wrapper */
 .input-wrapper {
     position: relative;
     display: flex;
@@ -385,16 +397,17 @@
 
 .input-icon {
     position: absolute;
-    left: 13px;
-    color: #334155;
+    left: 15px;
+    color: #64748b;
     display: flex;
     align-items: center;
+    justify-content: center;
     pointer-events: none;
     transition: all 0.2s ease;
 }
 
 .input-icon svg {
-    stroke: #334155;
+    stroke: #64748b;
     transition: stroke 0.2s ease;
 }
 
@@ -408,30 +421,121 @@
 
 .input-wrapper input {
     width: 100%;
-    padding: 11px 42px 11px 42px;
-    border: 1px solid rgba(255, 255, 255, 0.55);
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.3);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    height: 48px;
+    padding: 0 44px;
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    border-radius: 13px;
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     color: #0f172a;
-    font-size: 0.92rem;
+    font-size: 0.95rem;
     font-weight: 500;
     font-family: inherit;
     transition: all 0.2s ease;
-    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.6);
+    box-shadow: inset 0 1px 1.5px rgba(255, 255, 255, 0.7);
 }
 
 .input-wrapper input:focus {
-    background: rgba(255, 255, 255, 0.55);
+    background: rgba(255, 255, 255, 0.7);
     border-color: #0072ff;
     outline: none;
-    box-shadow: 0 0 0 3.5px rgba(0, 114, 255, 0.18), inset 0 1px 1px #ffffff;
+    box-shadow: 0 0 0 3.5px rgba(0, 114, 255, 0.2), inset 0 1px 1px #ffffff;
 }
 
 .input-wrapper input::placeholder {
     color: #94a3b8;
     font-weight: 400;
+}
+
+/* 6 Small Square OTP Input Boxes */
+.otp-boxes-container {
+    display: flex;
+    justify-content: center;
+    gap: 8pt;
+    margin: 8pt 0;
+}
+
+.otp-digit-box {
+    width: 48px;
+    height: 56px;
+    border-radius: 14px;
+    border: 1.5px solid rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    text-align: center;
+    font-size: 1.55rem;
+    font-weight: 700;
+    color: #0f172a;
+    font-family: inherit;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.8), 0 2px 8px rgba(0, 0, 0, 0.04);
+    outline: none;
+    padding: 0;
+}
+
+.otp-digit-box:focus {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: #0072ff;
+    box-shadow: 0 0 0 4px rgba(0, 114, 255, 0.25), inset 0 1px 1px #ffffff;
+    transform: translateY(-2px);
+}
+
+.otp-digit-box.filled {
+    border-color: #0284c7;
+    background: rgba(255, 255, 255, 0.7);
+}
+
+.otp-info-card {
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 15px;
+    padding: 14px 18px;
+    font-size: 0.88rem;
+    color: #334155;
+    line-height: 1.5;
+    text-align: center;
+    margin-bottom: 8pt;
+}
+
+.otp-email-highlight {
+    color: #0072ff;
+    font-weight: 700;
+    word-break: break-all;
+}
+
+.otp-actions-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.86rem;
+    color: #475569;
+    margin: 8pt 0 10pt;
+}
+
+.btn-resend-otp {
+    background: transparent;
+    border: none;
+    color: #0072ff;
+    font-weight: 600;
+    font-size: 0.86rem;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.btn-resend-otp:hover:not(:disabled) {
+    text-decoration: underline;
+    color: #0056cc;
+}
+
+.btn-resend-otp:disabled {
+    color: #94a3b8;
+    cursor: not-allowed;
+    text-decoration: none;
 }
 
 /* Password Visibility Toggle */
@@ -466,17 +570,18 @@
     justify-content: center;
     gap: 8px;
     width: 100%;
-    padding: 11px 18px;
+    height: 48px;
+    padding: 0 18px;
     background: var(--grad-blue);
     color: #ffffff;
     border: none;
-    border-radius: 11px;
-    font-size: 0.92rem;
+    border-radius: 13px;
+    font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.25s ease;
     box-shadow: 0 4px 14px rgba(0, 114, 255, 0.3);
-    margin-top: 2px;
+    margin-top: 8pt;
     font-family: inherit;
 }
 

@@ -10,13 +10,23 @@ import urllib.parse
 import json
 import ssl
 
-SUPABASE_URL = "https://qrxjyvezlotjwggtgoqe.supabase.co"
-API_KEY = "sb_publishable_TBuxXwl_-StgMpP1deF7zw_2Z9izNgU"
-BUCKET = "assets"
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 WORKSPACE = os.path.abspath(os.path.join(BASE_DIR, ".."))
 FRONTEND_DIR = os.path.join(WORKSPACE, "frontend")
+
+# Load environment variables from .env
+env_file = os.path.join(WORKSPACE, ".env")
+if os.path.exists(env_file):
+    with open(env_file, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                k, v = line.split("=", 1)
+                os.environ[k.strip()] = v.strip()
+
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
+API_KEY = os.environ.get("SUPABASE_KEY", "")
+BUCKET = "assets"
 
 MEDIA_EXTS = {".png", ".jpg", ".jpeg", ".mp4", ".webp", ".svg", ".gif", ".ico"}
 
