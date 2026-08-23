@@ -1,0 +1,569 @@
+/* ==========================================================================
+   SCROLL-DRIVEN PINNED SAAS FEATURE SHOWCASE
+   ========================================================================== */
+
+.showcase-section-container {
+    width: 100%;
+    position: relative;
+    background: linear-gradient(to bottom, var(--bg-light-start, #bae6fd), var(--bg-light-end, #e0f2fe));
+    background-attachment: fixed;
+    margin-top: 0;
+    z-index: 20;
+}
+
+.showcase-scroll-wrapper {
+    position: relative;
+    width: 100%;
+    background: linear-gradient(to bottom, var(--bg-light-start, #bae6fd), var(--bg-light-end, #e0f2fe));
+    background-attachment: fixed;
+    color: #0f172a;
+}
+
+.showcase-pinned-stage {
+    width: 100%;
+    height: 100vh;
+    min-height: 680px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 86px 40px 18px; /* Offset for 76px navbar */
+    box-sizing: border-box;
+    z-index: 50;
+    background: linear-gradient(to bottom, var(--bg-light-start, #bae6fd), var(--bg-light-end, #e0f2fe));
+    background-attachment: fixed;
+}
+
+/* Ambient Backlight Glow */
+.showcase-ambient-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 75vw;
+    height: 65vh;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+    transition: background 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    filter: blur(90px);
+    opacity: 0.75;
+}
+
+/* Matrix Grid Texture */
+.showcase-grid-overlay {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(15, 23, 42, 0.06) 1px, transparent 1px);
+    background-size: 28px 28px;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.6;
+}
+
+/* ----------------------------------------------------
+   SECTION HEADER
+   ---------------------------------------------------- */
+.showcase-header {
+    text-align: center;
+    margin-bottom: 6px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 5;
+}
+
+.showcase-badge-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 6px;
+}
+
+.showcase-pill-badge {
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.95);
+    padding: 4px 14px;
+    border-radius: 30px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: #0f172a;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+    transition: border-color 0.4s;
+}
+
+.badge-pulse-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 10px currentColor;
+    animation: livePulse 2s infinite;
+}
+
+.showcase-scroll-hint {
+    font-size: 0.78rem;
+    color: #475569;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    opacity: 0.9;
+}
+
+.showcase-main-title {
+    font-size: 2.05rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    color: #0f172a;
+    line-height: 1.15;
+}
+
+.title-gradient-word {
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    transition: background-image 0.5s ease;
+}
+
+/* ----------------------------------------------------
+   3-COLUMN SHOWCASE GRID
+   ---------------------------------------------------- */
+.showcase-columns-grid {
+    display: grid;
+    grid-template-columns: 290px 1fr 390px;
+    gap: 32px;
+    align-items: center;
+    width: 100%;
+    max-width: 1440px;
+    margin: 0 auto;
+    flex: 1;
+    min-height: 0;
+    position: relative;
+    z-index: 5;
+}
+
+/* ----------------------------------------------------
+   LEFT COLUMN: Feature Counter & Title
+   ---------------------------------------------------- */
+.showcase-left-nav {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+    padding: 0 10px;
+}
+
+.showcase-active-name-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.showcase-feature-counter-tag {
+    font-size: 0.88rem;
+    font-weight: 800;
+    font-family: monospace;
+    letter-spacing: 1px;
+    display: inline-block;
+    transition: color 0.3s ease;
+}
+
+.counter-slash {
+    opacity: 0.4;
+    margin: 0 2px;
+}
+
+.showcase-active-feature-name {
+    font-size: 1.85rem;
+    font-weight: 800;
+    letter-spacing: -0.8px;
+    color: #0f172a;
+    line-height: 1.25;
+    display: block;
+}
+
+/* ----------------------------------------------------
+   CENTER COLUMN: 3D Studio Mockup
+   ---------------------------------------------------- */
+.showcase-center-visual {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    perspective: 1200px;
+    width: 100%;
+}
+
+.showcase-mockup-studio {
+    width: 100%;
+    max-width: 660px;
+    transition: transform 0.25s ease-out;
+    transform-style: preserve-3d;
+}
+
+.studio-frame-shell {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 1);
+    box-shadow: 0 30px 75px -15px rgba(15, 23, 42, 0.2), 0 0 45px -10px var(--mockup-glow, rgba(2,132,199,0.25)), 0 0 0 1px rgba(255, 255, 255, 0.9);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.studio-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+    gap: 12px;
+}
+
+.studio-controls {
+    display: flex;
+    gap: 7px;
+    align-items: center;
+}
+
+.control-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.control-dot.close { background: #ff5f56; }
+.control-dot.minimize { background: #ffbd2e; }
+.control-dot.expand { background: #27c93f; }
+
+.studio-address-capsule {
+    flex: 1;
+    max-width: 320px;
+    background: rgba(15, 23, 42, 0.04);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 8px;
+    padding: 4px 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.74rem;
+    font-family: monospace;
+}
+
+.capsule-host {
+    color: #0f172a;
+    font-weight: 600;
+}
+
+.capsule-path {
+    color: var(--mockup-accent, #0284c7);
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.studio-status-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #059669;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    background: rgba(16, 185, 129, 0.1);
+    padding: 3px 8px;
+    border-radius: 12px;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.status-live-beacon {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #10b981;
+    display: inline-block;
+    box-shadow: 0 0 8px #10b981;
+    animation: livePulse 2s infinite;
+}
+
+.studio-image-screen {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9.5;
+    background: #0f172a;
+    overflow: hidden;
+}
+
+.studio-image-slide {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    will-change: transform, opacity, filter;
+    transform-origin: center center;
+}
+
+.studio-image-slide.visible-initially {
+    opacity: 1;
+}
+
+.studio-img-asset {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.studio-floating-tag {
+    position: absolute;
+    bottom: 14px;
+    right: 14px;
+    padding: 6px 14px;
+    border-radius: 30px;
+    color: #ffffff;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.tag-icon {
+    font-size: 0.95rem;
+}
+
+.studio-screen-glare {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, transparent 60%);
+    pointer-events: none;
+}
+
+/* ----------------------------------------------------
+   RIGHT COLUMN: Modern Details & Bento Chips
+   ---------------------------------------------------- */
+.showcase-right-details {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    position: relative;
+    padding: 0 10px;
+}
+
+.showcase-content-viewport {
+    position: relative;
+    width: 100%;
+    min-height: 440px;
+    display: flex;
+    align-items: center;
+}
+
+.showcase-detail-pane {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    will-change: transform, opacity, filter;
+}
+
+.showcase-detail-pane.visible-initially {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.detail-meta-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.detail-step-badge {
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    font-family: monospace;
+    border: 1px solid currentColor;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(8px);
+}
+
+.detail-category-pill {
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.detail-headline {
+    font-size: 1.65rem;
+    font-weight: 800;
+    letter-spacing: -0.6px;
+    color: #0f172a;
+    line-height: 1.22;
+    margin-bottom: 10px;
+}
+
+.detail-summary {
+    font-size: 0.92rem;
+    color: #475569;
+    line-height: 1.6;
+    margin-bottom: 18px;
+}
+
+.detail-separator {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(15, 23, 42, 0.08), transparent);
+    margin-bottom: 18px;
+}
+
+.showcase-specs-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.showcase-spec-chip {
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.03);
+    transition: all 0.25s ease;
+    cursor: default;
+}
+
+.showcase-spec-chip:hover {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+}
+
+.spec-chip-icon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.spec-chip-label {
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.25;
+}
+
+/* ----------------------------------------------------
+   RESPONSIVE BREAKPOINTS
+   ---------------------------------------------------- */
+@media (max-width: 1200px) {
+    .showcase-columns-grid {
+        grid-template-columns: 240px 1fr 320px;
+        gap: 24px;
+    }
+
+    .detail-headline {
+        font-size: 1.45rem;
+    }
+
+    .showcase-main-title {
+        font-size: 1.75rem;
+    }
+
+    .showcase-active-feature-name {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 992px) {
+    .showcase-pinned-stage {
+        padding: 80px 20px 24px;
+        height: auto;
+        min-height: 100vh;
+    }
+
+    .showcase-columns-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+        max-width: 660px;
+    }
+
+    .showcase-left-nav {
+        display: none;
+    }
+
+    .showcase-content-viewport {
+        min-height: 380px;
+    }
+}
+
+@media (max-width: 768px) {
+    .showcase-pinned-stage {
+        padding: 76px 14px 20px;
+    }
+
+    .showcase-main-title {
+        font-size: 1.4rem;
+    }
+
+    .studio-frame-shell {
+        max-width: 100%;
+        border-radius: 14px;
+    }
+
+    .detail-headline {
+        font-size: 1.25rem;
+    }
+
+    .detail-summary {
+        font-size: 0.82rem;
+    }
+
+    .showcase-spec-chip {
+        padding: 8px 10px;
+    }
+
+    .spec-chip-label {
+        font-size: 0.76rem;
+    }
+}

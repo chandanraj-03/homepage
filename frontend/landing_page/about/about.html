@@ -1,83 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PrivCloud - Self-Hosted Cloud Platform</title>
-    
-    <!-- Modern Typography & Icons -->
+    <title>PrivCloud - About Us</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/logo.png">
+    
+    <!-- Base styles and about specific styles -->
+    <link rel="stylesheet" href="../overview/overview.css">
+    <link rel="stylesheet" href="about.css">
 
-    <!-- Modular CSS Stylesheets -->
-    <link rel="stylesheet" href="landing_page/overview/overview.css?v=20">
-    <link rel="stylesheet" href="landing_page/features/feature.css?v=20">
-    <link rel="stylesheet" href="landing_page/about/about.css?v=20">
-    <link rel="stylesheet" href="landing_page/chatbot/chatbot.css?v=20">
-
-    <!-- Supabase JS SDK & Client Initialization -->
+    <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="config.js"></script>
-    <script src="supabaseClient.js?v=20"></script>
+    <script src="../../supabaseClient.js"></script>
 </head>
-
 <body>
 
-    <!-- 1. Top Navigation Bar -->
+    <!-- Top Navigation Bar -->
     <nav class="navbar">
-        <a href="#overview" class="nav-brand">
+        <a href="../../index.html#overview" class="nav-brand">
             <img src="https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/logo.png" alt="PrivCloud Logo" class="nav-logo">
             <span class="nav-brand-text">PrivCloud</span>
         </a>
         <ul class="nav-links">
-            <li><a href="#overview" class="active">Overview</a></li>
-            <li><a href="#features">Features</a></li>
-            <li><a href="#about-us">About Us</a></li>
-            <li><a href="product_page/product.html">Product</a></li>
+            <li><a href="../../index.html#overview">Overview</a></li>
+            <li><a href="../../index.html#features">Features</a></li>
+            <li><a href="../../index.html#about-us" class="active">About Us</a></li>
+            <li><a href="../../product_page/product.html">Product</a></li>
         </ul>
         <div class="nav-actions">
-            <a href="auth_page/auth.html#login" class="btn-login">Login</a>
-            <a href="auth_page/auth.html#register" class="btn-register">Register</a>
+            <a href="../../auth_page/auth.html#login" class="btn-login">Login</a>
+            <a href="../../auth_page/auth.html#register" class="btn-register">Register</a>
         </div>
     </nav>
 
-    <!-- 2. Landing Page: Overview Section (Video + Intro) -->
-    <section id="overview" class="overview-section">
-        <div class="video-placeholder-wrapper">
-            <video autoplay loop muted playsinline class="product-video">
-                <source src="https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/retry.mp4" type="video/mp4">
-            </video>
-        </div>
-
-        <div class="container">
-            <div class="about-section">
-                <div class="about-text-container">
-                    <p>
-                        PrivCloud is a modern, feature-rich personal cloud storage and remote file management platform
-                        designed to provide a centralized hub for storing, organizing, previewing, and sharing digital
-                        assets. It operates directly on your machine, giving you total privacy and control over your files
-                        from any device.
-                    </p>
-                    <p>
-                        Connecting your devices is as simple as scanning a QR code. PrivCloud lets you share files safely
-                        with password-protected and expiring links, set up collaborative dropboxes for external uploads,
-                        stream rich media, and inspect documents right inside the browser.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- 3. Landing Page: Pinned Scroll-Driven SaaS Feature Showcase -->
-    <section id="features" class="showcase-section-container">
-        <div id="feature-showcase-root"></div>
-    </section>
-
-    <!-- 4. Landing Page: About Us & Special Thanks Section -->
-    <section id="about-us" class="about-us-section">
+    <!-- About Us Section -->
+    <section id="about-us" class="about-us-section" style="padding-top: 100px;">
         <div class="container">
             
             <!-- About Me Card -->
@@ -189,26 +150,6 @@
         </footer>
     </section>
 
-    <!-- Core Scripts: GSAP & ScrollTrigger -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-
-    <!-- React 18 & ReactDOM -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-
-    <!-- Babel Standalone for JSX -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-    <!-- Modular Module Scripts -->
-    <script src="landing_page/overview/overview.js?v=20"></script>
-    <script src="landing_page/features/feature.js?v=20"></script>
-    <script type="text/babel" src="landing_page/features/FeatureShowcase.jsx?v=20"></script>
-    <script src="landing_page/about/about.js?v=20"></script>
-
-    <!-- 5. Floating AI Chatbot Widget -->
-    <script src="landing_page/chatbot/chatbot.js?v=20"></script>
-
+    <script src="about.js"></script>
 </body>
-
 </html>

@@ -10,8 +10,8 @@ config.js
 
 chatbot.py
 supabasepassword.txt
+.password.txt
+password.txt
 supabase_schema.sql
 supabase.schema.sql
 *.sql
-
-

@@ -61,7 +61,18 @@ def index():
 @app.route('/auth')
 def auth():
     """Serve unified dynamic authentication page."""
-    return send_from_directory(FRONTEND_DIR, 'auth.html')
+    return send_from_directory(os.path.join(FRONTEND_DIR, 'auth_page'), 'auth.html')
+
+@app.route('/product')
+def product():
+    """Serve product and architecture page."""
+    return send_from_directory(os.path.join(FRONTEND_DIR, 'product_page'), 'product.html')
+
+@app.route('/purchase')
+@app.route('/checkout')
+def purchase():
+    """Serve hidden purchase and license activation page."""
+    return send_from_directory(os.path.join(FRONTEND_DIR, 'purchase_page'), 'purchase.html')
 
 @app.route('/<path:filename>')
 def serve_static(filename):

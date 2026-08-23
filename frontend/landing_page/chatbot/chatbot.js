@@ -4,9 +4,6 @@
  */
 
 (function () {
-    // =========================================================================
-    // CONFIGURATION
-    // =========================================================================
     const STREAMLIT_APP_URL = "https://ragchatbot-xvkzxhpasyqnpmrpbsmuvd.streamlit.app/?embed=true";
     const SUPABASE_ASSETS_URL = "https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets";
 
@@ -15,10 +12,9 @@
         isExpanded: false
     };
 
-    // =========================================================================
-    // DOM INITIALIZATION
-    // =========================================================================
     function initChatbot() {
+        if (document.getElementById("privcloud-chatbot-root")) return;
+
         const container = document.createElement("div");
         container.className = "privcloud-chatbot-fab-wrap";
         container.id = "privcloud-chatbot-root";
@@ -31,7 +27,7 @@
                 <span class="promo-close" id="promo-close-btn" title="Dismiss">&times;</span>
             </div>
 
-            <!-- Floating Action Button (Only Bot Character) -->
+            <!-- Floating Action Button (Bot Character) -->
             <button class="privcloud-chatbot-fab" id="privcloud-chat-toggle" aria-label="Toggle AI Chatbot" title="Chat with PrivCloud AI">
                 <div class="fab-icon fab-icon-ai">
                     <img src="${SUPABASE_ASSETS_URL}/bot.png" alt="PrivCloud Bot" class="fab-bot-img">
@@ -101,9 +97,6 @@
         bindEvents();
     }
 
-    // =========================================================================
-    // EVENT BINDINGS
-    // =========================================================================
     function bindEvents() {
         const toggleBtn = document.getElementById("privcloud-chat-toggle");
         const promoPill = document.getElementById("privcloud-chat-promo");
@@ -123,7 +116,9 @@
         }
 
         // Toggle Open / Close
-        toggleBtn.addEventListener("click", () => toggleChat());
+        if (toggleBtn) {
+            toggleBtn.addEventListener("click", () => toggleChat());
+        }
         if (promoPill) {
             promoPill.addEventListener("click", (e) => {
                 if (e.target !== promoCloseBtn) {
@@ -138,15 +133,19 @@
             });
         }
 
-        closeBtn.addEventListener("click", () => toggleChat(false));
+        if (closeBtn) {
+            closeBtn.addEventListener("click", () => toggleChat(false));
+        }
 
         // Expand / Contract Window
-        expandBtn.addEventListener("click", () => {
-            state.isExpanded = !state.isExpanded;
-            const chatWin = document.getElementById("privcloud-chat-window");
-            chatWin.classList.toggle("is-expanded", state.isExpanded);
-            expandBtn.textContent = state.isExpanded ? "🗕" : "🗖";
-        });
+        if (expandBtn) {
+            expandBtn.addEventListener("click", () => {
+                state.isExpanded = !state.isExpanded;
+                const chatWin = document.getElementById("privcloud-chat-window");
+                if (chatWin) chatWin.classList.toggle("is-expanded", state.isExpanded);
+                expandBtn.textContent = state.isExpanded ? "🗕" : "🗖";
+            });
+        }
 
         // Reload Streamlit Session
         if (reloadBtn && iframe) {
@@ -165,9 +164,6 @@
         }
     }
 
-    // =========================================================================
-    // UI ACTIONS
-    // =========================================================================
     function toggleChat(forceState) {
         state.isOpen = typeof forceState === "boolean" ? forceState : !state.isOpen;
         const chatWin = document.getElementById("privcloud-chat-window");
@@ -175,12 +171,12 @@
         const promoPill = document.getElementById("privcloud-chat-promo");
 
         if (state.isOpen) {
-            chatWin.classList.add("is-visible");
-            toggleBtn.classList.add("is-open");
+            if (chatWin) chatWin.classList.add("is-visible");
+            if (toggleBtn) toggleBtn.classList.add("is-open");
             if (promoPill) promoPill.style.display = "none";
         } else {
-            chatWin.classList.remove("is-visible");
-            toggleBtn.classList.remove("is-open");
+            if (chatWin) chatWin.classList.remove("is-visible");
+            if (toggleBtn) toggleBtn.classList.remove("is-open");
         }
     }
 

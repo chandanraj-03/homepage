@@ -274,17 +274,6 @@ function FeatureShowcase() {
     setTilt({ x: 0, y: 0 });
   };
 
-  const handleJumpToFeature = (index) => {
-    if (!scrollTriggerRef.current) return;
-    const st = scrollTriggerRef.current;
-    const targetProgress = index / (featuresData.length - 1);
-    const targetScroll = st.start + (st.end - st.start) * targetProgress;
-    window.scrollTo({
-      top: targetScroll,
-      behavior: 'smooth'
-    });
-  };
-
   const activeFeature = featuresData[activeIndex];
 
   return (
@@ -305,14 +294,8 @@ function FeatureShowcase() {
         />
         <div className="showcase-grid-overlay" />
 
-        {/* Section Header with Feature Counter */}
+        {/* Section Header */}
         <header className="showcase-header">
-          <div className="showcase-badge-row">
-            <span className="showcase-pill-badge" style={{ borderColor: activeFeature.accent }}>
-              <span className="badge-pulse-dot" style={{ background: activeFeature.accent }} />
-              FEATURE 0{activeIndex + 1} OF 07
-            </span>
-          </div>
           <h2 className="showcase-main-title">
             Engineered for <span className="title-gradient-word" style={{ backgroundImage: activeFeature.gradient }}>Simplicity & Power</span>
           </h2>
@@ -390,7 +373,7 @@ function FeatureShowcase() {
                     </div>
                   ))}
                   
-                  {/* Subtle Screen Sheen Layer */}
+                  {/* Screen Glare Layer */}
                   <div className="studio-screen-glare" />
                 </div>
 
@@ -408,9 +391,6 @@ function FeatureShowcase() {
                   className={`showcase-detail-pane ${idx === 0 ? 'visible-initially' : ''}`}
                 >
                   <div className="detail-meta-header">
-                    <span className="detail-step-badge" style={{ borderColor: feature.accent, color: feature.accent }}>
-                      FEATURE 0{idx + 1} OF 07
-                    </span>
                     <span className="detail-category-pill" style={{ background: feature.gradient }}>
                       {feature.badge}
                     </span>
@@ -445,7 +425,7 @@ function FeatureShowcase() {
 
 // Mount the React Component
 const rootElement = document.getElementById('feature-showcase-root');
-if (rootElement) {
+if (rootElement && typeof ReactDOM !== 'undefined') {
   const root = ReactDOM.createRoot(rootElement);
   root.render(<FeatureShowcase />);
 }

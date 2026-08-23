@@ -1,0 +1,378 @@
+/* ==========================================================================
+   ABOUT US & FOOTER SECTION
+   ========================================================================== */
+
+.about-us-section {
+    position: relative;
+    padding: 100px 0 40px;
+    background: linear-gradient(to bottom, var(--bg-light-start, #bae6fd), var(--bg-light-end, #e0f2fe));
+    background-attachment: fixed;
+    z-index: 20;
+    scroll-margin-top: 80px;
+}
+
+.about-us-card {
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.95);
+    border-radius: 24px;
+    padding: 48px 40px;
+    box-shadow: 0 20px 50px -15px rgba(15, 23, 42, 0.08);
+    margin-bottom: 60px;
+}
+
+.about-us-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 14px;
+    border-radius: 20px;
+    background: rgba(2, 132, 199, 0.1);
+    border: 1px solid rgba(2, 132, 199, 0.2);
+    font-size: 0.74rem;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    color: #0284c7;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+}
+
+.about-badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #0284c7;
+    box-shadow: 0 0 8px #0284c7;
+}
+
+.about-me-intro-row {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    margin-bottom: 32px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.about-me-avatar-box {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.about-me-avatar-img {
+    width: 108px;
+    height: 108px;
+    border-radius: 24px;
+    object-fit: cover;
+    border: 3px solid #ffffff;
+    box-shadow: 0 12px 28px -6px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(15, 23, 42, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.about-me-avatar-img:hover {
+    transform: scale(1.04) rotate(-1deg);
+    box-shadow: 0 16px 36px -8px rgba(15, 23, 42, 0.22);
+}
+
+.avatar-status-badge {
+    position: absolute;
+    bottom: -10px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(15, 23, 42, 0.1);
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #0f172a;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.avatar-status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 6px #10b981;
+    animation: livePulse 2s infinite;
+}
+
+.about-me-title-box {
+    flex: 1;
+}
+
+.about-me-title-box .about-us-title {
+    margin-bottom: 0;
+}
+
+.about-us-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -0.8px;
+    color: #0f172a;
+    line-height: 1.25;
+    margin-bottom: 32px;
+    max-width: 750px;
+}
+
+.about-us-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 40px;
+    align-items: start;
+}
+
+.about-us-text-col p {
+    font-size: 1.05rem;
+    line-height: 1.75;
+    color: #334155;
+    margin-bottom: 20px;
+}
+
+.about-us-text-col p:last-child {
+    margin-bottom: 0;
+}
+
+.about-us-pillars {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.pillar-card {
+    background: rgba(255, 255, 255, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    border-radius: 16px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.02);
+}
+
+.pillar-card:hover {
+    background: rgba(255, 255, 255, 0.95);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.pillar-icon {
+    font-size: 1.5rem;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.pillar-content h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 4px;
+}
+
+.pillar-content p {
+    font-size: 0.88rem;
+    color: #64748b;
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* Social Links */
+.about-me-social-links {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+}
+
+.social-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(15, 23, 42, 0.1);
+    color: #0f172a;
+    font-size: 0.86rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.social-chip .social-svg {
+    transition: transform 0.25s ease;
+}
+
+.social-chip.linkedin:hover {
+    background: #0a66c2;
+    color: #ffffff;
+    border-color: #0a66c2;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(10, 102, 194, 0.25);
+}
+
+.social-chip.github:hover {
+    background: #0f172a;
+    color: #ffffff;
+    border-color: #0f172a;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.25);
+}
+
+.social-chip.gmail:hover {
+    background: #ea4335;
+    color: #ffffff;
+    border-color: #ea4335;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(234, 67, 53, 0.25);
+}
+
+.social-chip:hover .social-svg {
+    transform: scale(1.15);
+}
+
+/* Special Thanks Section Card */
+.special-thanks-card {
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.95);
+    border-radius: 24px;
+    padding: 36px 40px;
+    box-shadow: 0 20px 50px -15px rgba(15, 23, 42, 0.08);
+    margin-bottom: 60px;
+    position: relative;
+    overflow: hidden;
+}
+
+.special-thanks-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 6px;
+    height: 100%;
+    background: linear-gradient(to bottom, #ec4899, #f43f5e);
+}
+
+.special-thanks-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 14px;
+    border-radius: 20px;
+    background: rgba(236, 72, 153, 0.1);
+    border: 1px solid rgba(236, 72, 153, 0.2);
+    font-size: 0.74rem;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    color: #db2777;
+    margin-bottom: 24px;
+    text-transform: uppercase;
+}
+
+.special-thanks-content {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+}
+
+.thanks-avatar-box {
+    flex-shrink: 0;
+}
+
+.thanks-avatar-img {
+    width: 96px;
+    height: 96px;
+    border-radius: 22px;
+    object-fit: cover;
+    border: 3px solid #ffffff;
+    box-shadow: 0 12px 28px -6px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(15, 23, 42, 0.08);
+    transition: transform 0.3s ease;
+}
+
+.thanks-avatar-img:hover {
+    transform: scale(1.04) rotate(1deg);
+}
+
+.thanks-info {
+    flex: 1;
+}
+
+.thanks-name {
+    font-size: 1.45rem;
+    font-weight: 800;
+    letter-spacing: -0.4px;
+    color: #0f172a;
+    margin-bottom: 4px;
+}
+
+.thanks-role {
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: #0284c7;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.thanks-quote {
+    font-size: 0.98rem;
+    line-height: 1.65;
+    color: #334155;
+    margin: 0;
+    font-style: italic;
+}
+
+/* Modern Site Footer */
+.site-footer {
+    border-top: 1px solid rgba(15, 23, 42, 0.08);
+    padding-top: 32px;
+}
+
+.footer-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.footer-logo {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
+.footer-brand-name {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.4px;
+}
+
+.footer-tagline {
+    font-size: 0.84rem;
+    color: #64748b;
+}
+
+.footer-copy {
+    font-size: 0.84rem;
+    color: #64748b;
+}
