@@ -1,5 +1,7 @@
 const { useState, useEffect, useRef } = React;
 
+const SUPABASE_ASSETS_URL = "https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets";
+
 const featuresData = [
   {
     number: "01",
@@ -13,7 +15,7 @@ const featuresData = [
       { icon: "⚡", label: "Bulk Multi-Select" },
       { icon: "📊", label: "Instant Metadata" }
     ],
-    image: "assets/features/01-file-management.jpg",
+    image: `${SUPABASE_ASSETS_URL}/features/01-file-management.jpg`,
     accent: "#0284c7",
     gradient: "linear-gradient(135deg, #0284c7 0%, #0072ff 100%)",
     glow: "rgba(2, 132, 199, 0.25)",
@@ -31,7 +33,7 @@ const featuresData = [
       { icon: "⚡", label: "Drag & Drop Anywhere" },
       { icon: "📊", label: "Live Queue Meter" }
     ],
-    image: "assets/features/02-upload-system.jpg",
+    image: `${SUPABASE_ASSETS_URL}/features/02-upload-system.jpg`,
     accent: "#7c3aed",
     gradient: "linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)",
     glow: "rgba(124, 58, 237, 0.25)",
@@ -49,7 +51,7 @@ const featuresData = [
       { icon: "📄", label: "Native PDF Viewer" },
       { icon: "💻", label: "Code & Markdown" }
     ],
-    image: "assets/features/03-media-suite.jpg",
+    image: `${SUPABASE_ASSETS_URL}/features/03-media-suite.jpg`,
     accent: "#e11d48",
     gradient: "linear-gradient(135deg, #f43f5e 0%, #be123c 100%)",
     glow: "rgba(225, 29, 72, 0.25)",
@@ -67,7 +69,7 @@ const featuresData = [
       { icon: "📱", label: "Instant QR Pairing" },
       { icon: "📥", label: "Upload Dropboxes" }
     ],
-    image: "assets/features/04-smart-sharing.jpg",
+    image: `${SUPABASE_ASSETS_URL}/features/04-smart-sharing.jpg`,
     accent: "#0d9488",
     gradient: "linear-gradient(135deg, #14b8a6 0%, #0f766e 100%)",
     glow: "rgba(13, 148, 136, 0.25)",
@@ -85,7 +87,7 @@ const featuresData = [
       { icon: "🛡️", label: "Exhaustion Guard" },
       { icon: "⚙️", label: "Custom Quotas" }
     ],
-    image: "assets/features/05-storage-analytics.jpg",
+    image: `${SUPABASE_ASSETS_URL}/features/05-storage-analytics.jpg`,
     accent: "#ea580c",
     gradient: "linear-gradient(135deg, #f97316 0%, #c2410c 100%)",
     glow: "rgba(234, 88, 12, 0.25)",
@@ -103,7 +105,7 @@ const featuresData = [
       { icon: "🧭", label: "Smart Breadcrumbs" },
       { icon: "📐", label: "Grid & List Views" }
     ],
-    image: "assets/features/06-search-navigation.jpg",
+    image: `${SUPABASE_ASSETS_URL}/features/06-search-navigation.jpg`,
     accent: "#db2777",
     gradient: "linear-gradient(135deg, #ec4899 0%, #be185d 100%)",
     glow: "rgba(219, 39, 119, 0.25)",
@@ -121,7 +123,7 @@ const featuresData = [
       { icon: "🔔", label: "Contextual Toasts" },
       { icon: "⚙️", label: "Account Settings" }
     ],
-    image: "assets/features/07-user-experience.jpg",
+    image: `${SUPABASE_ASSETS_URL}/features/07-user-experience.jpg`,
     accent: "#0284c7",
     gradient: "linear-gradient(135deg, #38bdf8 0%, #0369a1 100%)",
     glow: "rgba(2, 132, 199, 0.25)",
@@ -354,7 +356,7 @@ function FeatureShowcase() {
                   </div>
 
                   <div className="studio-address-capsule">
-                    <img src="logo.png" alt="PrivCloud" style={{ width: '15px', height: '15px', objectFit: 'contain', borderRadius: '3px' }} />
+                    <img src={`${SUPABASE_ASSETS_URL}/logo.png`} alt="PrivCloud" style={{ width: '15px', height: '15px', objectFit: 'contain', borderRadius: '3px' }} />
                     <span className="capsule-host">privcloud.local</span>
                     <span className="capsule-path">/{activeFeature.badge.toLowerCase().replace(/\s+/g, '-')}</span>
                   </div>
