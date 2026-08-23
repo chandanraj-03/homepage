@@ -40,7 +40,7 @@
    ========================================================= */
 
 .auth-body {
-    background: linear-gradient(135deg, #b9e6fe 0%, #dbeafe 50%, #e0f2fe 100%);
+    background: linear-gradient(to bottom, var(--bg-light-start), var(--bg-light-end));
     background-attachment: fixed;
     min-height: 100vh;
     display: flex;
@@ -51,36 +51,6 @@
     padding: 32px 16px;
     box-sizing: border-box;
     position: relative;
-    overflow: hidden;
-}
-
-/* Ambient Glass Refraction Blobs */
-.auth-body::before {
-    content: '';
-    position: absolute;
-    width: 440px;
-    height: 440px;
-    background: radial-gradient(circle, rgba(0, 198, 255, 0.45) 0%, rgba(0, 114, 255, 0.18) 55%, transparent 75%);
-    top: 20%;
-    left: calc(50% - 220px);
-    border-radius: 50%;
-    filter: blur(55px);
-    pointer-events: none;
-    z-index: 0;
-}
-
-.auth-body::after {
-    content: '';
-    position: absolute;
-    width: 320px;
-    height: 320px;
-    background: radial-gradient(circle, rgba(142, 45, 226, 0.22) 0%, rgba(74, 0, 224, 0.08) 60%, transparent 80%);
-    bottom: 12%;
-    right: calc(50% - 260px);
-    border-radius: 50%;
-    filter: blur(50px);
-    pointer-events: none;
-    z-index: 0;
 }
 
 .auth-page-wrapper {
@@ -135,16 +105,16 @@
     box-shadow: 0 6px 18px rgba(0, 114, 255, 0.12);
 }
 
-/* Transparent Glassmorphic Auth Card */
+/* Glassmorphic Auth Card */
 .auth-card {
     width: 100%;
-    background: rgba(255, 255, 255, 0.42);
-    backdrop-filter: blur(30px) saturate(190%);
-    -webkit-backdrop-filter: blur(30px) saturate(190%);
-    border: 1.5px solid rgba(255, 255, 255, 0.8);
-    border-radius: 26px;
-    padding: 34px 30px;
-    box-shadow: 0 25px 60px rgba(0, 114, 255, 0.1), 0 8px 24px rgba(15, 23, 42, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 24px;
+    padding: 34px 28px;
+    box-shadow: 0 15px 35px rgba(15, 23, 42, 0.06), 0 3px 10px rgba(0, 0, 0, 0.02);
     position: relative;
     box-sizing: border-box;
 }
