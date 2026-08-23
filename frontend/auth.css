@@ -125,23 +125,25 @@
     margin-bottom: 20px;
 }
 
-.auth-logo-badge {
-    width: 50px;
-    height: 50px;
-    border-radius: 15px;
-    margin: 0 auto 12px;
+.auth-logo-container {
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 8px 20px rgba(0, 114, 255, 0.28);
+    margin: 0 auto 12px;
 }
 
-.blue-gradient {
-    background: var(--grad-blue);
+.auth-logo-img {
+    height: 52px;
+    width: auto;
+    max-width: 60px;
+    object-fit: contain;
+    border-radius: 12px;
+    filter: drop-shadow(0 4px 12px rgba(0, 114, 255, 0.2));
+    transition: transform 0.3s ease;
 }
 
-.auth-logo-icon {
-    font-size: 1.5rem;
+.auth-logo-img:hover {
+    transform: scale(1.05);
 }
 
 .auth-brand-title {

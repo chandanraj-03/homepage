@@ -4,11 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="page-title">OwnCloudX - Sign In</title>
+    <title id="page-title">PrivCloud - Sign In</title>
     <!-- Importing Inter font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="logo.png">
     <link rel="stylesheet" href="auth.css">
 </head>
 
@@ -28,16 +29,16 @@
                 </a>
             </div>
 
-            <!-- Solid Auth Card (No Glassmorphism) -->
+            <!-- Glassmorphic Auth Card -->
             <div class="auth-card">
                 
                 <!-- Branding Header -->
                 <div class="auth-brand-section">
-                    <div class="auth-logo-badge blue-gradient">
-                        <span class="auth-logo-icon">☁️</span>
+                    <div class="auth-logo-container">
+                        <img src="logo.png" alt="PrivCloud Logo" class="auth-logo-img">
                     </div>
-                    <h1 class="auth-brand-title">OwnCloudX</h1>
-                    <p class="auth-brand-subtitle" id="auth-subtitle">Welcome back! Sign in to access your cloud hub.</p>
+                    <h1 class="auth-brand-title">PrivCloud</h1>
+                    <p class="auth-brand-subtitle" id="auth-subtitle">Welcome back! Sign in to access your cloud storage.</p>
                 </div>
 
                 <!-- Segmented Tab Switcher -->
@@ -104,7 +105,7 @@
 
                     <!-- Dynamic Submit Button -->
                     <button type="submit" id="auth-submit-btn" class="auth-submit-btn">
-                        <span id="submit-btn-text">Sign In to OwnCloudX</span>
+                        <span id="submit-btn-text">Sign In to PrivCloud</span>
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="5" y1="12" x2="19" y2="12"></line>
                             <polyline points="12 5 19 12 12 19"></polyline>
@@ -198,7 +199,7 @@
                 tabRegister.classList.add('active');
                 tabRegister.setAttribute('aria-selected', 'true');
 
-                pageTitle.textContent = "OwnCloudX - Create Account";
+                pageTitle.textContent = "PrivCloud - Create Account";
                 subtitle.textContent = "Create your personal cloud account to get started.";
                 forgotWrapper.style.display = 'none';
                 submitBtnText.textContent = "Create Account";
@@ -216,10 +217,10 @@
                 tabLogin.classList.add('active');
                 tabLogin.setAttribute('aria-selected', 'true');
 
-                pageTitle.textContent = "OwnCloudX - Sign In";
-                subtitle.textContent = "Welcome back! Sign in to access your cloud hub.";
+                pageTitle.textContent = "PrivCloud - Sign In";
+                subtitle.textContent = "Welcome back! Sign in to access your cloud storage.";
                 forgotWrapper.style.display = 'flex';
-                submitBtnText.textContent = "Sign In to OwnCloudX";
+                submitBtnText.textContent = "Sign In to PrivCloud";
                 labelUsername.textContent = "Username or Email";
                 usernameInput.placeholder = "e.g. alex@gmail.com";
                 passwordInput.placeholder = "Enter your password";
