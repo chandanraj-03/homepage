@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">OwnCloudX - Sign In</title>
+    <!-- Importing Inter font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="auth.css">
+</head>
+
+<body class="auth-body">
+
+    <main class="auth-page-wrapper">
+        <div class="auth-container">
+            
+            <!-- Top Navigation / Back Link (Direct Root Navigation) -->
+            <div class="auth-top-nav">
+                <a href="/" class="auth-back-link" title="Return to Landing Page">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                    <span>Back to Home</span>
+                </a>
+            </div>
+
+            <!-- Solid Auth Card (No Glassmorphism) -->
+            <div class="auth-card">
+                
+                <!-- Branding Header -->
+                <div class="auth-brand-section">
+                    <div class="auth-logo-badge blue-gradient">
+                        <span class="auth-logo-icon">☁️</span>
+                    </div>
+                    <h1 class="auth-brand-title">OwnCloudX</h1>
+                    <p class="auth-brand-subtitle" id="auth-subtitle">Welcome back! Sign in to access your cloud hub.</p>
+                </div>
+
+                <!-- Segmented Tab Switcher -->
+                <div class="auth-tab-group" role="tablist" aria-label="Authentication Options">
+                    <button type="button" id="tab-login" class="auth-tab active" role="tab" aria-selected="true" onclick="switchAuthMode('login')">
+                        Sign In
+                    </button>
+                    <button type="button" id="tab-register" class="auth-tab" role="tab" aria-selected="false" onclick="switchAuthMode('register')">
+                        Create Account
+                    </button>
+                </div>
+
+                <!-- Unified Form -->
+                <form id="auth-form" class="auth-form" onsubmit="handleAuthSubmit(event)">
+                    
+                    <!-- Inline Alert Banner -->
+                    <div id="auth-alert" class="auth-alert hidden" role="alert">
+                        <svg class="alert-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                        <span id="auth-alert-text">Only major email providers are allowed.</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="auth-username" id="label-username">Username or Email</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">
+                                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                            </span>
+                            <input type="text" id="auth-username" name="username" placeholder="e.g. alex@gmail.com" required autocomplete="username" oninput="clearAuthAlert()">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="auth-password">Password</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">
+                                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                </svg>
+                            </span>
+                            <input type="password" id="auth-password" name="password" placeholder="Enter your password" required autocomplete="current-password">
+                            <button type="button" class="btn-toggle-password" onclick="togglePasswordVisibility('auth-password', this)" aria-label="Toggle password visibility" title="Show password">
+                                <svg class="eye-open" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                                <svg class="eye-closed hidden" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="form-helper-row" id="forgot-wrapper">
+                            <a href="#forgot" id="forgot-link" class="form-link-subtle" onclick="alert('Password reset instructions will be sent if configured on your local server.')">Forgot Password?</a>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Submit Button -->
+                    <button type="submit" id="auth-submit-btn" class="auth-submit-btn">
+                        <span id="submit-btn-text">Sign In to OwnCloudX</span>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </button>
+                </form>
+
+                <!-- Footer Mode Switch Link -->
+                <div class="auth-footer-text" id="auth-footer-text">
+                    Don't have an account? 
+                    <a href="#register" onclick="switchAuthMode('register'); return false;">Create one now</a>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Dynamic Mode Switching & Validation Script -->
+    <script>
+        let currentMode = 'login';
+
+        // Strict Allowlist: Major standard providers only
+        const ALLOWED_EMAIL_DOMAINS = [
+            'gmail.com', 'googlemail.com',
+            'outlook.com', 'hotmail.com', 'live.com', 'msn.com',
+            'yahoo.com', 'yahoo.co.in', 'ymail.com',
+            'proton.me', 'protonmail.com',
+            'icloud.com', 'me.com', 'mac.com',
+            'zoho.com',
+            'aol.com',
+            'gmx.com', 'mail.com'
+        ];
+
+        function showAuthAlert(message) {
+            const alertBox = document.getElementById('auth-alert');
+            const alertText = document.getElementById('auth-alert-text');
+            const usernameInput = document.getElementById('auth-username');
+            
+            alertText.textContent = message;
+            alertBox.classList.remove('hidden');
+            usernameInput.classList.add('input-error');
+            usernameInput.focus();
+        }
+
+        function clearAuthAlert() {
+            const alertBox = document.getElementById('auth-alert');
+            const usernameInput = document.getElementById('auth-username');
+            alertBox.classList.add('hidden');
+            usernameInput.classList.remove('input-error');
+        }
+
+        function validateEmailProvider(val) {
+            const trimmed = val.trim().toLowerCase();
+            
+            if (trimmed.includes('@')) {
+                const parts = trimmed.split('@');
+                const domain = parts[parts.length - 1];
+                
+                if (!ALLOWED_EMAIL_DOMAINS.includes(domain)) {
+                    return {
+                        valid: false,
+                        message: 'Only major providers are allowed (Gmail, Outlook, Yahoo, Proton, iCloud, Zoho).'
+                    };
+                }
+            } else if (currentMode === 'register') {
+                return {
+                    valid: false,
+                    message: 'Please use a valid email (e.g. name@gmail.com, name@outlook.com).'
+                };
+            }
+            return { valid: true };
+        }
+
+        function switchAuthMode(mode, updateHistory = true) {
+            clearAuthAlert();
+            currentMode = mode;
+            const tabLogin = document.getElementById('tab-login');
+            const tabRegister = document.getElementById('tab-register');
+            const pageTitle = document.getElementById('page-title');
+            const subtitle = document.getElementById('auth-subtitle');
+            const forgotWrapper = document.getElementById('forgot-wrapper');
+            const submitBtnText = document.getElementById('submit-btn-text');
+            const footerText = document.getElementById('auth-footer-text');
+            const passwordInput = document.getElementById('auth-password');
+            const labelUsername = document.getElementById('label-username');
+            const usernameInput = document.getElementById('auth-username');
+
+            if (mode === 'register') {
+                tabLogin.classList.remove('active');
+                tabLogin.setAttribute('aria-selected', 'false');
+                tabRegister.classList.add('active');
+                tabRegister.setAttribute('aria-selected', 'true');
+
+                pageTitle.textContent = "OwnCloudX - Create Account";
+                subtitle.textContent = "Create your personal cloud account to get started.";
+                forgotWrapper.style.display = 'none';
+                submitBtnText.textContent = "Create Account";
+                labelUsername.textContent = "Email Address";
+                usernameInput.placeholder = "e.g. alex@gmail.com";
+                passwordInput.placeholder = "Create a password";
+                footerText.innerHTML = 'Already have an account? <a href="#login" onclick="switchAuthMode(\'login\'); return false;">Sign in</a>';
+                
+                if (updateHistory && window.location.hash !== '#register') {
+                    history.replaceState(null, null, '#register');
+                }
+            } else {
+                tabRegister.classList.remove('active');
+                tabRegister.setAttribute('aria-selected', 'false');
+                tabLogin.classList.add('active');
+                tabLogin.setAttribute('aria-selected', 'true');
+
+                pageTitle.textContent = "OwnCloudX - Sign In";
+                subtitle.textContent = "Welcome back! Sign in to access your cloud hub.";
+                forgotWrapper.style.display = 'flex';
+                submitBtnText.textContent = "Sign In to OwnCloudX";
+                labelUsername.textContent = "Username or Email";
+                usernameInput.placeholder = "e.g. alex@gmail.com";
+                passwordInput.placeholder = "Enter your password";
+                footerText.innerHTML = 'Don\'t have an account? <a href="#register" onclick="switchAuthMode(\'register\'); return false;">Create one now</a>';
+                
+                if (updateHistory && window.location.hash !== '#login' && window.location.hash !== '') {
+                    history.replaceState(null, null, '#login');
+                }
+            }
+        }
+
+        // Initialize state on page load and handle browser back/forward
+        function handleHashRouting() {
+            const hash = window.location.hash.toLowerCase();
+            if (hash === '#register') {
+                switchAuthMode('register', false);
+            } else {
+                switchAuthMode('login', false);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', handleHashRouting);
+        window.addEventListener('hashchange', handleHashRouting);
+        window.addEventListener('popstate', handleHashRouting);
+
+        // Password Show/Hide Toggle
+        function togglePasswordVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            const eyeOpen = btn.querySelector('.eye-open');
+            const eyeClosed = btn.querySelector('.eye-closed');
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                eyeOpen.classList.add('hidden');
+                eyeClosed.classList.remove('hidden');
+                btn.setAttribute('title', 'Hide password');
+            } else {
+                input.type = 'password';
+                eyeClosed.classList.add('hidden');
+                eyeOpen.classList.remove('hidden');
+                btn.setAttribute('title', 'Show password');
+            }
+        }
+
+        // Form Submit
+        function handleAuthSubmit(e) {
+            e.preventDefault();
+            clearAuthAlert();
+
+            const usernameInput = document.getElementById('auth-username');
+            const validation = validateEmailProvider(usernameInput.value);
+
+            if (!validation.valid) {
+                showAuthAlert(validation.message);
+                return;
+            }
+
+            const btn = document.getElementById('auth-submit-btn');
+            const submitText = document.getElementById('submit-btn-text');
+            const originalText = submitText.textContent;
+            
+            submitText.textContent = currentMode === 'login' ? 'Signing In...' : 'Creating Account...';
+            btn.disabled = true;
+            btn.style.opacity = '0.8';
+
+            setTimeout(() => {
+                if (currentMode === 'login') {
+                    alert('Authentication successful! Welcome to OwnCloudX.');
+                } else {
+                    alert('Account created successfully! Switching to sign in...');
+                    switchAuthMode('login');
+                }
+                submitText.textContent = originalText;
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            }, 800);
+        }
+    </script>
+</body>
+
+</html>
