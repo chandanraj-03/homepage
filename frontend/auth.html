@@ -15,19 +15,25 @@
 
 <body class="auth-body">
 
+    <!-- Top Navigation Bar (Identical to Landing Page) -->
+    <nav class="navbar">
+        <a href="/" class="nav-brand">
+            <img src="logo.png" alt="PrivCloud Logo" class="nav-logo">
+            <span class="nav-brand-text">PrivCloud</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="/#overview">Overview</a></li>
+            <li><a href="/#features">Features</a></li>
+            <li><a href="/#about-us">About Us</a></li>
+        </ul>
+        <div class="nav-actions">
+            <a href="#login" class="btn-login" onclick="switchAuthMode('login'); return false;">Login</a>
+            <a href="#register" class="btn-register" onclick="switchAuthMode('register'); return false;">Register</a>
+        </div>
+    </nav>
+
     <main class="auth-page-wrapper">
         <div class="auth-container">
-            
-            <!-- Top Navigation / Back Link (Direct Root Navigation) -->
-            <div class="auth-top-nav">
-                <a href="/" class="auth-back-link" title="Return to Landing Page">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="19" y1="12" x2="5" y2="12"></line>
-                        <polyline points="12 19 5 12 12 5"></polyline>
-                    </svg>
-                    <span>Back to Home</span>
-                </a>
-            </div>
 
             <!-- Glassmorphic Auth Card -->
             <div class="auth-card">

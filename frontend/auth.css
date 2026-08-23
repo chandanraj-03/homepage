@@ -35,8 +35,122 @@
     }
 }
 
+/* ----------------------------------------------------
+   TOP NAVIGATION BAR (Matching Landing Page)
+   ---------------------------------------------------- */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 76px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.95);
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+    z-index: 1000;
+}
+
+.nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.nav-logo {
+    height: 40px;
+    width: auto;
+    max-width: 48px;
+    object-fit: contain;
+    border-radius: 10px;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.08));
+    transition: transform 0.3s ease;
+}
+
+.nav-brand:hover .nav-logo {
+    transform: scale(1.06);
+}
+
+.nav-brand-text {
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: #0f172a;
+    background: linear-gradient(135deg, #0f172a 0%, #0284c7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    list-style: none;
+}
+
+.nav-links li a {
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #475569;
+    padding: 7px 18px;
+    border-radius: 20px;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    display: inline-block;
+}
+
+.nav-links li a:hover {
+    color: #0284c7;
+    background: rgba(2, 132, 199, 0.06);
+}
+
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.btn-login {
+    text-decoration: none;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: #0f172a;
+    padding: 8px 18px;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+}
+
+.btn-login:hover {
+    color: #0284c7;
+    background: rgba(255, 255, 255, 0.6);
+}
+
+.btn-register {
+    text-decoration: none;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: #ffffff;
+    background: linear-gradient(135deg, #0284c7 0%, #0072ff 100%);
+    padding: 8px 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+    transition: all 0.25s ease;
+}
+
+.btn-register:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(2, 132, 199, 0.45);
+}
+
 /* =========================================================
-   Unified Auth Page (auth.html) Styles - Solid Card Design
+   Unified Auth Page (auth.html) Styles
    ========================================================= */
 
 .auth-body {
@@ -48,7 +162,7 @@
     align-items: center;
     color: var(--text-main);
     font-family: 'Inter', sans-serif;
-    padding: 32px 16px;
+    padding: 100px 16px 40px;
     box-sizing: border-box;
     position: relative;
 }
@@ -69,40 +183,6 @@
     flex-direction: column;
     gap: 12px;
     animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.auth-top-nav {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    width: 100%;
-    padding-left: 2px;
-}
-
-.auth-back-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    color: #1e293b;
-    text-decoration: none;
-    font-size: 0.85rem;
-    font-weight: 600;
-    padding: 8px 15px;
-    background: rgba(255, 255, 255, 0.28);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.55);
-    border-radius: 20px;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03), inset 0 1px 1px rgba(255, 255, 255, 0.6);
-}
-
-.auth-back-link:hover {
-    background: rgba(255, 255, 255, 0.5);
-    color: #0072ff;
-    border-color: rgba(255, 255, 255, 0.8);
-    transform: translateX(-3px);
-    box-shadow: 0 6px 18px rgba(0, 114, 255, 0.12);
 }
 
 /* Ultra-Transparent Glassmorphic Auth Card */
