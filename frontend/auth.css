@@ -40,7 +40,7 @@
    ========================================================= */
 
 .auth-body {
-    background: linear-gradient(to bottom, var(--bg-light-start), var(--bg-light-end));
+    background: linear-gradient(135deg, #b9e6fe 0%, #dbeafe 50%, #e0f2fe 100%);
     background-attachment: fixed;
     min-height: 100vh;
     display: flex;
@@ -51,6 +51,36 @@
     padding: 32px 16px;
     box-sizing: border-box;
     position: relative;
+    overflow: hidden;
+}
+
+/* Ambient Glass Refraction Blobs */
+.auth-body::before {
+    content: '';
+    position: absolute;
+    width: 440px;
+    height: 440px;
+    background: radial-gradient(circle, rgba(0, 198, 255, 0.45) 0%, rgba(0, 114, 255, 0.18) 55%, transparent 75%);
+    top: 20%;
+    left: calc(50% - 220px);
+    border-radius: 50%;
+    filter: blur(55px);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.auth-body::after {
+    content: '';
+    position: absolute;
+    width: 320px;
+    height: 320px;
+    background: radial-gradient(circle, rgba(142, 45, 226, 0.22) 0%, rgba(74, 0, 224, 0.08) 60%, transparent 80%);
+    bottom: 12%;
+    right: calc(50% - 260px);
+    border-radius: 50%;
+    filter: blur(50px);
+    pointer-events: none;
+    z-index: 0;
 }
 
 .auth-page-wrapper {
@@ -59,6 +89,8 @@
     margin: auto;
     display: flex;
     flex-direction: column;
+    position: relative;
+    z-index: 1;
 }
 
 .auth-container {
@@ -81,38 +113,38 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    color: #475569;
+    color: #334155;
     text-decoration: none;
     font-size: 0.85rem;
     font-weight: 600;
-    padding: 7px 14px;
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.9);
+    padding: 8px 15px;
+    background: rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1.5px solid rgba(255, 255, 255, 0.75);
     border-radius: 20px;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.9);
 }
 
 .auth-back-link:hover {
-    background: rgba(255, 255, 255, 0.95);
-    color: #0f172a;
+    background: rgba(255, 255, 255, 0.85);
+    color: #0072ff;
     border-color: #ffffff;
     transform: translateX(-3px);
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 6px 18px rgba(0, 114, 255, 0.12);
 }
 
-/* Glassmorphic Auth Card */
+/* Transparent Glassmorphic Auth Card */
 .auth-card {
     width: 100%;
-    background: rgba(255, 255, 255, 0.65);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.85);
-    border-radius: 24px;
-    padding: 32px 28px;
-    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.42);
+    backdrop-filter: blur(30px) saturate(190%);
+    -webkit-backdrop-filter: blur(30px) saturate(190%);
+    border: 1.5px solid rgba(255, 255, 255, 0.8);
+    border-radius: 26px;
+    padding: 34px 30px;
+    box-shadow: 0 25px 60px rgba(0, 114, 255, 0.1), 0 8px 24px rgba(15, 23, 42, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.95);
     position: relative;
     box-sizing: border-box;
 }
@@ -124,14 +156,14 @@
 }
 
 .auth-logo-badge {
-    width: 48px;
-    height: 48px;
-    border-radius: 14px;
+    width: 50px;
+    height: 50px;
+    border-radius: 15px;
     margin: 0 auto 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 6px 16px rgba(0, 114, 255, 0.22);
+    box-shadow: 0 8px 20px rgba(0, 114, 255, 0.28);
 }
 
 .blue-gradient {
@@ -139,14 +171,14 @@
 }
 
 .auth-logo-icon {
-    font-size: 1.45rem;
+    font-size: 1.5rem;
 }
 
 .auth-brand-title {
-    font-size: 1.6rem;
+    font-size: 1.65rem;
     font-weight: 800;
     letter-spacing: -0.6px;
-    background: linear-gradient(135deg, #0f172a, #334155);
+    background: linear-gradient(135deg, #0f172a, #1e293b);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     margin-bottom: 4px;
@@ -154,21 +186,23 @@
 
 .auth-brand-subtitle {
     font-size: 0.86rem;
-    color: var(--text-muted);
+    color: #475569;
     line-height: 1.45;
+    font-weight: 500;
 }
 
 /* Segmented Tab Switcher */
 .auth-tab-group {
-    background: rgba(241, 245, 249, 0.65);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.35);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-radius: 13px;
     padding: 4px;
     display: flex;
     gap: 4px;
     margin-bottom: 22px;
-    border: 1px solid rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
 .auth-tab {
@@ -178,21 +212,22 @@
     padding: 8px 12px;
     font-size: 0.88rem;
     font-weight: 600;
-    color: #64748b;
-    border-radius: 9px;
+    color: #475569;
+    border-radius: 10px;
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     font-family: inherit;
 }
 
 .auth-tab:hover:not(.active) {
-    color: #1e293b;
+    color: #0f172a;
+    background: rgba(255, 255, 255, 0.3);
 }
 
 .auth-tab.active {
-    background: rgba(255, 255, 255, 0.92);
+    background: rgba(255, 255, 255, 0.85);
     color: #0f172a;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 3px 10px rgba(0, 114, 255, 0.08), inset 0 1px 1px #ffffff;
 }
 
 /* Auth Panels */
@@ -315,23 +350,24 @@
 .input-wrapper input {
     width: 100%;
     padding: 11px 42px 11px 42px;
-    border: 1.5px solid rgba(148, 163, 184, 0.55);
+    border: 1.5px solid rgba(255, 255, 255, 0.85);
     border-radius: 12px;
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     color: #0f172a;
     font-size: 0.92rem;
     font-weight: 500;
     font-family: inherit;
-    transition: all 0.2s ease;
+    transition: all 0.25s ease;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
 .input-wrapper input:focus {
-    background: #ffffff;
+    background: rgba(255, 255, 255, 0.9);
     border-color: #0072ff;
     outline: none;
-    box-shadow: 0 0 0 3.5px rgba(0, 114, 255, 0.16);
+    box-shadow: 0 0 0 3.5px rgba(0, 114, 255, 0.18), inset 0 1px 1px #ffffff;
 }
 
 .input-wrapper input::placeholder {
