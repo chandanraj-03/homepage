@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrivCloud 3.0 — The Ultimate Self-Hosted Personal Cloud</title>
+    
+    <!-- Modern Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/logo.png">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="product.css?v=30">
+    <link rel="stylesheet" href="../landing_page/chatbot/chatbot.css?v=20">
+
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../supabaseClient.js?v=20"></script>
+</head>
+
+<body>
+
+    <!-- Top Navigation Bar -->
+    <nav class="navbar">
+        <a href="../index.html#overview" class="nav-brand">
+            <img src="https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/logo.png" alt="PrivCloud Logo" class="nav-logo">
+            <span class="nav-brand-text">PrivCloud</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="../index.html#overview">Overview</a></li>
+            <li><a href="../index.html#features">Features</a></li>
+            <li><a href="../index.html#about-us">About Us</a></li>
+            <li><a href="product.html" class="active">Product</a></li>
+        </ul>
+        <div class="nav-actions">
+            <a href="../auth_page/auth.html#login" class="btn-login">Login</a>
+            <a href="../auth_page/auth.html#register" class="btn-register">Register</a>
+        </div>
+    </nav>
+
+    <!-- 1. Hero Section -->
+    <section class="product-hero-section">
+        <div class="container">
+            
+            <!-- Meta Badge Row -->
+            <div class="badge-row-badges">
+                <span class="meta-chip-badge blue">
+                    <span class="badge-pulse-dot"></span>
+                    Version 3.0.0
+                </span>
+                <span class="meta-chip-badge">🪟 Windows 10 | 11 | Server</span>
+                <span class="meta-chip-badge emerald">⚡ Lifetime One-Time Purchase</span>
+                <span class="meta-chip-badge">🛡️ 100% Zero-Telemetry</span>
+                <span class="meta-chip-badge">🚀 Gigabit LAN + Secure Tunnel</span>
+            </div>
+
+            <h1 class="product-hero-title">
+                The Ultimate Self-Hosted <span class="title-highlight">Personal Cloud Platform</span>
+            </h1>
+
+            <p class="product-hero-subtitle">
+                <strong>Own Your Data. Eliminate Monthly Subscriptions. Experience Blazing Fast Cloud Freedom.</strong><br>
+                Transform your PC or home workstation into an enterprise-grade personal cloud with the slick UX of Dropbox, the sharing power of Google Drive, and 4K media streaming — stored directly on your own hard drive with <strong>ZERO monthly fees forever</strong>.
+            </p>
+
+            <div class="product-cta-group">
+                <button onclick="handlePlanSelection('pro')" class="btn-register btn-hero-primary" style="cursor: pointer; border: none;">Get Lifetime License ➔</button>
+                <a href="#comparison" class="btn-hero-secondary">Compare vs Big Tech Cloud</a>
+            </div>
+
+            <!-- Architecture Flow Box -->
+            <div class="architecture-flow-box">
+                <div class="flow-steps-grid">
+                    
+                    <div class="flow-card-node">
+                        <div class="flow-node-hdr">
+                            <span>💾</span>
+                            <span>Local Storage Pools</span>
+                        </div>
+                        <ul class="flow-node-list">
+                            <li>• 1TB, 4TB, 16TB+ Drives</li>
+                            <li>• Internal SSDs & USB Arrays</li>
+                            <li>• 100% Data Ownership</li>
+                        </ul>
+                    </div>
+
+                    <div class="flow-arrow-indicator">➔</div>
+
+                    <div class="flow-card-node" style="border-color: rgba(2, 132, 199, 0.4); background: rgba(2, 132, 199, 0.05);">
+                        <div class="flow-node-hdr" style="color: #0284c7;">
+                            <span>⚡</span>
+                            <span>PrivCloud Engine</span>
+                        </div>
+                        <ul class="flow-node-list">
+                            <li>• Zero-Knowledge Privacy</li>
+                            <li>• In-Browser 4K Media Suite</li>
+                            <li>• Smart Share & Dropboxes</li>
+                        </ul>
+                    </div>
+
+                    <div class="flow-arrow-indicator">➔</div>
+
+                    <div class="flow-card-node">
+                        <div class="flow-node-hdr">
+                            <span>📱</span>
+                            <span>Any Client Device</span>
+                        </div>
+                        <ul class="flow-node-list">
+                            <li>• iPhone, iPad & Android</li>
+                            <li>• Mac, PC, Linux & Web</li>
+                            <li>• 1-Sec Instant QR Connect</li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- 2. Comparison Matrix Section -->
+    <section id="comparison" class="comparison-section">
+        <div class="container">
+            <div class="section-header-center">
+                <span class="section-tag-pill">Market Comparison</span>
+                <h2>Why PrivCloud is a Game-Changer</h2>
+                <p>Compare PrivCloud against recurring monthly cloud subscriptions and expensive NAS hardware setups.</p>
+            </div>
+
+            <div class="comparison-table-wrapper">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th class="col-privcloud">PrivCloud 3.0</th>
+                            <th>Google Drive / Dropbox</th>
+                            <th>Synology / QNAP NAS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="highlight-row">
+                            <td><strong>Pricing Model</strong></td>
+                            <td class="col-privcloud"><span class="table-badge-val">✓ One-Time Purchase</span></td>
+                            <td>Recurring Monthly/Yearly Fees</td>
+                            <td>Expensive Hardware (₹35,000 – ₹75,000+)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Storage Limits</strong></td>
+                            <td class="col-privcloud"><span class="table-badge-val">✓ Unlimited (Disk Bound)</span></td>
+                            <td>Pay more per Gigabyte</td>
+                            <td>Requires proprietary drives</td>
+                        </tr>
+                        <tr class="highlight-row">
+                            <td><strong>Data Privacy</strong></td>
+                            <td class="col-privcloud"><span class="table-badge-val">✓ 100% Zero-Telemetry</span></td>
+                            <td>Scanned for Ads & AI training</td>
+                            <td>Private (Complex Linux setup)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Local Transfer Speed</strong></td>
+                            <td class="col-privcloud"><span class="table-badge-val">✓ Up to 1,000+ Mbps (Gigabit)</span></td>
+                            <td>Throttled by ISP bandwidth</td>
+                            <td>Fast LAN (Complex config)</td>
+                        </tr>
+                        <tr class="highlight-row">
+                            <td><strong>Remote Mobile Access</strong></td>
+                            <td class="col-privcloud"><span class="table-badge-val">✓ Instant QR Connect + Tunnel</span></td>
+                            <td>Cloud Account Login</td>
+                            <td>Complicated Port Forwarding</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Setup Time</strong></td>
+                            <td class="col-privcloud"><span class="table-badge-val">✓ &lt; 3 Minutes (1-Click)</span></td>
+                            <td>Instant</td>
+                            <td>2 to 4 Hours of Setup</td>
+                        </tr>
+                        <tr class="highlight-row">
+                            <td><strong>File Sharing & Dropboxes</strong></td>
+                            <td class="col-privcloud"><span class="table-badge-val">✓ Passcode + Auto-Expiry</span></td>
+                            <td>Basic Link Sharing</td>
+                            <td>Complex User Management</td>
+                        </tr>
+                        <tr>
+                            <td><strong>5-Year Total Cost</strong></td>
+                            <td class="col-privcloud"><span class="table-badge-val" style="color: #10b981; font-size: 1.05rem;">₹1,499 – ₹2,999 Total</span></td>
+                            <td style="color: #ef4444; font-weight: 700;">₹50,000 – ₹1,00,000+</td>
+                            <td style="color: #ef4444; font-weight: 700;">₹50,000 – ₹1,25,000+</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. Key Selling Features (6 Modules) -->
+    <section class="features-grid-section">
+        <div class="container">
+            <div class="section-header-center">
+                <span class="section-tag-pill">Capabilities</span>
+                <h2>Key Selling Features Users Love</h2>
+                <p>Engineered from the ground up to deliver desktop-grade file management with zero cloud bottlenecks.</p>
+            </div>
+
+            <div class="selling-features-grid">
+                
+                <!-- 1. Speed & Access -->
+                <div class="selling-feature-card">
+                    <div>
+                        <div class="card-top-icon-row">
+                            <div class="feature-icon-bubble" style="background: rgba(2, 132, 199, 0.12); color: #0284c7;">⚡</div>
+                            <span class="feature-number-tag">01 / 06</span>
+                        </div>
+                        <h3 class="feature-card-title">Blazing Local Speed & Remote Access</h3>
+                        <p class="feature-card-desc">Transfer gigabytes of 4K video, RAW photos, and project archives in seconds over local Wi-Fi without internet caps.</p>
+                    </div>
+                    <ul class="feature-bullet-list">
+                        <li><span class="bullet-check">✓</span> <strong>Gigabit LAN Transfers:</strong> Up to 1,000+ Mbps</li>
+                        <li><span class="bullet-check">✓</span> <strong>Global Remote Tunnel:</strong> Encrypted HTTPS</li>
+                        <li><span class="bullet-check">✓</span> <strong>Mobile QR Connect:</strong> Instant camera scan</li>
+                        <li><span class="bullet-check">✓</span> <strong>Custom Subdomains:</strong> Permanent vanity URLs</li>
+                    </ul>
+                </div>
+
+                <!-- 2. Media Suite -->
+                <div class="selling-feature-card">
+                    <div>
+                        <div class="card-top-icon-row">
+                            <div class="feature-icon-bubble" style="background: rgba(225, 29, 72, 0.12); color: #e11d48;">🎬</div>
+                            <span class="feature-number-tag">02 / 06</span>
+                        </div>
+                        <h3 class="feature-card-title">In-Browser Media & Document Suite</h3>
+                        <p class="feature-card-desc">Never download files just to inspect what is inside. Full suite of browser-native players and preview studios.</p>
+                    </div>
+                    <ul class="feature-bullet-list">
+                        <li><span class="bullet-check">✓</span> <strong>Interactive Photo Gallery:</strong> Zoom & 90° rotate</li>
+                        <li><span class="bullet-check">✓</span> <strong>4K Video & Audio:</strong> Native stream scrubbing</li>
+                        <li><span class="bullet-check">✓</span> <strong>PDF & Markdown Studio:</strong> Multi-page search</li>
+                        <li><span class="bullet-check">✓</span> <strong>Code Inspector:</strong> Syntax highlighting</li>
+                    </ul>
+                </div>
+
+                <!-- 3. Ingestion System -->
+                <div class="selling-feature-card">
+                    <div>
+                        <div class="card-top-icon-row">
+                            <div class="feature-icon-bubble" style="background: rgba(124, 58, 237, 0.12); color: #7c3aed;">📤</div>
+                            <span class="feature-number-tag">03 / 06</span>
+                        </div>
+                        <h3 class="feature-card-title">Bulletproof File Ingestion</h3>
+                        <p class="feature-card-desc">Drag and drop massive single files or complex nested folder hierarchies with resilient multi-part transfers.</p>
+                    </div>
+                    <ul class="feature-bullet-list">
+                        <li><span class="bullet-check">✓</span> <strong>Full-Screen Drag & Drop:</strong> Anywhere on page</li>
+                        <li><span class="bullet-check">✓</span> <strong>Preserved Hierarchies:</strong> Multi-level trees</li>
+                        <li><span class="bullet-check">✓</span> <strong>Chunked Resilient Uploads:</strong> 10GB–50GB+</li>
+                        <li><span class="bullet-check">✓</span> <strong>Staging Queue:</strong> Payload preview meter</li>
+                    </ul>
+                </div>
+
+                <!-- 4. Smart Sharing -->
+                <div class="selling-feature-card">
+                    <div>
+                        <div class="card-top-icon-row">
+                            <div class="feature-icon-bubble" style="background: rgba(13, 148, 136, 0.12); color: #0d9488;">🔗</div>
+                            <span class="feature-number-tag">04 / 06</span>
+                        </div>
+                        <h3 class="feature-card-title">Smart Sharing & Client Dropboxes</h3>
+                        <p class="feature-card-desc">Replace expensive tools like WeTransfer with password-protected download links and external upload dropboxes.</p>
+                    </div>
+                    <ul class="feature-bullet-list">
+                        <li><span class="bullet-check">✓</span> <strong>Dual Sharing Modes:</strong> Download & Uploads</li>
+                        <li><span class="bullet-check">✓</span> <strong>Military Passcodes:</strong> Salted hash locks</li>
+                        <li><span class="bullet-check">✓</span> <strong>Timed Auto-Expiry:</strong> 1h, 24h, 7d, 30d, never</li>
+                        <li><span class="bullet-check">✓</span> <strong>Centralized Dashboard:</strong> 1-Click revoke</li>
+                    </ul>
+                </div>
+
+                <!-- 5. Desktop Dashboard -->
+                <div class="selling-feature-card">
+                    <div>
+                        <div class="card-top-icon-row">
+                            <div class="feature-icon-bubble" style="background: rgba(249, 115, 22, 0.12); color: #ea580c;">🎛️</div>
+                            <span class="feature-number-tag">05 / 06</span>
+                        </div>
+                        <h3 class="feature-card-title">Unified Desktop Control Panel</h3>
+                        <p class="feature-card-desc">Single executive dashboard with 1-click server engine start/stop and internal/external disk directory selection.</p>
+                    </div>
+                    <ul class="feature-bullet-list">
+                        <li><span class="bullet-check">✓</span> <strong>1-Click Server Engine:</strong> Start / pause / stop</li>
+                        <li><span class="bullet-check">✓</span> <strong>Storage Path Selector:</strong> SSD, HDD, RAID</li>
+                        <li><span class="bullet-check">✓</span> <strong>Dual Theme Engine:</strong> Obsidian & Light mode</li>
+                        <li><span class="bullet-check">✓</span> <strong>Taskbar Integration:</strong> Native notifications</li>
+                    </ul>
+                </div>
+
+                <!-- 6. Analytics -->
+                <div class="selling-feature-card">
+                    <div>
+                        <div class="card-top-icon-row">
+                            <div class="feature-icon-bubble" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">📊</div>
+                            <span class="feature-number-tag">06 / 06</span>
+                        </div>
+                        <h3 class="feature-card-title">Real-Time Analytics & Quota Guard</h3>
+                        <p class="feature-card-desc">Live disk distribution breakdown across media, archives, and code with proactive system drive safeguards.</p>
+                    </div>
+                    <ul class="feature-bullet-list">
+                        <li><span class="bullet-check">✓</span> <strong>Visual Breakdown:</strong> Categorized distribution</li>
+                        <li><span class="bullet-check">✓</span> <strong>Drive Health:</strong> Real-time capacity meters</li>
+                        <li><span class="bullet-check">✓</span> <strong>Quota Safeguards:</strong> Exhaustion guard</li>
+                        <li><span class="bullet-check">✓</span> <strong>Instant Telemetry:</strong> Zero external pings</li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. Target Personas & Use Cases -->
+    <section class="personas-section">
+        <div class="container">
+            <div class="section-header-center">
+                <span class="section-tag-pill">Target Personas</span>
+                <h2>Who is PrivCloud Built For?</h2>
+                <p>Designed for creators, engineers, families, and businesses demanding high performance and total privacy.</p>
+            </div>
+
+            <div class="personas-grid">
+                
+                <!-- Photographers -->
+                <div class="persona-card">
+                    <div>
+                        <div class="persona-hdr">
+                            <span class="persona-icon">📸</span>
+                            <h3 class="persona-title">Photographers & Videographers</h3>
+                        </div>
+                        <div class="persona-quote-box">
+                            "I used to pay ₹1,600/month for Google One because my RAW files and 4K footage filled up every drive. With PrivCloud, I connected an 8TB external drive to my PC. I deliver client galleries with password links and saved over ₹20,000/yr!"
+                        </div>
+                    </div>
+                    <ul class="persona-bullets">
+                        <li><span class="bullet-check">✓</span> Store massive RAW archives on external drives</li>
+                        <li><span class="bullet-check">✓</span> Send client preview galleries with 1-click downloads</li>
+                        <li><span class="bullet-check">✓</span> Create client upload dropboxes for event photos</li>
+                    </ul>
+                </div>
+
+                <!-- Developers -->
+                <div class="persona-card">
+                    <div>
+                        <div class="persona-hdr">
+                            <span class="persona-icon">💻</span>
+                            <h3 class="persona-title">Developers & Creators</h3>
+                        </div>
+                        <div class="persona-quote-box">
+                            "Having instant syntax-highlighted code inspection, markdown rendering, and gigabit local transfer speeds for pushing heavy build artifacts and VM images has streamlined my entire remote dev flow."
+                        </div>
+                    </div>
+                    <ul class="persona-bullets">
+                        <li><span class="bullet-check">✓</span> Self-host project assets, build archives, datasets</li>
+                        <li><span class="bullet-check">✓</span> Instant in-browser code and markdown inspection</li>
+                        <li><span class="bullet-check">✓</span> Ultra-fast local Gigabit speed for VM & ISO transfers</li>
+                    </ul>
+                </div>
+
+                <!-- Families -->
+                <div class="persona-card">
+                    <div>
+                        <div class="persona-hdr">
+                            <span class="persona-icon">🏠</span>
+                            <h3 class="persona-title">Families & Smart Home Users</h3>
+                        </div>
+                        <div class="persona-quote-box">
+                            "We consolidated all family photos, videos, and documents into our home PC. We stream movies directly to smart TVs, iPads, and phones via browser without ever worrying about iCloud storage limit alerts."
+                        </div>
+                    </div>
+                    <ul class="persona-bullets">
+                        <li><span class="bullet-check">✓</span> Consolidate memories into one central private vault</li>
+                        <li><span class="bullet-check">✓</span> Stream home movies and music to smart TVs and tablets</li>
+                        <li><span class="bullet-check">✓</span> Back up phone photos directly to home PC storage</li>
+                    </ul>
+                </div>
+
+                <!-- Small Businesses -->
+                <div class="persona-card">
+                    <div>
+                        <div class="persona-hdr">
+                            <span class="persona-icon">🏢</span>
+                            <h3 class="persona-title">Small Businesses & Agencies</h3>
+                        </div>
+                        <div class="persona-quote-box">
+                            "Eliminated per-seat software costs that were draining our budget. We share sensitive contracts and deliverables with expiration passcodes while keeping company data strictly on-premises."
+                        </div>
+                    </div>
+                    <ul class="persona-bullets">
+                        <li><span class="bullet-check">✓</span> Eliminate SaaS seat costs (₹1,200/user/month adds up)</li>
+                        <li><span class="bullet-check">✓</span> Share sensitive contracts with password & expiry</li>
+                        <li><span class="bullet-check">✓</span> Maintain 100% legal compliance on on-premises disks</li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. Flexible Pricing & Packages -->
+    <section id="pricing" class="pricing-section">
+        <div class="container">
+            <div class="section-header-center">
+                <span class="section-tag-pill">Lifetime Licenses</span>
+                <h2>Flexible Pricing & Lifetime Packages</h2>
+                <p>Every license is a lifetime purchase with no recurring monthly charges.</p>
+            </div>
+
+            <div class="pricing-cards-container">
+                
+                <!-- Free Trial Edition -->
+                <div class="pricing-box">
+                    <div>
+                        <h3 class="pricing-tier-name">🚀 Free Trial</h3>
+                        <p class="pricing-tagline">14-Day evaluation to test full cloud capabilities.</p>
+                        
+                        <div class="pricing-cost-row">
+                            <span class="pricing-amount">₹0</span>
+                            <span class="pricing-tenure">14-Day Free Access</span>
+                        </div>
+
+                        <ul class="pricing-checklist">
+                            <li><span class="bullet-check">✓</span> <strong>14-Day Full Feature Access</strong></li>
+                            <li><span class="bullet-check">✓</span> <strong>1 PC Local Installation</strong></li>
+                            <li><span class="bullet-check">✓</span> Full Media & Preview Suite</li>
+                            <li><span class="bullet-check">✓</span> Fast Local File Ingestion</li>
+                            <li><span class="bullet-check">✓</span> Drag & Drop Upload Engine</li>
+                            <li><span class="bullet-check">✓</span> Dynamic Remote Tunnel (Evaluation)</li>
+                            <li><span class="bullet-check">✓</span> Dark & Light Theme GUI</li>
+                            <li><span class="bullet-check">✓</span> <strong>No Credit Card Required</strong></li>
+                        </ul>
+                    </div>
+
+                    <button onclick="handlePlanSelection('trial')" class="pricing-action-btn btn-hero-secondary" style="border-color: rgba(2, 132, 199, 0.4); color: #0284c7; background: rgba(2, 132, 199, 0.05); cursor: pointer;">Download Free Trial</button>
+                </div>
+
+                <!-- Basic Edition -->
+                <div class="pricing-box">
+                    <div>
+                        <h3 class="pricing-tier-name">⭐ Basic Edition</h3>
+                        <p class="pricing-tagline">Standard personal cloud for home & individual setups.</p>
+                        
+                        <div class="pricing-cost-row">
+                            <span class="pricing-amount">₹1,499</span>
+                            <span class="pricing-tenure">One-Time Lifetime</span>
+                        </div>
+
+                        <ul class="pricing-checklist">
+                            <li><span class="bullet-check">✓</span> <strong>Lifetime License</strong> (1 PC)</li>
+                            <li><span class="bullet-check">✓</span> <strong>Unlimited Storage Capacity</strong></li>
+                            <li><span class="bullet-check">✓</span> Full Media & Preview Suite</li>
+                            <li><span class="bullet-check">✓</span> Smart Sharing & Dropboxes</li>
+                            <li><span class="bullet-check">✓</span> Real-Time Storage Insights</li>
+                            <li><span class="bullet-check">✓</span> Dynamic Remote Tunnel</li>
+                            <li><span class="bullet-check">✓</span> Dark & Light Theme GUI</li>
+                            <li><span class="bullet-check">✓</span> 10-Character Product Key</li>
+                        </ul>
+                    </div>
+
+                    <button onclick="handlePlanSelection('basic')" class="pricing-action-btn btn-hero-secondary" style="cursor: pointer;">Buy Basic Edition</button>
+                </div>
+
+                <!-- Pro Edition (Featured) -->
+                <div class="pricing-box pro-featured">
+                    <span class="pricing-ribbon">👑 Best Value / Recommended</span>
+                    <div>
+                        <h3 class="pricing-tier-name">👑 Pro Edition</h3>
+                        <p class="pricing-tagline">Professional lifetime cloud for creators, pros & agencies.</p>
+                        
+                        <div class="pricing-cost-row">
+                            <span class="pricing-amount">₹2,999</span>
+                            <span class="pricing-tenure">One-Time Lifetime</span>
+                        </div>
+
+                        <ul class="pricing-checklist">
+                            <li><span class="bullet-check">✓</span> <strong>Lifetime License</strong> (1 PC)</li>
+                            <li><span class="bullet-check">✓</span> <strong>Unlimited Storage Capacity</strong></li>
+                            <li><span class="bullet-check">✓</span> Full Media & Preview Suite</li>
+                            <li><span class="bullet-check">✓</span> Smart Sharing & Dropboxes</li>
+                            <li><span class="bullet-check">✓</span> Real-Time Storage Insights</li>
+                            <li><span class="bullet-check">✓</span> <strong>Permanent Custom Subdomain</strong></li>
+                            <li><span class="bullet-check">✓</span> <strong>Priority Tunnel Routing</strong></li>
+                            <li><span class="bullet-check">✓</span> <strong>VIP Lifetime Customer Support</strong></li>
+                            <li><span class="bullet-check">✓</span> 16-Character Product Key</li>
+                        </ul>
+                    </div>
+
+                    <button onclick="handlePlanSelection('pro')" class="pricing-action-btn btn-register" style="cursor: pointer;">Buy Pro Edition (Best Value)</button>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. Privacy & Security Matrix -->
+    <section class="security-matrix-section">
+        <div class="container">
+            <div class="security-box-wrapper">
+                <span class="section-tag-pill">Zero-Knowledge Philosophy</span>
+                <h2>PrivCloud Security & Privacy Engine</h2>
+                <p>Engineered with privacy-first principles. Your files never pass through third-party cloud data warehouses.</p>
+
+                <div class="security-grid">
+                    <div class="security-node-card">
+                        <div class="sec-node-title"><span>🔒</span> 100% Local Storage</div>
+                        <p class="sec-node-desc">Files remain strictly on your physical hard drives and SSDs.</p>
+                    </div>
+                    <div class="security-node-card">
+                        <div class="sec-node-title"><span>🛡️</span> Zero Telemetry</div>
+                        <p class="sec-node-desc">We never track, log, analyze, or scan your private files or metadata.</p>
+                    </div>
+                    <div class="security-node-card">
+                        <div class="sec-node-title"><span>🔑</span> Cryptographic JWT</div>
+                        <p class="sec-node-desc">Offline-capable license validation token works without internet access.</p>
+                    </div>
+                    <div class="security-node-card">
+                        <div class="sec-node-title"><span>🔐</span> Password Hash Lock</div>
+                        <p class="sec-node-desc">Argon2 and PBKDF2 salted hash encryption for all password links.</p>
+                    </div>
+                    <div class="security-node-card">
+                        <div class="sec-node-title"><span>🛡️</span> PyArmor Binary Guard</div>
+                        <p class="sec-node-desc">Tamper-proof software distribution with hardened execution runtime.</p>
+                    </div>
+                    <div class="security-node-card">
+                        <div class="sec-node-title"><span>🌐</span> HTTPS Remote Tunnel</div>
+                        <p class="sec-node-desc">End-to-end encrypted remote access without router port forwarding.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 7. What's Included & System Requirements -->
+    <section class="specs-section">
+        <div class="container">
+            <div class="specs-dual-grid">
+                
+                <!-- What's Included -->
+                <div class="specs-card">
+                    <h3><span>📦</span> What’s Included in Your Download</h3>
+                    <ul class="specs-list">
+                        <li>
+                            <span class="bullet-check">✓</span>
+                            <div><strong>PrivCloud_Setup.exe:</strong> Modern 8-screen Windows Installer (< 2 min setup).</div>
+                        </li>
+                        <li>
+                            <span class="bullet-check">✓</span>
+                            <div><strong>Settings.bat:</strong> Native Desktop Control Dashboard for live server management.</div>
+                        </li>
+                        <li>
+                            <span class="bullet-check">✓</span>
+                            <div><strong>Unique Product License Key:</strong> Issued instantly via email with instant activation.</div>
+                        </li>
+                        <li>
+                            <span class="bullet-check">✓</span>
+                            <div><strong>Complete User Guide:</strong> Step-by-step documentation for mobile pairing & custom domains.</div>
+                        </li>
+                        <li>
+                            <span class="bullet-check">✓</span>
+                            <div><strong>Free Software Updates:</strong> Continuous performance improvements and fixes.</div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- System Requirements -->
+                <div class="specs-card">
+                    <h3><span>⚙️</span> System Requirements</h3>
+                    <ul class="specs-list">
+                        <li>
+                            <span class="spec-key">Operating System:</span>
+                            <span>Windows 10 (64-bit), Windows 11, or Windows Server 2016/2019/2022</span>
+                        </li>
+                        <li>
+                            <span class="spec-key">Processor:</span>
+                            <span>Intel or AMD processor (1.0 GHz or faster)</span>
+                        </li>
+                        <li>
+                            <span class="spec-key">Memory (RAM):</span>
+                            <span>512 MB RAM minimum (1 GB recommended)</span>
+                        </li>
+                        <li>
+                            <span class="spec-key">Disk Footprint:</span>
+                            <span>125 MB for installation (Storage pool can be 500GB, 2TB, 16TB+)</span>
+                        </li>
+                        <li>
+                            <span class="spec-key">Client Devices:</span>
+                            <span>Any modern browser on iOS, Android, macOS, Linux, or Windows</span>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- 8. Interactive FAQ Section -->
+    <section id="faq" class="faq-section">
+        <div class="container">
+            <div class="section-header-center">
+                <span class="section-tag-pill">Help & Answers</span>
+                <h2>Frequently Asked Questions</h2>
+                <p>Everything you need to know about purchasing and running PrivCloud 3.0.</p>
+            </div>
+
+            <div class="faq-container">
+                
+                <div class="faq-item open">
+                    <div class="faq-question">
+                        <span>Is this really a one-time purchase, or are there hidden fees?</span>
+                        <span class="faq-toggle-icon">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        There are absolutely <strong>zero recurring fees or hidden subscriptions</strong>. Once you purchase your PrivCloud product key, it is yours to use for life with unlimited local storage.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Do I need a dedicated server or special NAS hardware?</span>
+                        <span class="faq-toggle-icon">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        No! PrivCloud runs on your regular Windows laptop or desktop PC. You can store files on your internal SSD or plug in any external USB hard drive.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Can I access my files when I'm away from my home Wi-Fi?</span>
+                        <span class="faq-toggle-icon">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        Yes! PrivCloud includes built-in secure remote tunneling. You can access your dashboard securely from any smartphone, tablet, or laptop anywhere in the world over encrypted HTTPS.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>What is the difference between the Basic and Pro tier?</span>
+                        <span class="faq-toggle-icon">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        The Basic edition gives you full cloud functionality with dynamic remote access. The Pro edition adds <strong>Permanent Custom Subdomain Reservation</strong> (e.g. <code>yourname.loca.lt</code>), priority routing, and VIP lifetime customer support.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>Can external clients upload files to me without creating an account?</span>
+                        <span class="faq-toggle-icon">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        Yes! Using PrivCloud's <strong>Upload Dropbox</strong> feature, you can generate a link and send it to anyone. They can open it on their browser and drag-and-drop files directly to your storage without registering or installing anything.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        <span>What happens if I format my computer or switch to a new PC?</span>
+                        <span class="faq-toggle-icon">+</span>
+                    </div>
+                    <div class="faq-answer">
+                        Your product key is tied to your license. You can simply reinstall PrivCloud on your new machine and reactivate your license token.
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- 9. Guarantee & Bottom Purchase CTA -->
+    <section class="guarantee-cta-section">
+        <div class="container">
+            
+            <!-- Guarantee Banner -->
+            <div class="guarantee-banner">
+                <div class="guarantee-icon">🌟</div>
+                <h3 class="guarantee-title">100% Risk-Free 30-Day Money-Back Guarantee</h3>
+                <p class="guarantee-desc">
+                    We are confident you will love the freedom, speed, and privacy of owning your personal cloud. Try PrivCloud risk-free for 30 days. If you are not completely satisfied, contact our support team for a prompt, no-questions-asked refund.
+                </p>
+            </div>
+
+            <!-- Final CTA Card -->
+            <div class="final-cta-card">
+                <h2>Ready to Take Control of Your Data?</h2>
+                <p>Stop renting storage from Big Tech companies. Own your personal cloud today.</p>
+                
+                <div class="final-cta-buttons">
+                    <button onclick="handlePlanSelection('trial')" class="btn-final-outline" style="background: rgba(255, 255, 255, 0.1); cursor: pointer;">Start Free Trial — ₹0</button>
+                    <button onclick="handlePlanSelection('pro')" class="btn-final-white" style="cursor: pointer; border: none;">Get PrivCloud Pro — ₹2,999</button>
+                    <button onclick="handlePlanSelection('basic')" class="btn-final-outline" style="cursor: pointer;">Get PrivCloud Basic — ₹1,499</button>
+                </div>
+                
+                <div style="font-size: 0.8rem; margin-top: 18px; opacity: 0.85;">
+                    Instant Product Key Delivery via Email • 1-Click Windows Setup • 30-Day Money-Back Guarantee
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Modern Footer -->
+    <footer class="site-footer">
+        <div class="container footer-content">
+            <div class="footer-brand">
+                <img src="https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/logo.png" alt="PrivCloud Logo" class="footer-logo">
+                <span class="footer-brand-name">PrivCloud</span>
+                <span class="footer-tagline">— Self-Hosted Cloud Platform</span>
+            </div>
+            <div class="footer-copy">
+                &copy; 2026 PrivCloud. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="product.js?v=30"></script>
+    <script src="../landing_page/chatbot/chatbot.js?v=20"></script>
+
+</body>
+
+</html>

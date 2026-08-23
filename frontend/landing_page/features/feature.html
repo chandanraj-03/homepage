@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrivCloud - Features</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/logo.png">
+    
+    <!-- Base styles and feature specific styles -->
+    <link rel="stylesheet" href="../overview/overview.css">
+    <link rel="stylesheet" href="feature.css">
+
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../supabaseClient.js"></script>
+</head>
+<body>
+
+    <!-- Top Navigation Bar -->
+    <nav class="navbar">
+        <a href="../../index.html#overview" class="nav-brand">
+            <img src="https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/logo.png" alt="PrivCloud Logo" class="nav-logo">
+            <span class="nav-brand-text">PrivCloud</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="../../index.html#overview">Overview</a></li>
+            <li><a href="../../index.html#features" class="active">Features</a></li>
+            <li><a href="../../index.html#about-us">About Us</a></li>
+            <li><a href="../../product_page/product.html">Product</a></li>
+        </ul>
+        <div class="nav-actions">
+            <a href="../../auth_page/auth.html#login" class="btn-login">Login</a>
+            <a href="../../auth_page/auth.html#register" class="btn-register">Register</a>
+        </div>
+    </nav>
+
+    <!-- Pinned Scroll-Driven SaaS Feature Showcase -->
+    <section id="features" class="showcase-section-container" style="padding-top: 76px;">
+        <div id="feature-showcase-root"></div>
+    </section>
+
+    <!-- GSAP & ScrollTrigger -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+    <!-- React 18 & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+    <!-- Babel Standalone -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Feature Showcase Scripts -->
+    <script src="feature.js"></script>
+    <script type="text/babel" src="FeatureShowcase.jsx"></script>
+</body>
+</html>

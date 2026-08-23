@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrivCloud 3.0 — Secure Checkout & License Activation</title>
+
+    <!-- Google Fonts & Icon -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/logo.png">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="purchase.css?v=10">
+    <link rel="stylesheet" href="../landing_page/chatbot/chatbot.css?v=20">
+
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../supabaseClient.js?v=20"></script>
+</head>
+
+<body>
+
+    <!-- Top Navigation Bar -->
+    <nav class="navbar">
+        <a href="../index.html#overview" class="nav-brand">
+            <img src="https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/logo.png" alt="PrivCloud Logo" class="nav-logo">
+            <span class="nav-brand-text">PrivCloud</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="../index.html#overview">Overview</a></li>
+            <li><a href="../index.html#features">Features</a></li>
+            <li><a href="../index.html#about-us">About Us</a></li>
+            <li><a href="../product_page/product.html">Product</a></li>
+        </ul>
+        <div class="nav-actions" id="user-badge-container">
+            <a href="../auth_page/auth.html#login" class="btn-login">Login</a>
+            <a href="../auth_page/auth.html#register" class="btn-register">Register</a>
+        </div>
+    </nav>
+
+    <!-- Main Purchase Container -->
+    <main class="container">
+        
+        <!-- Header -->
+        <header class="purchase-header">
+            <span class="purchase-badge">🔒 Secure Activation Vault</span>
+            <h1 class="purchase-title">Complete Your PrivCloud Order</h1>
+            <p class="purchase-subtitle">Choose your plan, activate your license token, and download your turn-key personal cloud installer.</p>
+        </header>
+
+        <!-- Plan Switcher Tabs -->
+        <div class="plan-tabs-row">
+            <button class="plan-tab-btn active" data-plan="trial">
+                <span>🚀 Free Trial</span>
+                <span class="plan-tab-price">₹0</span>
+            </button>
+            <button class="plan-tab-btn" data-plan="basic">
+                <span>⭐ Basic Edition</span>
+                <span class="plan-tab-price">₹1,499</span>
+            </button>
+            <button class="plan-tab-btn" data-plan="pro">
+                <span>👑 Pro Edition</span>
+                <span class="plan-tab-price">₹2,999</span>
+            </button>
+        </div>
+
+        <!-- Checkout Grid -->
+        <div class="checkout-grid">
+            
+            <!-- Left Column: Interactive Form / License Result -->
+            <div class="checkout-card">
+                
+                <!-- Plan Summary Box -->
+                <div class="selected-plan-summary">
+                    <div class="plan-summary-hdr">
+                        <div>
+                            <h3 class="summary-tier-name" id="summary-plan-name">Free Trial Edition</h3>
+                            <span style="font-size: 0.82rem; color: #64748b;" id="summary-plan-tenure">14-Day Free Access</span>
+                        </div>
+                        <div class="summary-tier-cost" id="summary-plan-cost">₹0</div>
+                    </div>
+                    <ul class="summary-feature-bullets" id="summary-plan-bullets">
+                        <!-- Filled by JS -->
+                    </ul>
+                </div>
+
+                <!-- Interactive Form (Hidden when license generated) -->
+                <div id="checkout-interactive-form">
+                    
+                    <!-- Customer Information -->
+                    <div style="margin-bottom: 24px;">
+                        <h4 class="card-section-title"><span>👤</span> Account Details</h4>
+                        <div class="input-field-group">
+                            <label>Registered Account Email</label>
+                            <input type="email" id="cust-email" readonly style="background: rgba(15, 23, 42, 0.04); color: #475569;">
+                        </div>
+                    </div>
+
+                    <!-- Payment Section (Hidden for Free Trial) -->
+                    <div id="payment-section-container">
+                        <h4 class="card-section-title"><span>💳</span> Select Payment Method</h4>
+                        
+                        <div class="payment-tabs">
+                            <div class="pay-method-pill active" data-method="upi">⚡ UPI / QR</div>
+                            <div class="pay-method-pill" data-method="card">💳 Card</div>
+                            <div class="pay-method-pill" data-method="netbanking">🏦 Net Banking</div>
+                        </div>
+
+                        <div class="payment-form-box" id="payment-inputs-container">
+                            <div class="input-field-group">
+                                <label>UPI ID / VPA (Google Pay, PhonePe, Paytm)</label>
+                                <input type="text" id="pay-upi-id" placeholder="e.g. yourname@okhdfcbank or 9876543210@paytm" value="user@privcloud" required>
+                            </div>
+                            <div style="font-size: 0.8rem; color: #64748b; margin-top: 6px; display: flex; align-items: center; gap: 6px;">
+                                <span>⚡</span> Instant UPI QR verification & license issuance.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit / Action Button -->
+                    <button id="btn-submit-order" class="btn-action-checkout">
+                        <span>🚀 Activate Free Trial & Download</span>
+                    </button>
+
+                </div>
+
+                <!-- License Generation Success Box -->
+                <div id="license-success-box" class="license-success-box">
+                    <div style="font-size: 2.8rem; margin-bottom: 10px;">🎉</div>
+                    <h3 style="font-size: 1.5rem; font-weight: 800; color: #0f172a;" id="success-plan-title">License Key Generated!</h3>
+                    <p style="font-size: 0.92rem; color: #475569; margin-top: 4px;">
+                        Your product key is ready and linked to your account.
+                    </p>
+
+                    <div>
+                        <div class="license-key-pill" id="display-license-key">PRIV-PRO-89F2-K49X-77A1</div>
+                    </div>
+
+                    <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
+                        <button onclick="triggerInstallerDownload()" class="btn-download-installer">
+                            <span>⬇️ Download PrivCloud_Setup.exe</span>
+                        </button>
+                        <button id="btn-download-cert" class="btn-download-installer" style="background: var(--grad-primary);">
+                            <span>📄 Download License Certificate</span>
+                        </button>
+                    </div>
+
+                    <div style="margin-top: 24px; text-align: left; background: rgba(15, 23, 42, 0.04); padding: 18px; border-radius: 14px;">
+                        <h4 style="font-size: 0.92rem; font-weight: 800; color: #0f172a; margin-bottom: 8px;">⚡ 3-Step Setup Instructions:</h4>
+                        <ol style="font-size: 0.85rem; color: #475569; padding-left: 18px; line-height: 1.6;">
+                            <li>Run <code>PrivCloud_Setup_v3.0.exe</code> on your Windows 10/11 PC.</li>
+                            <li>Open <code>Settings.bat</code> from your desktop and enter your License Key.</li>
+                            <li>Select your storage drive and scan the QR code to pair your phone!</li>
+                        </ol>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Column: Order Summary & Trust -->
+            <div class="checkout-card">
+                <h3 class="card-section-title"><span>🧾</span> Order Summary</h3>
+
+                <ul class="order-cost-breakdown">
+                    <li>
+                        <span>Product</span>
+                        <strong style="color: #0f172a;">PrivCloud 3.0</strong>
+                    </li>
+                    <li>
+                        <span>Subtotal</span>
+                        <span id="invoice-subtotal">₹0</span>
+                    </li>
+                    <li>
+                        <span>Taxes & GST (18%)</span>
+                        <span id="invoice-tax" style="color: #10b981;">₹0 (Included)</span>
+                    </li>
+                    <li>
+                        <span>Delivery</span>
+                        <span style="color: #0284c7; font-weight: 700;">Instant Digital</span>
+                    </li>
+                </ul>
+
+                <div class="order-total-row">
+                    <span>Total Due</span>
+                    <span id="invoice-total" style="color: #0284c7;">₹0</span>
+                </div>
+
+                <div style="background: rgba(255, 255, 255, 0.9); border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 18px; padding: 20px;">
+                    <h4 style="font-size: 0.95rem; font-weight: 800; color: #0f172a; margin-bottom: 14px;">🛡️ Guaranteed Security</h4>
+                    <ul class="trust-badges-list">
+                        <li>
+                            <span style="color: #10b981; font-weight: 800;">✓</span>
+                            <span><strong>100% Zero-Telemetry:</strong> No data tracking.</span>
+                        </li>
+                        <li>
+                            <span style="color: #10b981; font-weight: 800;">✓</span>
+                            <span><strong>30-Day Money-Back:</strong> Full refund if unsatisfied.</span>
+                        </li>
+                        <li>
+                            <span style="color: #10b981; font-weight: 800;">✓</span>
+                            <span><strong>Offline Verification:</strong> JWT token support.</span>
+                        </li>
+                        <li>
+                            <span style="color: #10b981; font-weight: 800;">✓</span>
+                            <span><strong>Instant Key Delivery:</strong> Ready in under 1 second.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Auth Guard Overlay (Shown if unauthenticated) -->
+    <div id="auth-guard-overlay" class="auth-guard-overlay">
+        <div class="auth-guard-modal">
+            <div class="auth-guard-icon">🔐</div>
+            <h3>Authentication Required</h3>
+            <p>Please log in or create a free PrivCloud account to activate your license and access the download portal.</p>
+            <div class="auth-guard-btns">
+                <button onclick="redirectToAuth()" class="btn-action-checkout">
+                    <span>Sign In or Register ➔</span>
+                </button>
+                <a href="../product_page/product.html" style="font-size: 0.9rem; color: #64748b; text-decoration: none; margin-top: 6px;">Return to Product Page</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="purchase.js?v=10"></script>
+    <script src="../landing_page/chatbot/chatbot.js?v=20"></script>
+
+</body>
+
+</html>

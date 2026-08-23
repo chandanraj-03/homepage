@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrivCloud - Overview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/logo.png">
+    <link rel="stylesheet" href="overview.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../supabaseClient.js"></script>
+</head>
+<body>
+
+    <!-- Top Navigation Bar -->
+    <nav class="navbar">
+        <a href="../../index.html#overview" class="nav-brand">
+            <img src="https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/logo.png" alt="PrivCloud Logo" class="nav-logo">
+            <span class="nav-brand-text">PrivCloud</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="../../index.html#overview" class="active">Overview</a></li>
+            <li><a href="../../index.html#features">Features</a></li>
+            <li><a href="../../index.html#about-us">About Us</a></li>
+            <li><a href="../../product_page/product.html">Product</a></li>
+        </ul>
+        <div class="nav-actions">
+            <a href="../../auth_page/auth.html#login" class="btn-login">Login</a>
+            <a href="../../auth_page/auth.html#register" class="btn-register">Register</a>
+        </div>
+    </nav>
+
+    <!-- Overview Section (Video + Intro) -->
+    <section id="overview" class="overview-section">
+        <div class="video-placeholder-wrapper">
+            <video autoplay loop muted playsinline class="product-video">
+                <source src="https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/retry.mp4" type="video/mp4">
+            </video>
+        </div>
+
+        <div class="container">
+            <div class="about-section">
+                <div class="about-text-container">
+                    <p>
+                        PrivCloud is a modern, feature-rich personal cloud storage and remote file management platform
+                        designed to provide a centralized hub for storing, organizing, previewing, and sharing digital
+                        assets. It operates directly on your machine, giving you total privacy and control over your files
+                        from any device.
+                    </p>
+                    <p>
+                        Connecting your devices is as simple as scanning a QR code. PrivCloud lets you share files safely
+                        with password-protected and expiring links, set up collaborative dropboxes for external uploads,
+                        stream rich media, and inspect documents right inside the browser.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="overview.js"></script>
+</body>
+</html>

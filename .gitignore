@@ -9,4 +9,6 @@ supabasepassword.txt
 supabase_schema.sql
 supabase.schema.sql
 *.sql
-
+.password.txt
+password.txt
+.env.example

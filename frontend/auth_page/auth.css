@@ -150,7 +150,7 @@
 }
 
 /* =========================================================
-   Unified Auth Page (auth.html) Styles
+   Unified Auth Page Styles
    ========================================================= */
 
 .auth-body {
@@ -161,7 +161,7 @@
     justify-content: center;
     align-items: center;
     color: var(--text-main);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     padding: 100px 16px 40px;
     box-sizing: border-box;
     position: relative;
@@ -279,18 +279,6 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05), inset 0 1px 1px rgba(255, 255, 255, 0.8);
 }
 
-/* Auth Panels */
-.auth-panel {
-    display: none;
-    opacity: 0;
-}
-
-.auth-panel.active {
-    display: block;
-    opacity: 1;
-    animation: fadeIn 0.3s ease-out;
-}
-
 /* Form Styling */
 .auth-form {
     display: flex;
@@ -333,12 +321,6 @@
     color: #ef4444;
 }
 
-.input-error {
-    border-color: #ef4444 !important;
-    background: rgba(254, 242, 242, 0.7) !important;
-    box-shadow: 0 0 0 3.5px rgba(239, 68, 68, 0.15) !important;
-}
-
 .form-group {
     display: flex;
     flex-direction: column;
@@ -349,12 +331,6 @@
     font-size: 0.82rem;
     font-weight: 600;
     color: #334155;
-}
-
-.form-label-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
 }
 
 .form-helper-row {
@@ -376,7 +352,7 @@
     text-decoration: underline;
 }
 
-/* Inset Input Icon Wrapper with Enhanced Visibility */
+/* Inset Input Icon Wrapper */
 .input-wrapper {
     position: relative;
     display: flex;
