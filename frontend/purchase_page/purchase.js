@@ -1,5 +1,5 @@
 /**
- * PrivCloud Purchase & License Generation Logic
+ * PrivCloud Purchase & Razorpay Payment Integration
  */
 
 let currentPlan = 'trial';
@@ -94,17 +94,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    // 5. Bind Payment Method Pills
-    document.querySelectorAll('.pay-method-pill').forEach(pill => {
-        pill.addEventListener('click', () => {
-            document.querySelectorAll('.pay-method-pill').forEach(p => p.classList.remove('active'));
-            pill.classList.add('active');
-            const method = pill.getAttribute('data-method');
-            switchPaymentForm(method);
-        });
-    });
-
-    // 6. Bind Checkout / License Activation Button
+    // 5. Bind Checkout / License Activation Button
     const checkoutBtn = document.getElementById('btn-submit-order');
     if (checkoutBtn) {
         checkoutBtn.addEventListener('click', handleOrderSubmission);
@@ -119,7 +109,6 @@ async function verifyAuthentication() {
     const userBadgeEl = document.getElementById('user-badge-container');
 
     if (!window.PrivCloudAuth) {
-        // If client not loaded, wait briefly
         await new Promise(r => setTimeout(r, 400));
     }
 
@@ -163,9 +152,29 @@ async function handleSignOut() {
 }
 
 /**
+ * Show error or alert notification on checkout card
+ */
+function showPaymentNotice(type, message) {
+    const banner = document.getElementById('payment-notice-banner');
+    if (!banner) return;
+    banner.className = `payment-notice-banner ${type}`;
+    banner.innerHTML = `<span>${message}</span>`;
+    banner.style.display = 'flex';
+}
+
+function hidePaymentNotice() {
+    const banner = document.getElementById('payment-notice-banner');
+    if (banner) {
+        banner.style.display = 'none';
+        banner.innerHTML = '';
+    }
+}
+
+/**
  * Render the chosen plan in the summary and checkout UI
  */
 function renderPlan(planId) {
+    hidePaymentNotice();
     const plan = PLANS_DATA[planId] || PLANS_DATA.trial;
 
     // 1. Update Tabs Active State
@@ -213,7 +222,7 @@ function renderPlan(planId) {
         if (invoiceTotal) invoiceTotal.textContent = plan.price;
         if (paySection) paySection.style.display = 'block';
         if (submitBtn) {
-            submitBtn.innerHTML = `<span>🔒 Complete Secure Payment (${plan.price})</span>`;
+            submitBtn.innerHTML = `<span>🔒 Pay ${plan.price} via Razorpay</span>`;
             submitBtn.style.background = 'linear-gradient(135deg, #0284c7 0%, #0072ff 100%)';
         }
     }
@@ -226,69 +235,146 @@ function renderPlan(planId) {
 }
 
 /**
- * Switch payment form layout based on selected method
+ * Handle Order Submission (Free Trial or Razorpay Checkout Modal)
  */
-function switchPaymentForm(method) {
-    const formBox = document.getElementById('payment-inputs-container');
-    if (!formBox) return;
+async function handleOrderSubmission() {
+    hidePaymentNotice();
+    const plan = PLANS_DATA[currentPlan] || PLANS_DATA.trial;
+    const submitBtn = document.getElementById('btn-submit-order');
+    const originalBtnHtml = submitBtn.innerHTML;
 
-    if (method === 'upi') {
-        formBox.innerHTML = `
-            <div class="input-field-group">
-                <label>UPI ID / VPA (Google Pay, PhonePe, Paytm)</label>
-                <input type="text" id="pay-upi-id" placeholder="e.g. yourname@okhdfcbank or 9876543210@paytm" value="user@privcloud" required>
-            </div>
-            <div style="font-size: 0.8rem; color: #64748b; margin-top: 6px; display: flex; align-items: center; gap: 6px;">
-                <span>⚡</span> Instant UPI QR verification & license issuance.
-            </div>
-        `;
-    } else if (method === 'card') {
-        formBox.innerHTML = `
-            <div class="input-field-group">
-                <label>Card Number</label>
-                <input type="text" placeholder="4532 •••• •••• 8892" maxlength="19" value="4532 8901 2345 8892">
-            </div>
-            <div class="input-grid-2">
-                <div class="input-field-group">
-                    <label>Expiry (MM/YY)</label>
-                    <input type="text" placeholder="12/28" maxlength="5" value="08/29">
-                </div>
-                <div class="input-field-group">
-                    <label>CVV</label>
-                    <input type="password" placeholder="•••" maxlength="4" value="789">
-                </div>
-            </div>
-        `;
-    } else if (method === 'netbanking') {
-        formBox.innerHTML = `
-            <div class="input-field-group">
-                <label>Select Your Bank</label>
-                <select id="pay-bank-select">
-                    <option value="hdfc">HDFC Bank</option>
-                    <option value="icici">ICICI Bank</option>
-                    <option value="sbi">State Bank of India</option>
-                    <option value="axis">Axis Bank</option>
-                    <option value="kotak">Kotak Mahindra Bank</option>
-                </select>
-            </div>
-        `;
+    // Case 1: Free Trial Plan
+    if (plan.isFree) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `<span>⏳ Activating Free Trial...</span>`;
+        await new Promise(r => setTimeout(r, 800));
+        onPaymentSuccess(plan, 'FREE_TRIAL');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnHtml;
+        return;
+    }
+
+    // Case 2: Paid Plan via Razorpay Standard Checkout
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<span>⏳ Creating Razorpay Order...</span>`;
+
+    try {
+        // Step 1: Create Order on Backend (amount in paise, minimum 100 paise)
+        const amountPaise = plan.amountNum * 100;
+        const createOrderRes = await fetch('/api/create-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                amount: amountPaise,
+                currency: 'INR',
+                receipt: `rcpt_${plan.id}_${Date.now()}`,
+                notes: {
+                    plan_id: plan.id,
+                    plan_name: plan.name,
+                    user_email: currentUser ? currentUser.email : 'unauthenticated'
+                }
+            })
+        });
+
+        const orderData = await createOrderRes.json();
+
+        if (!createOrderRes.ok || !orderData.order_id) {
+            throw new Error(orderData.error || 'Failed to initialize payment order with Razorpay.');
+        }
+
+        // Step 2: Open Razorpay Standard Checkout Modal
+        if (typeof Razorpay === 'undefined') {
+            throw new Error('Razorpay SDK failed to load. Please check your internet connection.');
+        }
+
+        submitBtn.innerHTML = `<span>🔒 Opening Razorpay Checkout...</span>`;
+
+        const userEmail = currentUser ? currentUser.email : '';
+        const userName = currentUser ? (currentUser.user_metadata?.full_name || userEmail.split('@')[0]) : 'PrivCloud User';
+
+        const razorpayOptions = {
+            key: orderData.key_id,
+            amount: orderData.amount,
+            currency: orderData.currency,
+            name: 'PrivCloud 3.0',
+            description: `${plan.name} — Lifetime License`,
+            image: 'https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/logo.png',
+            order_id: orderData.order_id,
+            prefill: {
+                name: userName,
+                email: userEmail,
+                contact: ''
+            },
+            notes: {
+                plan_id: plan.id,
+                plan_name: plan.name
+            },
+            theme: {
+                color: '#0284c7'
+            },
+            modal: {
+                ondismiss: function () {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnHtml;
+                    showPaymentNotice('warning', '⚠️ Payment cancelled. You can retry checkout whenever ready.');
+                }
+            },
+            handler: async function (response) {
+                // Step 3: Payment captured in modal -> Verify signature with backend
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = `<span>🛡️ Verifying Payment Signature...</span>`;
+
+                try {
+                    const verifyRes = await fetch('/api/verify-payment', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature
+                        })
+                    });
+
+                    const verifyData = await verifyRes.json();
+
+                    if (verifyRes.ok && verifyData.success) {
+                        showPaymentNotice('success', '✅ Payment verified successfully!');
+                        onPaymentSuccess(plan, response.razorpay_payment_id);
+                    } else {
+                        showPaymentNotice('error', `❌ Payment verification failed: ${verifyData.message || 'Signature mismatch.'}`);
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalBtnHtml;
+                    }
+                } catch (verifyErr) {
+                    showPaymentNotice('error', `❌ Network error while verifying payment: ${verifyErr.message}`);
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnHtml;
+                }
+            }
+        };
+
+        const rzp = new Razorpay(razorpayOptions);
+
+        rzp.on('payment.failed', function (response) {
+            const errorDesc = response.error ? (response.error.description || response.error.reason) : 'Payment transaction failed';
+            showPaymentNotice('error', `❌ Payment failed: ${errorDesc}`);
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnHtml;
+        });
+
+        rzp.open();
+
+    } catch (err) {
+        showPaymentNotice('error', `❌ ${err.message}`);
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnHtml;
     }
 }
 
 /**
- * Handle Order Submission & License Generation
+ * Handle successful payment / license activation
  */
-async function handleOrderSubmission() {
-    const submitBtn = document.getElementById('btn-submit-order');
-    const originalText = submitBtn.innerHTML;
-
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = `<span>⏳ Processing & Generating License Token...</span>`;
-
-    // Simulate verification delay
-    await new Promise(r => setTimeout(r, 1200));
-
-    const plan = PLANS_DATA[currentPlan] || PLANS_DATA.trial;
+function onPaymentSuccess(plan, paymentReference) {
     const generatedKey = generateLicenseKey(plan);
 
     // Hide checkout form and show success box
@@ -302,14 +388,11 @@ async function handleOrderSubmission() {
     if (keyDisplay) keyDisplay.textContent = generatedKey;
     if (successTitle) successTitle.textContent = `${plan.name} Activated!`;
 
-    // Bind License Download
+    // Bind License Certificate Download
     const downloadCertBtn = document.getElementById('btn-download-cert');
     if (downloadCertBtn) {
-        downloadCertBtn.onclick = () => downloadLicenseCertificate(plan.name, generatedKey);
+        downloadCertBtn.onclick = () => downloadLicenseCertificate(plan.name, generatedKey, paymentReference);
     }
-
-    submitBtn.disabled = false;
-    submitBtn.innerHTML = originalText;
 }
 
 /**
@@ -329,7 +412,7 @@ function generateLicenseKey(plan) {
 /**
  * Trigger download of License Certificate text file
  */
-function downloadLicenseCertificate(planName, licenseKey) {
+function downloadLicenseCertificate(planName, licenseKey, paymentReference) {
     const userEmail = currentUser ? currentUser.email : 'user@privcloud.local';
     const content = `========================================================
              PRIVCLOUD 3.0 LICENSE CERTIFICATE
@@ -339,6 +422,7 @@ Product: ${planName}
 Issued To: ${userEmail}
 Issued At: ${new Date().toISOString()}
 License Key: ${licenseKey}
+Payment Reference: ${paymentReference || 'N/A'}
 
 STATUS: ACTIVE & VERIFIED
 

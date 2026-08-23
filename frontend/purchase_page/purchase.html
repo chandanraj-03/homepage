@@ -16,6 +16,9 @@
     <link rel="stylesheet" href="purchase.css?v=10">
     <link rel="stylesheet" href="../landing_page/chatbot/chatbot.css?v=20">
 
+    <!-- Razorpay Standard Checkout JS -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
     <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../supabaseClient.js?v=20"></script>
@@ -101,24 +104,30 @@
 
                     <!-- Payment Section (Hidden for Free Trial) -->
                     <div id="payment-section-container">
-                        <h4 class="card-section-title"><span>💳</span> Select Payment Method</h4>
+                        <h4 class="card-section-title"><span>💳</span> Secure Payment via Razorpay</h4>
                         
-                        <div class="payment-tabs">
-                            <div class="pay-method-pill active" data-method="upi">⚡ UPI / QR</div>
-                            <div class="pay-method-pill" data-method="card">💳 Card</div>
-                            <div class="pay-method-pill" data-method="netbanking">🏦 Net Banking</div>
-                        </div>
-
-                        <div class="payment-form-box" id="payment-inputs-container">
-                            <div class="input-field-group">
-                                <label>UPI ID / VPA (Google Pay, PhonePe, Paytm)</label>
-                                <input type="text" id="pay-upi-id" placeholder="e.g. yourname@okhdfcbank or 9876543210@paytm" value="user@privcloud" required>
+                        <div class="razorpay-gateway-badge-box">
+                            <div class="razorpay-header-row">
+                                <div class="razorpay-brand-tag">
+                                    <span class="razorpay-icon-shield">🛡️</span>
+                                    <span>Razorpay Official Gateway</span>
+                                </div>
+                                <span class="razorpay-pci-pill">PCI-DSS Level 1</span>
                             </div>
-                            <div style="font-size: 0.8rem; color: #64748b; margin-top: 6px; display: flex; align-items: center; gap: 6px;">
-                                <span>⚡</span> Instant UPI QR verification & license issuance.
+                            <p class="razorpay-desc-text">
+                                Pay securely using UPI (Google Pay, PhonePe, Paytm), Credit & Debit Cards (Visa, Mastercard, RuPay), Net Banking, or Digital Wallets in the checkout modal.
+                            </p>
+                            <div class="payment-badges-row">
+                                <span class="pay-pill-tag">⚡ UPI / QR</span>
+                                <span class="pay-pill-tag">💳 Cards</span>
+                                <span class="pay-pill-tag">🏦 Net Banking</span>
+                                <span class="pay-pill-tag">💼 Wallets</span>
                             </div>
                         </div>
                     </div>
+
+                    <!-- Notice / Alert Banner -->
+                    <div id="payment-notice-banner" class="payment-notice-banner" style="display: none;"></div>
 
                     <!-- Submit / Action Button -->
                     <button id="btn-submit-order" class="btn-action-checkout">
