@@ -2,4 +2,7 @@
 __pycache__/
 *.pyc
 .env
+.env*.local
+.env.production
 chatbot.py
+supabasepassword.txt

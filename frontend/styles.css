@@ -56,11 +56,11 @@ body {
     align-items: center;
     justify-content: space-between;
     padding: 0 40px;
-    background: rgba(255, 255, 255, 0.78);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.95);
-    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.02);
     z-index: 1000;
 }
 
@@ -840,85 +840,6 @@ body {
         grid-template-columns: repeat(2, 1fr);
         gap: 14px 40px;
     }
-}
-
-/* --- Navigation Bar --- */
-.navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 40px;
-    background: rgba(255, 255, 255, 0.5);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-}
-
-.nav-brand {
-    font-size: 1.8rem;
-    font-weight: 800;
-    background: linear-gradient(135deg, #0f172a, #475569);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    letter-spacing: -1px;
-}
-
-.nav-links {
-    display: flex;
-    list-style: none;
-    gap: 30px;
-}
-
-.nav-links a {
-    text-decoration: none;
-    color: var(--text-muted);
-    font-size: 1rem;
-    font-weight: 600;
-    transition: color 0.3s;
-}
-
-.nav-links a:hover,
-.nav-links a.active {
-    color: var(--text-main);
-}
-
-.nav-actions {
-    display: flex;
-    gap: 20px;
-    align-items: center;
-}
-
-.btn-login {
-    text-decoration: none;
-    color: var(--text-main);
-    font-weight: 600;
-    transition: color 0.3s;
-}
-
-.btn-login:hover {
-    color: #1e293b;
-    text-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-.btn-register {
-    text-decoration: none;
-    background: var(--grad-blue);
-    color: white;
-    padding: 10px 24px;
-    border-radius: 30px;
-    font-weight: 600;
-    transition: transform 0.3s, box-shadow 0.3s;
-    box-shadow: 0 4px 15px rgba(0, 114, 255, 0.3);
-}
-
-.btn-register:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 114, 255, 0.5);
 }
 
 /* Override body padding for fixed navbar */
