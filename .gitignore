@@ -4,6 +4,10 @@ __pycache__/
 .env
 .env*.local
 .env.production
+.env.example
+frontend/config.js
+config.js
+
 chatbot.py
 supabasepassword.txt
 supabase_schema.sql

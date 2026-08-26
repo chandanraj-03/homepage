@@ -13,12 +13,14 @@ if hasattr(sys.stdout, 'reconfigure'):
         pass
 
 # Load environment variables
-try:
-    from dotenv import load_dotenv
-    load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '.env'))
-    load_dotenv()
-except ImportError:
-    pass
+env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '.env')
+if os.path.exists(env_path):
+    with open(env_path, 'r', encoding='utf-8') as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith('#') and '=' in line:
+                key, val = line.split('=', 1)
+                os.environ[key.strip()] = val.strip()
 
 # Supabase configuration
 SUPABASE_URL = os.environ.get('SUPABASE_URL', '')
@@ -109,6 +111,14 @@ def serve_static(filename):
     return send_from_directory(FRONTEND_DIR, filename)
 
 # ----------------- Lightweight API Routes -----------------
+
+@app.route('/api/config', methods=['GET'])
+def get_config():
+    """Dynamically serve public runtime config without exposing in static files."""
+    return jsonify({
+        'supabaseUrl': SUPABASE_URL,
+        'supabaseKey': SUPABASE_KEY
+    })
 
 @app.route('/api/auth/validate-email', methods=['POST'])
 def validate_email():
