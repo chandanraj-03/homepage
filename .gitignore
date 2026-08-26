@@ -10,9 +10,24 @@ config.js
 
 chatbot.py
 supabasepassword.txt
+.password.txt
+password.txt
+supabase_schema.sql
+.DS_Store
+__pycache__/
+*.pyc
+.env
+.env*.local
+.env.production
+.env.example
+frontend/config.js
+config.js
+
+chatbot.py
+supabasepassword.txt
+.password.txt
+password.txt
 supabase_schema.sql
 supabase.schema.sql
 *.sql
-.password.txt
-password.txt
-.env.example
+

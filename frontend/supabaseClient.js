@@ -2,117 +2,152 @@
  * PrivCloud Supabase Client Configuration
  */
 
-// Retrieve runtime configuration (from gitignored config.js or environment)
-const runtimeConfig = (typeof window !== 'undefined' && window.PRIVCLOUD_CONFIG) ? window.PRIVCLOUD_CONFIG : {};
-const SUPABASE_URL = runtimeConfig.supabaseUrl || "";
-const SUPABASE_KEY = runtimeConfig.supabaseKey || "";
+(function () {
+    const runtimeConfig = (typeof window !== 'undefined' && window.PRIVCLOUD_CONFIG) ? window.PRIVCLOUD_CONFIG : {};
+    let SUPABASE_URL = runtimeConfig.supabaseUrl || "";
+    let SUPABASE_KEY = runtimeConfig.supabaseKey || "";
 
-// Initialize Supabase Client
-let supabaseClient = null;
+    let supabaseClient = null;
+    let initPromise = null;
 
-function initSupabaseClient(url, key) {
-    if (url && key && typeof supabase !== 'undefined' && supabase.createClient) {
-        supabaseClient = supabase.createClient(url, key, {
-            auth: {
-                persistSession: true,
-                autoRefreshToken: true,
-                detectSessionInUrl: true
-            }
-        });
-        window.supabaseClient = supabaseClient;
+    function createClientInstance(url, key) {
+        if (url && key && typeof supabase !== 'undefined' && supabase.createClient) {
+            supabaseClient = supabase.createClient(url, key, {
+                auth: {
+                    persistSession: true,
+                    autoRefreshToken: true,
+                    detectSessionInUrl: true
+                }
+            });
+            window.supabaseClient = supabaseClient;
+            return supabaseClient;
+        }
+        return null;
+    }
+
+    function initClientAsync() {
+        if (supabaseClient) return Promise.resolve(supabaseClient);
+        if (initPromise) return initPromise;
+
+        if (SUPABASE_URL && SUPABASE_KEY) {
+            const client = createClientInstance(SUPABASE_URL, SUPABASE_KEY);
+            if (client) return Promise.resolve(client);
+        }
+
+        if (typeof window !== 'undefined' && window.fetch) {
+            initPromise = fetch('/api/config')
+                .then(res => res.json())
+                .then(cfg => {
+                    if (cfg.supabaseUrl && cfg.supabaseKey) {
+                        SUPABASE_URL = cfg.supabaseUrl;
+                        SUPABASE_KEY = cfg.supabaseKey;
+                        return createClientInstance(cfg.supabaseUrl, cfg.supabaseKey);
+                    }
+                    return null;
+                })
+                .catch(err => {
+                    console.warn("Could not load runtime config:", err);
+                    return null;
+                });
+            return initPromise;
+        }
+        return Promise.resolve(null);
+    }
+
+    // Trigger initialization immediately
+    initClientAsync();
+
+    async function ensureClient() {
+        if (supabaseClient) return supabaseClient;
+        await initClientAsync();
+        if (!supabaseClient) {
+            throw new Error("Supabase client is still initializing or could not connect. Please try again.");
+        }
         return supabaseClient;
     }
-    return null;
-}
 
-if (SUPABASE_URL && SUPABASE_KEY) {
-    initSupabaseClient(SUPABASE_URL, SUPABASE_KEY);
-} else if (typeof window !== 'undefined' && window.fetch) {
-    // Dynamic fetch from backend /api/config if not in window.PRIVCLOUD_CONFIG
-    fetch('/api/config')
-        .then(res => res.json())
-        .then(cfg => {
-            if (cfg.supabaseUrl && cfg.supabaseKey) {
-                initSupabaseClient(cfg.supabaseUrl, cfg.supabaseKey);
+    const PrivCloudAuth = {
+        getClient() {
+            return supabaseClient;
+        },
+
+        async getSession() {
+            try {
+                const client = await ensureClient();
+                const { data, error } = await client.auth.getSession();
+                if (error) {
+                    console.error("Error getting session:", error);
+                    return null;
+                }
+                return data.session;
+            } catch (e) {
+                return null;
             }
-        })
-        .catch(() => {});
-}
+        },
 
-// Helper authentication methods
-const PrivCloudAuth = {
-    getClient() {
-        return supabaseClient;
-    },
-
-    async getSession() {
-        if (!supabaseClient) return null;
-        const { data, error } = await supabaseClient.auth.getSession();
-        if (error) {
-            console.error("Error getting session:", error);
-            return null;
-        }
-        return data.session;
-    },
-
-    async getUser() {
-        if (!supabaseClient) return null;
-        const { data, error } = await supabaseClient.auth.getUser();
-        if (error) {
-            console.error("Error getting user:", error);
-            return null;
-        }
-        return data.user;
-    },
-
-    async signUp(email, password, metadata = {}) {
-        if (!supabaseClient) throw new Error("Supabase client is not initialized.");
-        return await supabaseClient.auth.signUp({
-            email: email.trim(),
-            password: password,
-            options: {
-                data: metadata
+        async getUser() {
+            try {
+                const client = await ensureClient();
+                const { data, error } = await client.auth.getUser();
+                if (error) {
+                    console.error("Error getting user:", error);
+                    return null;
+                }
+                return data.user;
+            } catch (e) {
+                return null;
             }
-        });
-    },
+        },
 
-    async signIn(email, password) {
-        if (!supabaseClient) throw new Error("Supabase client is not initialized.");
-        return await supabaseClient.auth.signInWithPassword({
-            email: email.trim(),
-            password: password
-        });
-    },
+        async signUp(email, password, metadata = {}) {
+            const client = await ensureClient();
+            return await client.auth.signUp({
+                email: email.trim(),
+                password: password,
+                options: {
+                    data: metadata
+                }
+            });
+        },
 
-    async signOut() {
-        if (!supabaseClient) throw new Error("Supabase client is not initialized.");
-        return await supabaseClient.auth.signOut();
-    },
+        async signIn(email, password) {
+            const client = await ensureClient();
+            return await client.auth.signInWithPassword({
+                email: email.trim(),
+                password: password
+            });
+        },
 
-    async verifyOtp(email, token, type = 'signup') {
-        if (!supabaseClient) throw new Error("Supabase client is not initialized.");
-        return await supabaseClient.auth.verifyOtp({
-            email: email.trim(),
-            token: token.trim(),
-            type: type
-        });
-    },
+        async signOut() {
+            const client = await ensureClient();
+            return await client.auth.signOut();
+        },
 
-    async resendOtp(email, type = 'signup') {
-        if (!supabaseClient) throw new Error("Supabase client is not initialized.");
-        return await supabaseClient.auth.resend({
-            type: type,
-            email: email.trim()
-        });
-    },
+        async verifyOtp(email, token, type = 'signup') {
+            const client = await ensureClient();
+            return await client.auth.verifyOtp({
+                email: email.trim(),
+                token: token.trim(),
+                type: type
+            });
+        },
 
-    async resetPassword(email) {
-        if (!supabaseClient) throw new Error("Supabase client is not initialized.");
-        return await supabaseClient.auth.resetPasswordForEmail(email.trim(), {
-            redirectTo: window.location.origin + '/auth.html#reset-password'
-        });
-    }
-};
+        async resendOtp(email, type = 'signup') {
+            const client = await ensureClient();
+            return await client.auth.resend({
+                type: type,
+                email: email.trim()
+            });
+        },
 
-window.supabaseClient = supabaseClient;
-window.PrivCloudAuth = PrivCloudAuth;
+        async resetPassword(email) {
+            const client = await ensureClient();
+            return await client.auth.resetPasswordForEmail(email.trim(), {
+                redirectTo: window.location.origin + '/auth.html#reset-password'
+            });
+        }
+    };
+
+    window.PrivCloudAuth = PrivCloudAuth;
+    window.supabaseClient = supabaseClient;
+})();
