@@ -20,17 +20,18 @@ const PLANS_DATA = {
     '9a8f10e7b9c2d4a6': {
         id: '9a8f10e7b9c2d4a6',
         name: 'Free Trial Edition',
-        badge: '🚀 14-Day Evaluation',
+        badge: '🎁 14-Day Evaluation',
         price: '₹0',
         amountNum: 0,
-        tenure: '14-Day Free Access',
+        tenure: '14-Day Free Access (1 PC)',
         keyPrefix: 'PC30-TRIAL',
         bullets: [
             '14-Day Full Feature Evaluation',
             '1 PC Local Installation',
-            'Full Media & Document Preview Suite',
-            'Drag & Drop File Ingestion Engine',
-            'Dynamic Remote Tunneling (Evaluation)',
+            '5 GB Storage Quota',
+            'Local Wi-Fi Network Mode',
+            'Wi-Fi Peer Radar & Sharing',
+            'In-App 1-Click Upgrade',
             'Zero-Knowledge Privacy Security'
         ],
         isFree: true
@@ -41,15 +42,15 @@ const PLANS_DATA = {
         badge: '⭐ Standard Lifetime',
         price: '₹1,499',
         amountNum: 1499,
-        tenure: 'One-Time Lifetime License',
+        tenure: 'One-Time Lifetime License ($19.99)',
         keyPrefix: 'PRIV-BAS',
         bullets: [
             'Lifetime License (1 PC)',
-            'Unlimited Storage Capacity',
+            '500 GB Storage Quota',
+            'Dynamic Remote Tunnel',
+            'Wi-Fi Peer Radar & Sharing',
             'Full In-Browser Media & Preview Suite',
-            'Smart Sharing & Client Dropboxes',
-            'Real-Time Storage Insights & Quota Guard',
-            'Dynamic Remote Tunneling',
+            'Smart Sharing & Password Links',
             '10-Character Product License Key'
         ],
         isFree: false
@@ -60,16 +61,17 @@ const PLANS_DATA = {
         badge: '👑 Professional Lifetime',
         price: '₹2,999',
         amountNum: 2999,
-        tenure: 'One-Time Lifetime License',
+        tenure: 'One-Time Lifetime License ($39.99)',
         keyPrefix: 'PRIV-PRO',
         bullets: [
             'Lifetime License (1 PC)',
             'Unlimited Storage Capacity',
-            'Full In-Browser Media & Preview Suite',
-            'Smart Sharing & Client Dropboxes',
-            'Real-Time Storage Insights & Quota Guard',
-            'Permanent Custom Subdomain (e.g. name.loca.lt)',
-            'Priority Tunnel Routing & VIP Support',
+            'Permanent Custom Subdomain',
+            'Wi-Fi Peer Radar & Sharing',
+            'Client Upload Dropboxes',
+            'Full In-Browser Media Suite',
+            'Priority Tunnel Routing',
+            'VIP Lifetime Customer Support',
             '16-Character Product License Key'
         ],
         isFree: false
