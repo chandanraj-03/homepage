@@ -59,9 +59,10 @@ def index():
 @app.route('/login')
 @app.route('/register')
 @app.route('/auth')
+@app.route('/auth.html')
 def auth():
     """Serve unified dynamic authentication page."""
-    return send_from_directory(os.path.join(FRONTEND_DIR, 'auth_page'), 'auth.html')
+    return send_from_directory(FRONTEND_DIR, 'auth.html')
 
 @app.route('/product')
 def product():
