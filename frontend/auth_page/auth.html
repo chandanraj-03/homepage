@@ -10,7 +10,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/logo.png">
-    <link rel="stylesheet" href="/auth.css?v=30">
+    <!-- Auth Styles -->
+    <link rel="stylesheet" href="auth.css">
+    <link rel="stylesheet" href="../landing_page/chatbot/chatbot.css?v=20">
     <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="/config.js"></script>
@@ -26,13 +28,14 @@
             <span class="nav-brand-text">PrivCloud</span>
         </a>
         <ul class="nav-links">
-            <li><a href="/#overview">Overview</a></li>
-            <li><a href="/#features">Features</a></li>
-            <li><a href="/#about-us">About Us</a></li>
+            <li><a href="../index.html#a8f10e7b9c2d4a6e">Overview</a></li>
+            <li><a href="../index.html#3b8c2f1e4a7d90bc">Features</a></li>
+            <li><a href="../index.html#7e2a9b4c0f81d3ea">About Us</a></li>
+            <li><a href="../product_page/product.html">Product</a></li>
         </ul>
         <div class="nav-actions">
-            <a href="#login" class="btn-login" onclick="switchAuthMode('login'); return false;">Login</a>
-            <a href="#register" class="btn-register" onclick="switchAuthMode('register'); return false;">Register</a>
+            <a href="#e9b4c0f81d3ea72a" class="btn-login" onclick="switchAuthMode('login'); return false;">Login</a>
+            <a href="#f2d8a0c4e6b1973f" class="btn-register" onclick="switchAuthMode('register'); return false;">Register</a>
         </div>
     </nav>
 
@@ -199,74 +202,13 @@
 
                 <!-- Footer Mode Switch Link -->
                 <div class="auth-footer-text" id="auth-footer-text">
-                    Don't have an account? 
-                    <a href="#register" onclick="switchAuthMode('register'); return false;">Create one now</a>
+                    Don't have an account? <a href="#f2d8a0c4e6b1973f" onclick="switchAuthMode('register'); return false;">Create one now</a>
                 </div>
 
             </div>
         </div>
     </main>
 
-    <!-- Dynamic Mode Switching & Validation Script -->
-    <script>
-        let currentMode = 'login';
-        let registeredEmail = '';
-        let resendTimerInterval = null;
-
-        // Strict Allowlist: Major standard providers only
-        const ALLOWED_EMAIL_DOMAINS = [
-            'gmail.com', 'googlemail.com',
-            'outlook.com', 'hotmail.com', 'live.com', 'msn.com',
-            'yahoo.com', 'yahoo.co.in', 'ymail.com',
-            'proton.me', 'protonmail.com',
-            'icloud.com', 'me.com', 'mac.com',
-            'zoho.com',
-            'aol.com',
-            'gmx.com', 'mail.com'
-        ];
-
-        function showAuthAlert(message, isSuccess = false) {
-            const alertBox = document.getElementById('auth-alert');
-            const alertText = document.getElementById('auth-alert-text');
-            const usernameInput = document.getElementById('auth-username');
-            
-            alertText.textContent = message;
-            if (isSuccess) {
-                alertBox.classList.add('success');
-            } else {
-                alertBox.classList.remove('success');
-                if (usernameInput) {
-                    usernameInput.classList.add('input-error');
-                    usernameInput.focus();
-                }
-            }
-            alertBox.classList.remove('hidden');
-        }
-
-        function clearAuthAlert() {
-            const alertBox = document.getElementById('auth-alert');
-            const usernameInput = document.getElementById('auth-username');
-            alertBox.classList.add('hidden');
-            alertBox.classList.remove('success');
-            if (usernameInput) usernameInput.classList.remove('input-error');
-        }
-
-        function validateEmailProvider(val) {
-            const trimmed = val.trim().toLowerCase();
-            
-            if (trimmed.includes('@')) {
-                const parts = trimmed.split('@');
-                const domain = parts[parts.length - 1];
-                
-                if (!ALLOWED_EMAIL_DOMAINS.includes(domain)) {
-                    return {
-                        valid: false,
-                        message: 'Only major providers are allowed (Gmail, Outlook, Yahoo, Proton, iCloud, Zoho).'
-                    };
-                }
-            } else {
-                return {
-                    valid: false,
                     message: 'Please enter a valid email address (e.g. alex@gmail.com).'
                 };
             }
@@ -751,6 +693,9 @@
             }
         }
     </script>
+    <!-- Authentication Logic Script -->
+    <script src="auth.js"></script>
+    <script src="../landing_page/chatbot/chatbot.js?v=20"></script>
 </body>
 
 </html>

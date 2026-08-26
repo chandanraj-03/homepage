@@ -56,6 +56,12 @@ function clearAuthAlert() {
     }
 }
 
+// 16-Character Auth Hash Identifiers
+const AUTH_HASH_MAP = {
+    login: 'e9b4c0f81d3ea72a',
+    register: 'f2d8a0c4e6b1973f'
+};
+
 // Switch between Sign In and Create Account
 function switchAuthMode(mode, updateHistory = true) {
     currentMode = mode;
@@ -89,10 +95,10 @@ function switchAuthMode(mode, updateHistory = true) {
         if (labelUsername) labelUsername.textContent = "Email Address";
         if (usernameInput) usernameInput.placeholder = "e.g. alex@gmail.com";
         if (passwordInput) passwordInput.placeholder = "Create a password (min 6 characters)";
-        if (footerText) footerText.innerHTML = 'Already have an account? <a href="#login" onclick="switchAuthMode(\'login\'); return false;">Sign in</a>';
+        if (footerText) footerText.innerHTML = `Already have an account? <a href="#${AUTH_HASH_MAP.login}" onclick="switchAuthMode('login'); return false;">Sign in</a>`;
         
-        if (updateHistory && window.location.hash !== '#register') {
-            history.replaceState(null, null, '#register');
+        if (updateHistory && window.location.hash !== `#${AUTH_HASH_MAP.register}`) {
+            history.replaceState(null, null, `#${AUTH_HASH_MAP.register}`);
         }
     } else {
         if (tabRegister) {
@@ -111,21 +117,32 @@ function switchAuthMode(mode, updateHistory = true) {
         if (labelUsername) labelUsername.textContent = "Email Address";
         if (usernameInput) usernameInput.placeholder = "e.g. alex@gmail.com";
         if (passwordInput) passwordInput.placeholder = "Enter your password";
-        if (footerText) footerText.innerHTML = 'Don\'t have an account? <a href="#register" onclick="switchAuthMode(\'register\'); return false;">Create one now</a>';
+        if (footerText) footerText.innerHTML = `Don't have an account? <a href="#${AUTH_HASH_MAP.register}" onclick="switchAuthMode('register'); return false;">Create one now</a>`;
         
-        if (updateHistory && window.location.hash !== '#login' && window.location.hash !== '') {
-            history.replaceState(null, null, '#login');
+        if (updateHistory && window.location.hash !== `#${AUTH_HASH_MAP.login}` && window.location.hash !== '') {
+            history.replaceState(null, null, `#${AUTH_HASH_MAP.login}`);
         }
     }
 }
 
+// 16-Character Secure Plan Token Mapping
+const PLAN_TOKEN_MAP = {
+    'trial': '9a8f10e7b9c2d4a6',
+    'basic': '4d9e1a7b0c3f8e2a',
+    'pro': '6b2f8c1a9d4e07bf',
+    'free': '9a8f10e7b9c2d4a6',
+    '9a8f10e7b9c2d4a6': '9a8f10e7b9c2d4a6',
+    '4d9e1a7b0c3f8e2a': '4d9e1a7b0c3f8e2a',
+    '6b2f8c1a9d4e07bf': '6b2f8c1a9d4e07bf'
+};
+
 // Initialize state on page load and handle browser back/forward
 async function handleHashRouting() {
-    const hash = window.location.hash.toLowerCase();
-    if (hash === '#register') {
-        switchAuthMode('register', false);
+    const hash = window.location.hash.toLowerCase().replace(/^#/, '');
+    if (hash === AUTH_HASH_MAP.register || hash === 'register') {
+        switchAuthMode('register', true);
     } else {
-        switchAuthMode('login', false);
+        switchAuthMode('login', true);
     }
 
     // Check if user is already authenticated and redirect is requested
@@ -134,8 +151,9 @@ async function handleHashRouting() {
         try {
             const session = await window.PrivCloudAuth.getSession();
             if (session && session.user) {
-                const plan = urlParams.get('plan') || 'trial';
-                window.location.href = `../purchase_page/purchase.html?plan=${encodeURIComponent(plan)}`;
+                const rawPlan = urlParams.get('plan') || '9a8f10e7b9c2d4a6';
+                const planToken = PLAN_TOKEN_MAP[rawPlan] || '9a8f10e7b9c2d4a6';
+                window.location.href = `../purchase_page/purchase.html?plan=${encodeURIComponent(planToken)}`;
             }
         } catch (e) {
             console.warn('Session check warning:', e);
@@ -146,10 +164,11 @@ async function handleHashRouting() {
 function getPostAuthRedirectDestination() {
     const urlParams = new URLSearchParams(window.location.search);
     const redirectTarget = urlParams.get('redirect');
-    const planParam = urlParams.get('plan') || 'trial';
+    const rawPlan = urlParams.get('plan') || '9a8f10e7b9c2d4a6';
+    const planToken = PLAN_TOKEN_MAP[rawPlan] || '9a8f10e7b9c2d4a6';
 
     if (redirectTarget === 'purchase') {
-        return `../purchase_page/purchase.html?plan=${encodeURIComponent(planParam)}`;
+        return `../purchase_page/purchase.html?plan=${encodeURIComponent(planToken)}`;
     }
     return '../index.html';
 }
