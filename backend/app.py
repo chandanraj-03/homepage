@@ -108,7 +108,17 @@ def purchase():
 
 @app.route('/<path:filename>')
 def serve_static(filename):
-    """Serve static assets (CSS, JS, media)."""
+    """Serve static assets (CSS, JS, media) from FRONTEND_DIR or subdirectories."""
+    target = os.path.join(FRONTEND_DIR, filename)
+    if os.path.exists(target) and os.path.isfile(target):
+        return send_from_directory(FRONTEND_DIR, filename)
+
+    # Fallback to search subdirectories (auth_page, landing_page, etc.)
+    base_name = os.path.basename(filename)
+    for root, dirs, files in os.walk(FRONTEND_DIR):
+        if base_name in files:
+            return send_from_directory(root, base_name)
+
     return send_from_directory(FRONTEND_DIR, filename)
 
 # ----------------- Lightweight API Routes -----------------
