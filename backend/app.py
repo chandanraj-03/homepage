@@ -52,6 +52,10 @@ else:
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', 'frontend'))
 
+# Hybrid GitHub RAG Backend Configuration
+RAG_BACKEND_URL = os.environ.get('RAG_BACKEND_URL', 'https://hybrid-github-rag-backend.onrender.com').strip().rstrip('/')
+
+
 # Ultra-lightweight Flask app
 app = Flask(__name__, static_folder=FRONTEND_DIR)
 
@@ -122,6 +126,94 @@ def validate_email():
         'valid': True,
         'message': 'Email domain is verified.'
     })
+
+# ----------------- Hybrid RAG Chatbot Endpoints -----------------
+
+@app.route('/api/chat', methods=['POST'])
+def chat_proxy():
+    """
+    Proxy endpoint to Hybrid GitHub RAG Chatbot backend.
+    Forwards user query, conversation history, and retrieval configuration.
+    """
+    data = request.get_json(silent=True) or {}
+    message = data.get('message', '').strip()
+    
+    if not message:
+        return jsonify({'error': 'Message cannot be empty.'}), 400
+        
+    payload = {
+        'message': message,
+        'history': data.get('history', []),
+        'top_k': data.get('top_k', 4)
+    }
+    
+    rag_endpoint = f"{RAG_BACKEND_URL}/api/chat"
+    
+    try:
+        import urllib.request
+        import urllib.error
+        import json
+        
+        req = urllib.request.Request(
+            rag_endpoint,
+            data=json.dumps(payload).encode('utf-8'),
+            headers={'Content-Type': 'application/json', 'User-Agent': 'PrivCloud-Web/1.0'}
+        )
+        
+        with urllib.request.urlopen(req, timeout=45) as response:
+            res_data = json.loads(response.read().decode('utf-8'))
+            return jsonify(res_data), response.status
+            
+    except urllib.error.HTTPError as e:
+        err_body = e.read().decode('utf-8', errors='replace')
+        try:
+            err_json = json.loads(err_body)
+            detail = err_json.get('detail') or err_json.get('message') or err_body
+        except Exception:
+            detail = err_body
+        return jsonify({
+            'error': 'RAG Backend service error',
+            'detail': detail,
+            'status_code': e.code
+        }), e.code
+        
+    except urllib.error.URLError as e:
+        return jsonify({
+            'error': f'Failed to connect to RAG backend at {RAG_BACKEND_URL}',
+            'detail': str(e.reason)
+        }), 503
+        
+    except Exception as e:
+        return jsonify({
+            'error': 'Unexpected error processing chat request',
+            'detail': str(e)
+        }), 500
+
+@app.route('/api/chatbot/health', methods=['GET'])
+def chatbot_health():
+    """
+    Proxy endpoint to check health status of the Hybrid RAG Backend.
+    """
+    rag_health_endpoint = f"{RAG_BACKEND_URL}/api/health"
+    try:
+        import urllib.request
+        import urllib.error
+        import json
+        
+        req = urllib.request.Request(rag_health_endpoint, headers={'User-Agent': 'PrivCloud-Web/1.0'})
+        with urllib.request.urlopen(req, timeout=10) as response:
+            res_data = json.loads(response.read().decode('utf-8'))
+            return jsonify({
+                'backend_url': RAG_BACKEND_URL,
+                'status': 'online',
+                'details': res_data
+            }), 200
+    except Exception as e:
+        return jsonify({
+            'backend_url': RAG_BACKEND_URL,
+            'status': 'offline',
+            'error': str(e)
+        }), 200
 
 # ----------------- Razorpay Payment Endpoints -----------------
 

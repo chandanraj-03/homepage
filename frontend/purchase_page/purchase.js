@@ -2,12 +2,23 @@
  * PrivCloud Purchase & Razorpay Payment Integration
  */
 
-let currentPlan = 'trial';
+let currentPlan = '9a8f10e7b9c2d4a6';
 let currentUser = null;
 
+// 16-Character Secure Plan Token Mapping
+const PLAN_ALIAS_MAP = {
+    'trial': '9a8f10e7b9c2d4a6',
+    'basic': '4d9e1a7b0c3f8e2a',
+    'pro': '6b2f8c1a9d4e07bf',
+    'free': '9a8f10e7b9c2d4a6',
+    '9a8f10e7b9c2d4a6': '9a8f10e7b9c2d4a6',
+    '4d9e1a7b0c3f8e2a': '4d9e1a7b0c3f8e2a',
+    '6b2f8c1a9d4e07bf': '6b2f8c1a9d4e07bf'
+};
+
 const PLANS_DATA = {
-    trial: {
-        id: 'trial',
+    '9a8f10e7b9c2d4a6': {
+        id: '9a8f10e7b9c2d4a6',
         name: 'Free Trial Edition',
         badge: '🚀 14-Day Evaluation',
         price: '₹0',
@@ -24,8 +35,8 @@ const PLANS_DATA = {
         ],
         isFree: true
     },
-    basic: {
-        id: 'basic',
+    '4d9e1a7b0c3f8e2a': {
+        id: '4d9e1a7b0c3f8e2a',
         name: 'Basic Edition',
         badge: '⭐ Standard Lifetime',
         price: '₹1,499',
@@ -43,8 +54,8 @@ const PLANS_DATA = {
         ],
         isFree: false
     },
-    pro: {
-        id: 'pro',
+    '6b2f8c1a9d4e07bf': {
+        id: '6b2f8c1a9d4e07bf',
         name: 'Pro Edition',
         badge: '👑 Professional Lifetime',
         price: '₹2,999',
@@ -66,12 +77,18 @@ const PLANS_DATA = {
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Check URL Parameters for Plan
+    // 1. Check URL Parameters for Plan and auto-upgrade legacy parameters to 16-char tokens
     const urlParams = new URLSearchParams(window.location.search);
-    const planParam = urlParams.get('plan');
-    if (planParam && PLANS_DATA[planParam.toLowerCase()]) {
-        currentPlan = planParam.toLowerCase();
+    const rawPlanParam = urlParams.get('plan') || urlParams.get('pid');
+    if (rawPlanParam && PLAN_ALIAS_MAP[rawPlanParam.toLowerCase()]) {
+        currentPlan = PLAN_ALIAS_MAP[rawPlanParam.toLowerCase()];
     }
+
+    // Auto-normalize URL to display only the secure 16-character token
+    const normalizedUrl = new URL(window.location);
+    normalizedUrl.searchParams.delete('pid');
+    normalizedUrl.searchParams.set('plan', currentPlan);
+    window.history.replaceState({}, '', normalizedUrl);
 
     // 2. Supabase Auth Verification
     await verifyAuthentication();
@@ -83,10 +100,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.querySelectorAll('.plan-tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const plan = btn.getAttribute('data-plan');
-            if (plan && PLANS_DATA[plan]) {
-                currentPlan = plan;
+            const targetPlan = PLAN_ALIAS_MAP[plan] || plan;
+            if (targetPlan && PLANS_DATA[targetPlan]) {
+                currentPlan = targetPlan;
                 renderPlan(currentPlan);
-                // Update URL without reload
+                // Update URL to 16-character secure token
                 const newUrl = new URL(window.location);
                 newUrl.searchParams.set('plan', currentPlan);
                 window.history.replaceState({}, '', newUrl);
@@ -141,7 +159,7 @@ async function verifyAuthentication() {
 }
 
 function redirectToAuth() {
-    window.location.href = `../auth_page/auth.html?redirect=purchase&plan=${encodeURIComponent(currentPlan)}#login`;
+    window.location.href = `../auth_page/auth.html?redirect=purchase&plan=${encodeURIComponent(currentPlan)}#e9b4c0f81d3ea72a`;
 }
 
 async function handleSignOut() {

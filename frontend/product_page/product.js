@@ -24,11 +24,34 @@ document.addEventListener('DOMContentLoaded', () => {
         copyEl.innerHTML = `&copy; ${new Date().getFullYear()} PrivCloud. All rights reserved.`;
     }
 
-    // 3. Smooth scrolling for in-page anchors
+    // 3. 16-Character Alphanumeric Hash Alias Resolution & Smooth Scrolling
+    const PRODUCT_SECTION_ALIASES = {
+        'comparison': '4d9e1a7b0c3f8e2a',
+        'pricing': '6b2f8c1a9d4e07bf',
+        'faq': '5c7a3d9b1e8f20ac',
+        'sec-4d9e1a': '4d9e1a7b0c3f8e2a',
+        'sec-6b2f8c': '6b2f8c1a9d4e07bf',
+        'sec-5c7a3d': '5c7a3d9b1e8f20ac'
+    };
+
+    const initialHash = window.location.hash.replace(/^#/, '');
+    if (PRODUCT_SECTION_ALIASES[initialHash]) {
+        const secureHash = PRODUCT_SECTION_ALIASES[initialHash];
+        history.replaceState(null, null, `#${secureHash}`);
+        setTimeout(() => {
+            const el = document.getElementById(secureHash);
+            if (el) {
+                const headerOffset = 76;
+                const offsetPosition = el.getBoundingClientRect().top + window.pageYOffset - headerOffset;
+                window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+            }
+        }, 100);
+    }
+
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
             const href = this.getAttribute('href');
-            if (href === '#' || href === '#login' || href === '#register') return;
+            if (href === '#' || href === '#login' || href === '#register' || href === '#e9b4c0f81d3ea72a' || href === '#f2d8a0c4e6b1973f') return;
 
             const targetEl = document.querySelector(href);
             if (targetEl) {
@@ -80,18 +103,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// 16-Character Secure Plan Token Mapping
+const PLAN_TOKEN_MAP = {
+    'trial': '9a8f10e7b9c2d4a6',
+    'basic': '4d9e1a7b0c3f8e2a',
+    'pro': '6b2f8c1a9d4e07bf',
+    'free': '9a8f10e7b9c2d4a6',
+    '9a8f10e7b9c2d4a6': '9a8f10e7b9c2d4a6',
+    '4d9e1a7b0c3f8e2a': '4d9e1a7b0c3f8e2a',
+    '6b2f8c1a9d4e07bf': '6b2f8c1a9d4e07bf'
+};
+
 /**
  * Handle Plan Selection (Trial, Basic, Pro)
- * If authenticated -> redirect directly to hidden purchase/checkout page.
+ * If authenticated -> redirect directly to secure purchase/checkout page.
  * If unauthenticated -> redirect to authentication page with redirect parameters.
  */
 async function handlePlanSelection(plan) {
-    const targetPlan = plan || 'trial';
+    const targetPlan = PLAN_TOKEN_MAP[plan] || '9a8f10e7b9c2d4a6';
     try {
         if (window.PrivCloudAuth) {
             const session = await window.PrivCloudAuth.getSession();
             if (session && session.user) {
-                // User is authenticated -> Go straight to hidden purchase page
+                // User is authenticated -> Go straight to secure purchase page
                 window.location.href = `../purchase_page/purchase.html?plan=${encodeURIComponent(targetPlan)}`;
                 return;
             }
@@ -100,6 +134,6 @@ async function handlePlanSelection(plan) {
         console.warn('Auth check error:', e);
     }
     // User is NOT authenticated -> Go to Auth Page
-    window.location.href = `../auth_page/auth.html?redirect=purchase&plan=${encodeURIComponent(targetPlan)}#register`;
+    window.location.href = `../auth_page/auth.html?redirect=purchase&plan=${encodeURIComponent(targetPlan)}#f2d8a0c4e6b1973f`;
 }
 window.handlePlanSelection = handlePlanSelection;
