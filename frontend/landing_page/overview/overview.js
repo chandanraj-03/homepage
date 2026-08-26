@@ -5,7 +5,33 @@
 document.addEventListener('DOMContentLoaded', () => {
     const navLinks = document.querySelectorAll('.nav-links a');
 
-    // Section scrollspy
+    // 16-Character Alphanumeric Section ID Mapping
+    const SECTION_ALIAS_MAP = {
+        'overview': 'a8f10e7b9c2d4a6e',
+        'features': '3b8c2f1e4a7d90bc',
+        'about-us': '7e2a9b4c0f81d3ea',
+        'about': '7e2a9b4c0f81d3ea',
+        'sec-a8f10e': 'a8f10e7b9c2d4a6e',
+        'sec-3b8c2f': '3b8c2f1e4a7d90bc',
+        'sec-7e2a9b': '7e2a9b4c0f81d3ea'
+    };
+
+    // Auto-resolve legacy / simple addresses to secure 16-character alphanumeric hashes
+    const currentHash = window.location.hash.replace(/^#/, '');
+    if (SECTION_ALIAS_MAP[currentHash]) {
+        const secureHash = SECTION_ALIAS_MAP[currentHash];
+        history.replaceState(null, null, `#${secureHash}`);
+        setTimeout(() => {
+            const el = document.getElementById(secureHash);
+            if (el) {
+                const headerOffset = 76;
+                const offsetPosition = el.getBoundingClientRect().top + window.pageYOffset - headerOffset;
+                window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+            }
+        }, 100);
+    }
+
+    // Section scrollspy with 16-character alphanumeric section IDs
     function getActiveSection() {
         const scrollY = window.pageYOffset || document.documentElement.scrollTop;
         const windowHeight = window.innerHeight;
@@ -13,16 +39,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Reached bottom of page
         if (scrollY + windowHeight >= documentHeight - 120) {
-            return 'about-us';
+            return '7e2a9b4c0f81d3ea';
         }
 
-        const aboutEl = document.getElementById('about-us');
-        const featEl = document.getElementById('features');
+        const aboutEl = document.getElementById('7e2a9b4c0f81d3ea');
+        const featEl = document.getElementById('3b8c2f1e4a7d90bc');
 
         if (aboutEl) {
             const aboutTop = aboutEl.offsetTop - 120;
             if (scrollY >= aboutTop) {
-                return 'about-us';
+                return '7e2a9b4c0f81d3ea';
             }
         }
 
@@ -30,11 +56,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const featTop = featEl.offsetTop - 120;
             const featBottom = featTop + featEl.offsetHeight;
             if (scrollY >= featTop && scrollY < featBottom) {
-                return 'features';
+                return '3b8c2f1e4a7d90bc';
             }
         }
 
-        return 'overview';
+        return 'a8f10e7b9c2d4a6e';
     }
 
     function updateNavHighlight() {
@@ -58,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.navbar a[href^="#"], .site-footer a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
             const href = this.getAttribute('href');
-            if (href === '#' || href === '#login' || href === '#register') return;
+            if (href === '#' || href === '#login' || href === '#register' || href === '#e9b4c0f81d3ea72a' || href === '#f2d8a0c4e6b1973f') return;
 
             const targetEl = document.querySelector(href);
             if (targetEl) {

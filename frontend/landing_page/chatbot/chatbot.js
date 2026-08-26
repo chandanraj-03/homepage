@@ -1,19 +1,37 @@
 /**
  * PrivCloud AI Floating Chatbot Widget
- * Integrated with Streamlit Cloud RAG Backend
+ * Integrated with Hybrid GitHub README RAG Backend (Render Deployed)
+ * https://hybrid-github-rag-backend.onrender.com
  */
 
 (function () {
-    const STREAMLIT_APP_URL = "https://ragchatbot-xvkzxhpasyqnpmrpbsmuvd.streamlit.app/?embed=true";
+    const DIRECT_API_URL = "https://hybrid-github-rag-backend.onrender.com/api/chat";
+    const DIRECT_HEALTH_URL = "https://hybrid-github-rag-backend.onrender.com/api/health";
+    const PROXY_API_URL = "/api/chat";
+    const PROXY_HEALTH_URL = "/api/chatbot/health";
     const SUPABASE_ASSETS_URL = "https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets";
+    const STORAGE_KEY = "privcloud_rag_chat_history_v2";
 
-    let state = {
+    const state = {
         isOpen: false,
-        isExpanded: false
+        isExpanded: false,
+        isLoading: false,
+        isOnline: true,
+        messages: []
     };
+
+    const SUGGESTIONS = [
+        "What is PrivCloud?",
+        "How do upload links work?",
+        "What storage quotas are supported?",
+        "What file formats can be previewed?"
+    ];
 
     function initChatbot() {
         if (document.getElementById("privcloud-chatbot-root")) return;
+
+        // Restore chat messages from session storage
+        loadStoredHistory();
 
         const container = document.createElement("div");
         container.className = "privcloud-chatbot-fab-wrap";
@@ -38,30 +56,31 @@
                         <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
                 </div>
-                <span class="fab-status-dot" title="Online"></span>
             </button>
 
             <!-- Main Chatbot Window - Frosted Sky Glass -->
             <div class="privcloud-chat-window" id="privcloud-chat-window">
                 
+                <!-- Toast Notification -->
+                <div class="privcloud-chat-toast" id="chat-toast">Copied to clipboard!</div>
+
                 <!-- Chat Header -->
                 <div class="privcloud-chat-header">
                     <div class="privcloud-chat-header-left">
                         <div class="chat-avatar-ring">
                             <img src="${SUPABASE_ASSETS_URL}/bot.png" alt="PrivCloud Bot" class="header-bot-img">
-                            <span class="chat-avatar-status"></span>
+                            <span class="chat-avatar-status" id="header-status-dot"></span>
                         </div>
                         <div class="chat-title-group">
                             <div class="chat-title-row">
                                 <span class="chat-title">PrivCloud AI</span>
-                                <span class="chat-badge-pill">RAG Streamlit</span>
                             </div>
-                            <span class="chat-subtitle">Grounded in Documentation</span>
+                            <span class="chat-subtitle" id="header-backend-subtitle">Product Assistant</span>
                         </div>
                     </div>
                     <div class="privcloud-chat-header-actions">
-                        <button class="chat-hdr-btn" id="btn-reload-stream" title="Reload Chat Session">
-                            🔄
+                        <button class="chat-hdr-btn" id="btn-clear-chat" title="Clear Conversation">
+                            🗑️
                         </button>
                         <button class="chat-hdr-btn btn-expand" id="btn-expand-chat" title="Expand / Minimize Window">
                             🗖
@@ -72,22 +91,35 @@
                     </div>
                 </div>
 
-                <!-- Streamlit Iframe Container with Smooth Loader -->
-                <div class="streamlit-frame-wrap">
-                    <div class="streamlit-loading-state" id="streamlit-loader">
-                        <div class="typing-dot" style="width: 10px; height: 10px;"></div>
-                        <div class="typing-dot" style="width: 10px; height: 10px; animation-delay: 0.2s;"></div>
-                        <div class="typing-dot" style="width: 10px; height: 10px; animation-delay: 0.4s;"></div>
-                        <span style="font-size: 0.85rem; font-weight: 600; color: #0284c7; margin-left: 8px;">Connecting to PrivCloud AI...</span>
+                <!-- Chat Messages Scroll Container -->
+                <div class="privcloud-chat-body" id="chat-messages-container">
+                    <!-- Dynamic Messages will render here -->
+                </div>
+
+                <!-- Chat Input Footer -->
+                <div class="privcloud-chat-footer">
+                    <form class="chat-input-wrapper" id="chat-input-form">
+                        <textarea 
+                            id="chat-user-input" 
+                            class="chat-input-field" 
+                            placeholder="Ask anything about PrivCloud features, setup, storage..." 
+                            rows="1"
+                            maxlength="1000"
+                            required></textarea>
+                        <button type="submit" class="chat-send-btn" id="chat-send-btn" title="Send message">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                        </button>
+                    </form>
+                    <div class="chat-footer-caption">
+                        <div class="footer-caption-left">
+                            <span class="footer-caption-status-dot" id="footer-status-dot" style="display:none;"></span>
+                            <span id="footer-status-text">Contact PrivCloud company for more details about the product</span>
+                        </div>
+                        <span>Shift + Enter for new line</span>
                     </div>
-                    <iframe 
-                        id="streamlit-chat-iframe"
-                        src="${STREAMLIT_APP_URL}" 
-                        class="streamlit-chat-iframe"
-                        frameborder="0"
-                        allow="clipboard-read; clipboard-write;"
-                        loading="lazy">
-                    </iframe>
                 </div>
 
             </div>
@@ -95,6 +127,8 @@
 
         document.body.appendChild(container);
         bindEvents();
+        renderMessages();
+        checkBackendHealth();
     }
 
     function bindEvents() {
@@ -103,17 +137,9 @@
         const promoCloseBtn = document.getElementById("promo-close-btn");
         const closeBtn = document.getElementById("btn-close-chat");
         const expandBtn = document.getElementById("btn-expand-chat");
-        const reloadBtn = document.getElementById("btn-reload-stream");
-        const iframe = document.getElementById("streamlit-chat-iframe");
-        const loader = document.getElementById("streamlit-loader");
-
-        // Hide loader when iframe loads
-        if (iframe && loader) {
-            iframe.addEventListener("load", () => {
-                loader.style.opacity = "0";
-                setTimeout(() => { loader.style.display = "none"; }, 300);
-            });
-        }
+        const clearBtn = document.getElementById("btn-clear-chat");
+        const inputForm = document.getElementById("chat-input-form");
+        const inputField = document.getElementById("chat-user-input");
 
         // Toggle Open / Close
         if (toggleBtn) {
@@ -132,7 +158,6 @@
                 promoPill.style.display = "none";
             });
         }
-
         if (closeBtn) {
             closeBtn.addEventListener("click", () => toggleChat(false));
         }
@@ -147,19 +172,39 @@
             });
         }
 
-        // Reload Streamlit Session
-        if (reloadBtn && iframe) {
-            reloadBtn.addEventListener("click", () => {
-                reloadBtn.style.transform = "rotate(180deg)";
-                reloadBtn.style.transition = "transform 0.4s ease";
-                if (loader) {
-                    loader.style.display = "flex";
-                    loader.style.opacity = "1";
+        // Clear Conversation
+        if (clearBtn) {
+            clearBtn.addEventListener("click", () => {
+                if (state.messages.length === 0) return;
+                if (confirm("Clear this conversation?")) {
+                    state.messages = [];
+                    saveStoredHistory();
+                    renderMessages();
+                    showToast("Conversation cleared");
                 }
-                iframe.src = STREAMLIT_APP_URL + "&t=" + Date.now();
-                setTimeout(() => {
-                    reloadBtn.style.transform = "rotate(0deg)";
-                }, 400);
+            });
+        }
+
+        // Form Submit
+        if (inputForm) {
+            inputForm.addEventListener("submit", (e) => {
+                e.preventDefault();
+                handleUserSend();
+            });
+        }
+
+        // Textarea Enter / Auto-resize
+        if (inputField) {
+            inputField.addEventListener("keydown", (e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleUserSend();
+                }
+            });
+
+            inputField.addEventListener("input", () => {
+                inputField.style.height = "auto";
+                inputField.style.height = Math.min(inputField.scrollHeight, 90) + "px";
             });
         }
     }
@@ -174,9 +219,515 @@
             if (chatWin) chatWin.classList.add("is-visible");
             if (toggleBtn) toggleBtn.classList.add("is-open");
             if (promoPill) promoPill.style.display = "none";
+            scrollToBottom();
+            const inputField = document.getElementById("chat-user-input");
+            if (inputField && window.innerWidth > 640) {
+                setTimeout(() => inputField.focus(), 150);
+            }
         } else {
             if (chatWin) chatWin.classList.remove("is-visible");
             if (toggleBtn) toggleBtn.classList.remove("is-open");
+        }
+    }
+
+    // =========================================================================
+    // =========================================================================
+    // Conversational Quick Intent Handler
+    // =========================================================================
+
+    function getQuickConversationalResponse(query) {
+        const clean = query.toLowerCase().trim().replace(/[?!.,;:]/g, "");
+
+        // Greetings
+        if (/^(hi|hello|hey|hey there|greetings|hola|good morning|good afternoon|good evening|namaste)$/i.test(clean)) {
+            return "Hello! 👋 I'm **PrivCloud AI**, your dedicated assistant for PrivCloud. How can I help you with our product features, cloud storage, security, or deployment today?";
+        }
+
+        // Identity / Name
+        if (/^(what is your name|whats your name|who are you|tell me your name|your name)$/i.test(clean)) {
+            return "I am **PrivCloud AI**, your intelligent product assistant designed to help you explore and understand all PrivCloud services and features.";
+        }
+
+        // Capabilities / What do you do
+        if (/^(what do you do|what can you do|what you do|help me|how can you help|tell me about yourself)$/i.test(clean)) {
+            return "I can help you explore everything about **PrivCloud**:\n\n- 🛡️ **Zero-Knowledge Security & Encryption**\n- 📁 **Cloud Storage & File Management**\n- 🔗 **Secure Share Links & Upload Links**\n- 🎬 **Video Playback & File Previews**\n- 💳 **Plans, Quotas & Setup**\n\nFeel free to ask any question regarding PrivCloud!";
+        }
+
+        // Goodbyes
+        if (/^(bye|goodbye|see you|cya|take care|have a good day|good night)$/i.test(clean)) {
+            return "Goodbye! 👋 If you have any more questions about PrivCloud later, I'll be right here. Have a great day!";
+        }
+
+        // Gratitude
+        if (/^(thanks|thank you|thx|thank you so much|appreciate it)$/i.test(clean)) {
+            return "You're very welcome! Let me know if you need anything else regarding PrivCloud.";
+        }
+
+        return null;
+    }
+
+    function sanitizeBotResponse(rawText) {
+        if (!rawText) {
+            return "Contact PrivCloud company to know more.";
+        }
+
+        const lower = rawText.toLowerCase();
+
+        // Check for common RAG 'not found in documentation' responses
+        if (
+            lower.includes("couldn't find that information") ||
+            lower.includes("could not find that information") ||
+            lower.includes("not found in the repository") ||
+            lower.includes("not found in the documentation") ||
+            lower.includes("does not contain information") ||
+            lower.includes("i don't have information about that in the repository")
+        ) {
+            return "Ask Question or Queries related PrivCloud Product so i can help in better way. If you have specific inquiries, please contact PrivCloud company to know more.";
+        }
+
+        // Check for empty, generic refusal or missing answer
+        if (
+            lower.includes("i don't know") || 
+            lower.includes("no information available") ||
+            lower === "n/a"
+        ) {
+            return "Contact PrivCloud company to know more.";
+        }
+
+        return rawText;
+    }
+
+    // =========================================================================
+    // Core Messaging Logic & RAG Integration
+    // =========================================================================
+
+    async function handleUserSend(customText) {
+        if (state.isLoading) return;
+
+        const inputField = document.getElementById("chat-user-input");
+        const text = (customText || (inputField ? inputField.value : "")).trim();
+
+        if (!text) return;
+
+        if (inputField && !customText) {
+            inputField.value = "";
+            inputField.style.height = "auto";
+        }
+
+        // Add user message
+        const userMsg = {
+            id: "msg_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7),
+            role: "user",
+            content: text,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+
+        state.messages.push(userMsg);
+        saveStoredHistory();
+        renderMessages();
+        scrollToBottom();
+
+        // 1. Check for quick conversational intents (hi, bye, name, etc.)
+        const quickAnswer = getQuickConversationalResponse(text);
+        if (quickAnswer) {
+            const botMsg = {
+                id: "msg_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7),
+                role: "assistant",
+                content: quickAnswer,
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+            state.messages.push(botMsg);
+            saveStoredHistory();
+            renderMessages();
+            scrollToBottom();
+            return;
+        }
+
+        // Start loading
+        state.isLoading = true;
+        updateSendButtonState(true);
+        renderTypingIndicator();
+        scrollToBottom();
+
+        // Build multi-turn history payload
+        const historyPayload = state.messages
+            .filter(m => m.role === "user" || m.role === "assistant")
+            .slice(-8)
+            .map(m => ({
+                role: m.role,
+                content: m.content
+            }));
+
+        try {
+            const data = await queryRagBackend(text, historyPayload);
+            removeTypingIndicator();
+
+            let finalAnswer = sanitizeBotResponse(data.answer);
+
+            const botMsg = {
+                id: "msg_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7),
+                role: "assistant",
+                content: finalAnswer,
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+
+            state.messages.push(botMsg);
+            saveStoredHistory();
+            renderMessages();
+
+        } catch (error) {
+            removeTypingIndicator();
+            console.error("[PrivCloud Chatbot] Query error:", error);
+
+            const botMsg = {
+                id: "msg_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7),
+                role: "assistant",
+                content: "Contact PrivCloud company to know more.",
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+
+            state.messages.push(botMsg);
+            saveStoredHistory();
+            renderMessages();
+        } finally {
+            state.isLoading = false;
+            updateSendButtonState(false);
+            scrollToBottom();
+        }
+    }
+
+    async function queryRagBackend(message, history) {
+        const payload = {
+            message: message,
+            history: history,
+            top_k: 4
+        };
+
+        let lastError = null;
+
+        // 1. Try Direct Render Backend
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 35000);
+
+            const response = await fetch(DIRECT_API_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify(payload),
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+
+            if (response.ok) {
+                return await response.json();
+            } else {
+                const errorData = await response.json().catch(() => ({}));
+                const errMsg = errorData.detail || errorData.message || `Server returned HTTP ${response.status}`;
+                throw new Error(errMsg);
+            }
+        } catch (err) {
+            console.warn("[PrivCloud Chatbot] Direct fetch failed, attempting local proxy:", err.message);
+            lastError = err;
+        }
+
+        // 2. Fallback to Local Proxy Route (/api/chat)
+        try {
+            const proxyResponse = await fetch(PROXY_API_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (proxyResponse.ok) {
+                return await proxyResponse.json();
+            } else {
+                const errorData = await proxyResponse.json().catch(() => ({}));
+                const errMsg = errorData.detail || errorData.error || `Proxy error HTTP ${proxyResponse.status}`;
+                throw new Error(errMsg);
+            }
+        } catch (proxyErr) {
+            console.error("[PrivCloud Chatbot] Proxy fetch also failed:", proxyErr);
+            throw lastError || proxyErr;
+        }
+    }
+
+    async function checkBackendHealth() {
+        const footerStatusText = document.getElementById("footer-status-text");
+        const footerStatusDot = document.getElementById("footer-status-dot");
+        if (footerStatusDot) footerStatusDot.style.display = "none";
+        if (footerStatusText) {
+            footerStatusText.textContent = "Contact PrivCloud company for more details about the product";
+        }
+    }
+
+    function setOfflineUI() {
+        const footerStatusText = document.getElementById("footer-status-text");
+        const footerStatusDot = document.getElementById("footer-status-dot");
+        if (footerStatusDot) footerStatusDot.style.display = "none";
+        if (footerStatusText) {
+            footerStatusText.textContent = "Contact PrivCloud company for more details about the product";
+        }
+    }
+
+    // =========================================================================
+    // UI Rendering & Markdown Parsing
+    // =========================================================================
+
+    function renderMessages() {
+        const body = document.getElementById("chat-messages-container");
+        if (!body) return;
+
+        body.innerHTML = "";
+
+        // Render Welcome Card
+        const welcomeCard = document.createElement("div");
+        welcomeCard.className = "chat-welcome-card";
+        welcomeCard.innerHTML = `
+            <div class="welcome-header">
+                <span class="welcome-icon">⚡</span>
+                <span class="welcome-title">PrivCloud Intelligence Assistant</span>
+            </div>
+            <div class="welcome-text">
+                Ask any technical question about PrivCloud architecture, file management, sharing links, video playback, storage quotas, or deployment.
+            </div>
+            <div class="chat-suggestions-label">Suggested Inquiries:</div>
+            <div class="chat-suggestions-grid">
+                ${SUGGESTIONS.map(s => `<div class="suggestion-chip" data-query="${escapeHtml(s)}">${escapeHtml(s)}</div>`).join("")}
+            </div>
+        `;
+        body.appendChild(welcomeCard);
+
+        // Bind suggested prompt clicks
+        welcomeCard.querySelectorAll(".suggestion-chip").forEach(chip => {
+            chip.addEventListener("click", () => {
+                const query = chip.getAttribute("data-query");
+                if (query) handleUserSend(query);
+            });
+        });
+
+        // Render Message List
+        state.messages.forEach(msg => {
+            const row = document.createElement("div");
+
+            if (msg.role === "user") {
+                row.className = "chat-msg-row user-row";
+                row.innerHTML = `
+                    <div class="chat-bubble user-bubble">${escapeHtml(msg.content)}</div>
+                `;
+            } else if (msg.role === "assistant") {
+                row.className = "chat-msg-row bot-row";
+
+                const formattedHtml = formatMarkdown(msg.content);
+
+                row.innerHTML = `
+                    <div class="chat-bubble bot-bubble">
+                        ${formattedHtml}
+                        <div class="bot-actions-row">
+                            <button class="btn-msg-action btn-copy-msg" data-text="${escapeHtml(msg.content)}" title="Copy Answer">
+                                📋 Copy
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else if (msg.role === "error") {
+                row.className = "chat-msg-row bot-row";
+                row.innerHTML = `
+                    <div class="chat-msg-error">
+                        <div class="chat-error-header">
+                            ⚠️ Unable to complete answer
+                        </div>
+                        <div class="chat-error-detail">${escapeHtml(msg.content)}</div>
+                        <button class="btn-chat-retry" data-query="${escapeHtml(msg.originalQuery || '')}">
+                            🔄 Retry
+                        </button>
+                    </div>
+                `;
+            }
+
+            body.appendChild(row);
+        });
+
+        // Bind copy & retry buttons
+        body.querySelectorAll(".btn-copy-msg").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const text = btn.getAttribute("data-text");
+                if (text) {
+                    navigator.clipboard.writeText(text).then(() => {
+                        showToast("Answer copied to clipboard!");
+                        btn.innerHTML = "✓ Copied";
+                        setTimeout(() => { btn.innerHTML = "📋 Copy"; }, 2000);
+                    }).catch(() => {
+                        showToast("Failed to copy");
+                    });
+                }
+            });
+        });
+
+        body.querySelectorAll(".btn-chat-retry").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const query = btn.getAttribute("data-query");
+                if (query) handleUserSend(query);
+            });
+        });
+    }
+
+    function renderTypingIndicator() {
+        const body = document.getElementById("chat-messages-container");
+        if (!body || document.getElementById("chat-typing-row")) return;
+
+        const row = document.createElement("div");
+        row.className = "chat-msg-row bot-row";
+        row.id = "chat-typing-row";
+        row.innerHTML = `
+            <div class="chat-typing-bubble">
+                <span class="typing-dot"></span>
+                <span class="typing-dot"></span>
+                <span class="typing-dot"></span>
+                <span class="typing-text">Searching documentation...</span>
+            </div>
+        `;
+        body.appendChild(row);
+    }
+
+    function removeTypingIndicator() {
+        const el = document.getElementById("chat-typing-row");
+        if (el) el.remove();
+    }
+
+    function formatProviderBadge(provider, model, failover) {
+        if (!provider && !model) return "";
+
+        let icon = "⚡";
+        let label = provider || "Hybrid RAG";
+        let isLocal = (provider || "").toLowerCase().includes("local") || (provider || "").toLowerCase().includes("laptop");
+
+        if (isLocal) {
+            icon = "💻";
+            label = `Local (${model || "qwen"})`;
+            return `<span class="meta-badge badge-local">${icon} ${escapeHtml(label)}</span>`;
+        }
+
+        if (failover) {
+            return `<span class="meta-badge badge-failover">🔀 Failover: ${escapeHtml(provider || "Cloud")}</span>`;
+        }
+
+        return `<span class="meta-badge">✨ ${escapeHtml(label)} ${model ? `• ${escapeHtml(model)}` : ""}</span>`;
+    }
+
+    function formatSources(sources) {
+        if (!sources || !Array.isArray(sources) || sources.length === 0) return "";
+
+        const pills = sources.slice(0, 3).map(s => {
+            const section = s.section ? ` > ${s.section}` : "";
+            const file = s.file || "README.md";
+            return `<span class="source-pill" title="${escapeHtml(file + section)}">📄 ${escapeHtml(file)}${escapeHtml(section)}</span>`;
+        }).join("");
+
+        return `
+            <div class="sources-container">
+                <span class="sources-title">Sources:</span>
+                ${pills}
+            </div>
+        `;
+    }
+
+    function formatMarkdown(text) {
+        if (!text) return "";
+        let raw = escapeHtml(text);
+
+        // Code blocks: ```lang ... ```
+        raw = raw.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g, function (match, lang, code) {
+            return `<pre><code>${code.trim()}</code></pre>`;
+        });
+
+        // Inline code: `code`
+        raw = raw.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+        // Headers
+        raw = raw.replace(/^### (.*$)/gim, '<strong style="display:block; font-size:0.95rem; margin:6px 0 2px;">$1</strong>');
+        raw = raw.replace(/^## (.*$)/gim, '<strong style="display:block; font-size:1.02rem; margin:8px 0 3px;">$1</strong>');
+        raw = raw.replace(/^# (.*$)/gim, '<strong style="display:block; font-size:1.1rem; margin:10px 0 4px;">$1</strong>');
+
+        // Bold & Italic
+        raw = raw.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+        raw = raw.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+
+        // Bullet lists
+        raw = raw.replace(/^\s*[-*•]\s+(.*)$/gim, '<li>$1</li>');
+        raw = raw.replace(/(<li>.*<\/li>)/gims, '<ul>$1</ul>');
+
+        // Clean double nested ULs
+        raw = raw.replace(/<\/ul>\s*<ul>/g, '');
+
+        // Paragraphs & Line breaks
+        const paragraphs = raw.split(/\n\n+/);
+        return paragraphs.map(p => {
+            if (p.startsWith('<pre>') || p.startsWith('<ul>') || p.startsWith('<strong style=')) {
+                return p;
+            }
+            return `<p>${p.replace(/\n/g, '<br>')}</p>`;
+        }).join('');
+    }
+
+    function escapeHtml(str) {
+        if (!str) return "";
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    function scrollToBottom() {
+        const body = document.getElementById("chat-messages-container");
+        if (body) {
+            body.scrollTop = body.scrollHeight;
+        }
+    }
+
+    function updateSendButtonState(isLoading) {
+        const btn = document.getElementById("chat-send-btn");
+        const input = document.getElementById("chat-user-input");
+        if (btn) btn.disabled = isLoading;
+        if (input) input.disabled = isLoading;
+    }
+
+    function showToast(msg) {
+        const toast = document.getElementById("chat-toast");
+        if (!toast) return;
+        toast.textContent = msg;
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 2500);
+    }
+
+    function loadStoredHistory() {
+        try {
+            const raw = sessionStorage.getItem(STORAGE_KEY);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed)) {
+                    state.messages = parsed;
+                }
+            }
+        } catch (e) {
+            console.warn("[PrivCloud Chatbot] History load error:", e);
+        }
+    }
+
+    function saveStoredHistory() {
+        try {
+            // Keep last 25 messages to avoid quota exhaustion
+            const trimmed = state.messages.slice(-25);
+            sessionStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed));
+        } catch (e) {
+            console.warn("[PrivCloud Chatbot] History save error:", e);
         }
     }
 
