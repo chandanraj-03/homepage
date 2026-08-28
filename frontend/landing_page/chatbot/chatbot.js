@@ -11,21 +11,16 @@
     const PROXY_HEALTH_URL = "/api/chatbot/health";
     const SUPABASE_ASSETS_URL = "https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets";
     const STORAGE_KEY = "privcloud_rag_chat_history_v2";
+    const USER_NAME_KEY = "privcloud_user_name_v1";
 
     const state = {
         isOpen: false,
         isExpanded: false,
         isLoading: false,
         isOnline: true,
+        userName: "",
         messages: []
     };
-
-    const SUGGESTIONS = [
-        "What is PrivCloud?",
-        "How do upload links work?",
-        "What storage quotas are supported?",
-        "What file formats can be previewed?"
-    ];
 
     function initChatbot() {
         if (document.getElementById("privcloud-chatbot-root")) return;
@@ -80,7 +75,7 @@
                     </div>
                     <div class="privcloud-chat-header-actions">
                         <button class="chat-hdr-btn" id="btn-clear-chat" title="Clear Conversation">
-                            🗑️
+                            🚮
                         </button>
                         <button class="chat-hdr-btn btn-expand" id="btn-expand-chat" title="Expand / Minimize Window">
                             🗖
@@ -116,7 +111,7 @@
                     <div class="chat-footer-caption">
                         <div class="footer-caption-left">
                             <span class="footer-caption-status-dot" id="footer-status-dot" style="display:none;"></span>
-                            <span id="footer-status-text">Contact PrivCloud company for more details about the product</span>
+                            <span id="footer-status-text">For more information <a href="mailto:rajchandan739@gmail.com" class="chat-footer-contact-link">contact PrivCloud</a></span>
                         </div>
                         <span>Shift + Enter for new line</span>
                     </div>
@@ -231,16 +226,70 @@
     }
 
     // =========================================================================
-    // =========================================================================
     // Conversational Quick Intent Handler
     // =========================================================================
+
+    function capitalizeWords(str) {
+        if (!str) return "";
+        return str.split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
+    }
+
+    function extractNameFromInput(text) {
+        const clean = text.trim();
+
+        const myNameIsMatch = clean.match(/^(?:my name is|i am|i'm|im|this is|call me|myself|it's|its)\s+([A-Za-z\s.'-]+)$/i);
+        if (myNameIsMatch && myNameIsMatch[1]) {
+            const candidate = myNameIsMatch[1].trim().replace(/[.!?]/g, "");
+            if (candidate.length >= 2 && candidate.length <= 35) {
+                return capitalizeWords(candidate);
+            }
+        }
+
+        // Single or two word name input if user simply types their name e.g. "Rahul", "Chandan Raj"
+        const words = clean.split(/\s+/);
+        if (words.length <= 3 && /^[A-Za-z\s.'-]+$/.test(clean)) {
+            const blacklist = [
+                "hi", "hello", "hey", "help", "privcloud", "price", "pricing", "cost", "features",
+                "storage", "quota", "speed", "lan", "wifi", "login", "register", "admin", "yes", "no",
+                "pro", "basic", "trial", "download", "upload", "share", "preview", "media", "format",
+                "video", "audio", "pdf", "what", "how", "why", "who", "when", "where", "can", "is", "are",
+                "ok", "okay", "sure", "fine", "good", "bye", "goodbye", "thanks", "thank you"
+            ];
+
+            const hasBlacklist = words.some(w => blacklist.includes(w.toLowerCase()));
+            if (!hasBlacklist && clean.length >= 2 && clean.length <= 30) {
+                return capitalizeWords(clean);
+            }
+        }
+
+        return null;
+    }
 
     function getQuickConversationalResponse(query) {
         const clean = query.toLowerCase().trim().replace(/[?!.,;:]/g, "");
 
+        // Name Introduction Check
+        const detectedName = extractNameFromInput(query);
+        if (detectedName && !state.userName) {
+            state.userName = detectedName;
+            saveStoredHistory();
+            return `Nice to meet you, **${detectedName}**! 😊\n\nHow can I help you explore **PrivCloud** today? Feel free to ask about our self-hosted personal cloud, 100% zero-telemetry privacy, Gigabit LAN transfer speeds, in-browser 4K media playback, client upload dropboxes, or lifetime pricing!`;
+        }
+
+        // Who am I / What is my name
+        if (/^(what is my name|whats my name|who am i|do you know my name)$/i.test(clean)) {
+            if (state.userName) {
+                return `Your name is **${state.userName}**! 😊 How can I help you explore PrivCloud today?`;
+            }
+            return "I don't know your name yet! What should I call you?";
+        }
+
         // Greetings
         if (/^(hi|hello|hey|hey there|greetings|hola|good morning|good afternoon|good evening|namaste)$/i.test(clean)) {
-            return "Hello! 👋 I'm **PrivCloud AI**, your dedicated assistant for PrivCloud. How can I help you with our product features, cloud storage, security, or deployment today?";
+            if (state.userName) {
+                return `Hello **${state.userName}**! 👋 How can I help you explore PrivCloud today? Feel free to ask any question about our product, features, or pricing!`;
+            }
+            return "Hi! 👋 I am **PrivCloud AI** to help in exploring our product.\n\nBy the way, can I know your name?";
         }
 
         // Identity / Name
@@ -250,25 +299,30 @@
 
         // Capabilities / What do you do
         if (/^(what do you do|what can you do|what you do|help me|how can you help|tell me about yourself)$/i.test(clean)) {
-            return "I can help you explore everything about **PrivCloud**:\n\n- 🛡️ **Zero-Knowledge Security & Encryption**\n- 📁 **Cloud Storage & File Management**\n- 🔗 **Secure Share Links & Upload Links**\n- 🎬 **Video Playback & File Previews**\n- 💳 **Plans, Quotas & Setup**\n\nFeel free to ask any question regarding PrivCloud!";
+            const namePrefix = state.userName ? `**${state.userName}**, I` : "I";
+            return `${namePrefix} can help you explore everything about **PrivCloud**:\n\n- 🔒 **Zero-Knowledge & Zero-Telemetry Privacy**\n- ⚡ **Gigabit LAN Speed & Remote HTTPS Tunnel**\n- 🎬 **In-Browser 4K Video, Audio & Document Suite**\n- 📤 **Smart Sharing & Client File Dropboxes**\n- 💰 **One-Time Lifetime Pricing (Basic & Pro)**\n- 🎛️ **Desktop Control Panel & Quota Guard**\n\nFeel free to ask any question!`;
         }
 
         // Goodbyes
         if (/^(bye|goodbye|see you|cya|take care|have a good day|good night)$/i.test(clean)) {
-            return "Goodbye! 👋 If you have any more questions about PrivCloud later, I'll be right here. Have a great day!";
+            const nameSuffix = state.userName ? `, **${state.userName}**` : "";
+            return `Goodbye${nameSuffix}! 👋 If you have any more questions about PrivCloud later, I'll be right here. Have a great day!`;
         }
 
         // Gratitude
         if (/^(thanks|thank you|thx|thank you so much|appreciate it)$/i.test(clean)) {
-            return "You're very welcome! Let me know if you need anything else regarding PrivCloud.";
+            const nameSuffix = state.userName ? `, **${state.userName}**` : "";
+            return `You're very welcome${nameSuffix}! Let me know if you need anything else regarding PrivCloud.`;
         }
 
         return null;
     }
 
     function sanitizeBotResponse(rawText) {
+        const contactFallback = "Ask questions or queries related to the PrivCloud product so I can help you best. You can also explore our key features, pricing, and documentation.\n\nFor more information, [contact PrivCloud](mailto:rajchandan739@gmail.com).";
+
         if (!rawText) {
-            return "Contact PrivCloud company to know more.";
+            return contactFallback;
         }
 
         const lower = rawText.toLowerCase();
@@ -282,7 +336,7 @@
             lower.includes("does not contain information") ||
             lower.includes("i don't have information about that in the repository")
         ) {
-            return "Ask Question or Queries related PrivCloud Product so i can help in better way. If you have specific inquiries, please contact PrivCloud company to know more.";
+            return contactFallback;
         }
 
         // Check for empty, generic refusal or missing answer
@@ -291,14 +345,14 @@
             lower.includes("no information available") ||
             lower === "n/a"
         ) {
-            return "Contact PrivCloud company to know more.";
+            return contactFallback;
         }
 
         return rawText;
     }
 
     // =========================================================================
-    // Core Messaging Logic & RAG Integration
+    // Core Messaging Logic & Pretrained RAG Integration
     // =========================================================================
 
     async function handleUserSend(customText) {
@@ -343,7 +397,7 @@
             return;
         }
 
-        // Start loading
+        // 2. Forward all product-related queries directly to pretrained RAG backend
         state.isLoading = true;
         updateSendButtonState(true);
         renderTypingIndicator();
@@ -382,7 +436,7 @@
             const botMsg = {
                 id: "msg_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7),
                 role: "assistant",
-                content: "Contact PrivCloud company to know more.",
+                content: "Ask questions or queries related to the PrivCloud product so I can help you best. You can also explore our key features, pricing, and documentation.\n\nFor more information, [contact PrivCloud](mailto:rajchandan739@gmail.com).",
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             };
 
@@ -462,7 +516,7 @@
         const footerStatusDot = document.getElementById("footer-status-dot");
         if (footerStatusDot) footerStatusDot.style.display = "none";
         if (footerStatusText) {
-            footerStatusText.textContent = "Contact PrivCloud company for more details about the product";
+            footerStatusText.innerHTML = 'For more information <a href="mailto:rajchandan739@gmail.com" class="chat-footer-contact-link">contact PrivCloud</a>';
         }
     }
 
@@ -471,7 +525,7 @@
         const footerStatusDot = document.getElementById("footer-status-dot");
         if (footerStatusDot) footerStatusDot.style.display = "none";
         if (footerStatusText) {
-            footerStatusText.textContent = "Contact PrivCloud company for more details about the product";
+            footerStatusText.innerHTML = 'For more information <a href="mailto:rajchandan739@gmail.com" class="chat-footer-contact-link">contact PrivCloud</a>';
         }
     }
 
@@ -491,25 +545,14 @@
         welcomeCard.innerHTML = `
             <div class="welcome-header">
                 <span class="welcome-icon">⚡</span>
-                <span class="welcome-title">PrivCloud Intelligence Assistant</span>
+                <span class="welcome-title">PrivCloud AI Assistant</span>
             </div>
             <div class="welcome-text">
-                Ask any technical question about PrivCloud architecture, file management, sharing links, video playback, storage quotas, or deployment.
-            </div>
-            <div class="chat-suggestions-label">Suggested Inquiries:</div>
-            <div class="chat-suggestions-grid">
-                ${SUGGESTIONS.map(s => `<div class="suggestion-chip" data-query="${escapeHtml(s)}">${escapeHtml(s)}</div>`).join("")}
+                <p style="margin: 0 0 6px 0; color: #1e293b; font-size: 0.88rem; line-height: 1.55;">Hi, I am PrivCloud AI to help in exploring our product.</p>
+                <p style="margin: 0; color: #0284c7; font-weight: 600; font-size: 0.88rem;">By the way, can I know your name?</p>
             </div>
         `;
         body.appendChild(welcomeCard);
-
-        // Bind suggested prompt clicks
-        welcomeCard.querySelectorAll(".suggestion-chip").forEach(chip => {
-            chip.addEventListener("click", () => {
-                const query = chip.getAttribute("data-query");
-                if (query) handleUserSend(query);
-            });
-        });
 
         // Render Message List
         state.messages.forEach(msg => {
@@ -654,6 +697,9 @@
         raw = raw.replace(/^## (.*$)/gim, '<strong style="display:block; font-size:1.02rem; margin:8px 0 3px;">$1</strong>');
         raw = raw.replace(/^# (.*$)/gim, '<strong style="display:block; font-size:1.1rem; margin:10px 0 4px;">$1</strong>');
 
+        // Links: [label](url)
+        raw = raw.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" style="color:#0284c7; text-decoration:underline; font-weight:600;">$1</a>');
+
         // Bold & Italic
         raw = raw.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
         raw = raw.replace(/\*([^*]+)\*/g, '<em>$1</em>');
@@ -709,6 +755,10 @@
 
     function loadStoredHistory() {
         try {
+            const storedName = sessionStorage.getItem(USER_NAME_KEY);
+            if (storedName) {
+                state.userName = storedName;
+            }
             const raw = sessionStorage.getItem(STORAGE_KEY);
             if (raw) {
                 const parsed = JSON.parse(raw);
@@ -723,6 +773,9 @@
 
     function saveStoredHistory() {
         try {
+            if (state.userName) {
+                sessionStorage.setItem(USER_NAME_KEY, state.userName);
+            }
             // Keep last 25 messages to avoid quota exhaustion
             const trimmed = state.messages.slice(-25);
             sessionStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed));

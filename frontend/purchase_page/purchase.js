@@ -42,7 +42,7 @@ const PLANS_DATA = {
         badge: '⭐ Standard Lifetime',
         price: '₹1,499',
         amountNum: 1499,
-        tenure: 'One-Time Lifetime License ($19.99)',
+        tenure: 'One-Time Lifetime License (₹1,499)',
         keyPrefix: 'PRIV-BAS',
         bullets: [
             'Lifetime License (1 PC)',
@@ -61,7 +61,7 @@ const PLANS_DATA = {
         badge: '👑 Professional Lifetime',
         price: '₹2,999',
         amountNum: 2999,
-        tenure: 'One-Time Lifetime License ($39.99)',
+        tenure: 'One-Time Lifetime VIP (₹2,999)',
         keyPrefix: 'PRIV-PRO',
         bullets: [
             'Lifetime License (1 PC)',
@@ -136,12 +136,13 @@ async function verifyAuthentication() {
         const session = await window.PrivCloudAuth.getSession();
         if (session && session.user) {
             currentUser = session.user;
+            const meta = currentUser.user_metadata || {};
             const email = currentUser.email || 'User';
-            const username = email.split('@')[0];
+            const displayName = meta.full_name || meta.name || email.split('@')[0] || 'User';
 
             if (userBadgeEl) {
                 userBadgeEl.innerHTML = `
-                    <span class="user-badge">👤 ${username}</span>
+                    <span class="user-badge">👤 ${displayName}</span>
                     <button class="btn-signout" onclick="handleSignOut()">Sign Out</button>
                 `;
             }
@@ -316,7 +317,7 @@ async function handleOrderSubmission() {
             key: orderData.key_id,
             amount: orderData.amount,
             currency: orderData.currency,
-            name: 'PrivCloud 3.0',
+            name: 'PrivCloud',
             description: `${plan.name} — Lifetime License`,
             image: 'https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/logo.png',
             order_id: orderData.order_id,
@@ -435,7 +436,7 @@ function generateLicenseKey(plan) {
 function downloadLicenseCertificate(planName, licenseKey, paymentReference) {
     const userEmail = currentUser ? currentUser.email : 'user@privcloud.local';
     const content = `========================================================
-             PRIVCLOUD 3.0 LICENSE CERTIFICATE
+             PRIVCLOUD LICENSE CERTIFICATE
 ========================================================
 
 Product: ${planName}
@@ -447,7 +448,7 @@ Payment Reference: ${paymentReference || 'N/A'}
 STATUS: ACTIVE & VERIFIED
 
 QUICK START INSTRUCTIONS:
-1. Run PrivCloud_Setup_v3.0.exe on your Windows PC.
+1. Run PrivCloud_Setup.exe on your Windows PC.
 2. Launch Settings.bat from your desktop dashboard.
 3. Paste the License Key above into the Activation Prompt.
 4. Point to your storage directory and start your private cloud!
@@ -466,5 +467,5 @@ Support: support@privcloud.com
  * Trigger Installer Download Simulation
  */
 function triggerInstallerDownload() {
-    alert("Downloading PrivCloud_Setup_v3.0.exe (Windows 64-bit Installer, 125 MB)... \n\nPlease keep your License Key handy for setup!");
+    alert("Downloading PrivCloud_Setup.exe (Windows 64-bit Installer, 125 MB)... \n\nPlease keep your License Key handy for setup!");
 }

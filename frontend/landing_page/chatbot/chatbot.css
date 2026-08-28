@@ -417,10 +417,10 @@
 }
 
 .welcome-text {
-    font-size: 0.85rem;
-    color: #475569;
-    line-height: 1.5;
-    margin-bottom: 12px;
+    font-size: 0.88rem;
+    color: #334155;
+    line-height: 1.55;
+    margin-bottom: 0;
 }
 
 /* Suggested Chips */
@@ -891,6 +891,19 @@
     height: 6px;
     border-radius: 50%;
     background: #10b981;
+}
+
+.chat-footer-contact-link {
+    color: #0284c7;
+    text-decoration: underline;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.chat-footer-contact-link:hover {
+    color: #0369a1;
+    text-decoration: underline;
 }
 
 /* Toast notification */

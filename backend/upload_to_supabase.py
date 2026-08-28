@@ -7,8 +7,6 @@ import os
 import mimetypes
 import urllib.request
 import urllib.parse
-import json
-import ssl
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 WORKSPACE = os.path.abspath(os.path.join(BASE_DIR, ".."))

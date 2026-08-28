@@ -1,30 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PrivCloud - Overview</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/png" href="https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="icon" type="image/png"
+        href="https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/logo.png">
     <link rel="stylesheet" href="overview.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../../supabaseClient.js"></script>
 </head>
+
 <body>
 
     <!-- Top Navigation Bar -->
-    <nav class="navbar">
+    <nav class="navbar" id="site-navbar">
         <a href="../../index.html#a8f10e7b9c2d4a6e" class="nav-brand">
-            <img src="https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/logo.png" alt="PrivCloud Logo" class="nav-logo">
-            <span class="nav-brand-text">PrivCloud</span>
+            <img src="https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/logo.png"
+                alt="PrivCloud Logo" class="nav-logo">
+            <div class="nav-brand-info">
+                <span class="nav-brand-text">PrivCloud</span>
+                <span class="nav-brand-subtitle">my cloud. my data. my control</span>
+            </div>
         </a>
         <ul class="nav-links">
             <li><a href="../../index.html#a8f10e7b9c2d4a6e" class="active">Overview</a></li>
             <li><a href="../../index.html#3b8c2f1e4a7d90bc">Features</a></li>
-            <li><a href="../../index.html#7e2a9b4c0f81d3ea">About Us</a></li>
             <li><a href="../../product_page/product.html">Product</a></li>
+            <li><a href="../../demo_page/demo.html">Guide & Demo</a></li>
         </ul>
         <div class="nav-actions">
             <a href="../../auth_page/auth.html#e9b4c0f81d3ea72a" class="btn-login">Login</a>
@@ -36,7 +44,8 @@
     <section id="a8f10e7b9c2d4a6e" class="overview-section">
         <div class="video-placeholder-wrapper">
             <video autoplay loop muted playsinline class="product-video">
-                <source src="https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/retry.mp4" type="video/mp4">
+                <source src="https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/retry.mp4"
+                    type="video/mp4">
             </video>
         </div>
 
@@ -44,15 +53,15 @@
             <div class="about-section">
                 <div class="about-text-container">
                     <p>
-                        PrivCloud is a modern, feature-rich personal cloud storage and remote file management platform
-                        designed to provide a centralized hub for storing, organizing, previewing, and sharing digital
-                        assets. It operates directly on your machine, giving you total privacy and control over your files
-                        from any device.
+                        <strong>PrivCloud</strong> is a modern, feature-rich personal cloud storage and remote file
+                        management platform designed to provide a centralized hub for storing, organizing, previewing,
+                        and sharing digital assets. It operates directly on your machine, giving you total privacy and
+                        control over your files from any device.
                     </p>
                     <p>
-                        Connecting your devices is as simple as scanning a QR code. PrivCloud lets you share files safely
-                        with password-protected and expiring links, set up collaborative dropboxes for external uploads,
-                        stream rich media, and inspect documents right inside the browser.
+                        <strong>Connecting</strong> your devices is as simple as scanning a QR code. PrivCloud lets you
+                        share files safely with password-protected and expiring links, set up collaborative dropboxes
+                        for external uploads, stream rich media, and inspect documents right inside the browser.
                     </p>
                 </div>
             </div>
@@ -61,4 +70,5 @@
 
     <script src="overview.js"></script>
 </body>
+
 </html>

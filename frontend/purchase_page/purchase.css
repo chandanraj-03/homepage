@@ -19,9 +19,10 @@
     box-sizing: border-box;
 }
 
+body.purchase-body,
 body {
-    background: linear-gradient(to bottom, var(--bg-light-start), var(--bg-light-end));
-    background-attachment: fixed;
+    background: #e6f3fd url('https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/auth_bg.png') no-repeat center center fixed !important;
+    background-size: cover !important;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     color: var(--text-main);
     min-height: 100vh;
@@ -37,15 +38,16 @@ body {
     top: 0;
     left: 0;
     width: 100%;
-    height: 76px;
+    height: 64px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0 40px;
-    background: rgba(255, 255, 255, 0.12);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
     z-index: 1000;
 }
 
@@ -54,27 +56,51 @@ body {
     align-items: center;
     gap: 12px;
     text-decoration: none;
+    cursor: pointer;
 }
 
 .nav-logo {
     height: 40px;
     width: auto;
+    max-width: 48px;
     object-fit: contain;
     border-radius: 10px;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.08));
+    transition: transform 0.3s ease;
+}
+
+.nav-brand:hover .nav-logo {
+    transform: scale(1.06);
+}
+
+.nav-brand-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    line-height: 1.1;
 }
 
 .nav-brand-text {
     font-size: 1.35rem;
     font-weight: 800;
+    letter-spacing: -0.5px;
+    color: #0f172a;
     background: linear-gradient(135deg, #0f172a 0%, #0284c7 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
+.nav-brand-subtitle {
+    font-size: 0.68rem;
+    font-weight: 500;
+    color: #64748b;
+    letter-spacing: 0.3px;
+}
+
 .nav-links {
     display: flex;
     align-items: center;
-    gap: 28px;
+    gap: 24px;
     list-style: none;
 }
 
@@ -85,18 +111,54 @@ body {
     color: #475569;
     padding: 7px 16px;
     border-radius: 20px;
-    transition: all 0.25s ease;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    display: inline-block;
 }
 
-.nav-links li a:hover {
+.nav-links li a:hover,
+.nav-links li a.active {
     color: #0284c7;
-    background: rgba(2, 132, 199, 0.06);
+    background: rgba(2, 132, 199, 0.1);
 }
 
 .nav-actions {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
+}
+
+.btn-login {
+    text-decoration: none;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: #0f172a;
+    padding: 7px 18px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    transition: all 0.2s ease;
+}
+
+.btn-login:hover {
+    background: #ffffff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+.btn-register {
+    text-decoration: none;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: #ffffff !important;
+    padding: 7px 20px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #0284c7 0%, #0072ff 100%);
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
+    transition: all 0.25s ease;
+}
+
+.btn-register:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(2, 132, 199, 0.4);
 }
 
 .user-badge {

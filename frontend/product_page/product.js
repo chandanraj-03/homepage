@@ -1,45 +1,30 @@
 /**
- * PrivCloud Product Page Interactivity
+ * PrivCloud — Product Page Interactive Logic (product.js)
+ * Implements Plan Selection Redirects, Smooth Section Scrolling,
+ * and Supabase Auth Navigation State.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. FAQ Accordion Toggle
-    const faqItems = document.querySelectorAll('.faq-item');
-    faqItems.forEach(item => {
-        const question = item.querySelector('.faq-question');
-        if (question) {
-            question.addEventListener('click', () => {
-                const isOpen = item.classList.contains('open');
-                faqItems.forEach(other => other.classList.remove('open'));
-                if (!isOpen) {
-                    item.classList.add('open');
-                }
-            });
-        }
-    });
+    initSmoothScrolling();
+    initNavbarAuth();
+});
 
-    // 2. Dynamic Footer Year
-    const copyEl = document.querySelector('.footer-copy');
-    if (copyEl) {
-        copyEl.innerHTML = `&copy; ${new Date().getFullYear()} PrivCloud. All rights reserved.`;
-    }
+/* ==========================================================================
+   1. Smooth Scrolling & Hash Resolution
+   ========================================================================== */
 
-    // 3. 16-Character Alphanumeric Hash Alias Resolution & Smooth Scrolling
+function initSmoothScrolling() {
     const PRODUCT_SECTION_ALIASES = {
-        'comparison': '4d9e1a7b0c3f8e2a',
-        'pricing': '6b2f8c1a9d4e07bf',
-        'faq': '5c7a3d9b1e8f20ac',
-        'sec-4d9e1a': '4d9e1a7b0c3f8e2a',
-        'sec-6b2f8c': '6b2f8c1a9d4e07bf',
-        'sec-5c7a3d': '5c7a3d9b1e8f20ac'
+        'comparison': 'comparison-section',
+        'pricing': 'pricing-matrix-section',
+        'features': 'features-detail'
     };
 
     const initialHash = window.location.hash.replace(/^#/, '');
     if (PRODUCT_SECTION_ALIASES[initialHash]) {
-        const secureHash = PRODUCT_SECTION_ALIASES[initialHash];
-        history.replaceState(null, null, `#${secureHash}`);
+        const targetId = PRODUCT_SECTION_ALIASES[initialHash];
         setTimeout(() => {
-            const el = document.getElementById(secureHash);
+            const el = document.getElementById(targetId);
             if (el) {
                 const headerOffset = 76;
                 const offsetPosition = el.getBoundingClientRect().top + window.pageYOffset - headerOffset;
@@ -51,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
             const href = this.getAttribute('href');
-            if (href === '#' || href === '#login' || href === '#register' || href === '#e9b4c0f81d3ea72a' || href === '#f2d8a0c4e6b1973f') return;
+            if (!href || href === '#' || href.startsWith('#login') || href.startsWith('#register')) return;
 
             const targetEl = document.querySelector(href);
             if (targetEl) {
@@ -67,41 +52,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+}
 
-    // 4. Supabase Auth State for Navbar
-    if (window.PrivCloudAuth) {
-        const updateNavbarUser = (session) => {
-            const navActions = document.querySelector('.nav-actions');
-            if (!navActions) return;
-            if (session && session.user) {
-                const email = session.user.email || 'User';
-                const username = email.split('@')[0];
-                navActions.innerHTML = `
-                    <span style="font-size: 0.88rem; font-weight: 600; color: #0284c7; background: rgba(2,132,199,0.08); padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(2,132,199,0.2);">
-                        👤 ${username}
-                    </span>
-                    <button id="btn-logout" class="btn-login" style="cursor: pointer; border: none; background: transparent;">Sign Out</button>
-                `;
-                const logoutBtn = document.getElementById('btn-logout');
-                if (logoutBtn) {
-                    logoutBtn.addEventListener('click', async () => {
-                        await window.PrivCloudAuth.signOut();
-                        window.location.reload();
-                    });
-                }
-            }
-        };
-
-        window.PrivCloudAuth.getSession().then(updateNavbarUser);
-
-        const client = window.PrivCloudAuth.getClient();
-        if (client) {
-            client.auth.onAuthStateChange((_event, session) => {
-                updateNavbarUser(session);
-            });
-        }
-    }
-});
+/* ==========================================================================
+   3. Plan Selection & Checkout Handler
+   ========================================================================== */
 
 // 16-Character Secure Plan Token Mapping
 const PLAN_TOKEN_MAP = {
@@ -137,3 +92,57 @@ async function handlePlanSelection(plan) {
     window.location.href = `../auth_page/auth.html?redirect=purchase&plan=${encodeURIComponent(targetPlan)}#f2d8a0c4e6b1973f`;
 }
 window.handlePlanSelection = handlePlanSelection;
+
+/* ==========================================================================
+   4. Navbar Supabase Authentication State
+   ========================================================================== */
+
+function initNavbarAuth() {
+    if (window.PrivCloudAuth) {
+        const updateNavbarUser = (session) => {
+            const navActions = document.querySelector('.nav-actions');
+            if (!navActions) return;
+
+            if (session && session.user) {
+                const user = session.user;
+                const meta = user.user_metadata || {};
+                let displayName = meta.full_name || meta.name || user.email?.split('@')[0] || 'User';
+
+                const renderNav = (name) => {
+                    navActions.innerHTML = `
+                        <span style="font-size: 0.88rem; font-weight: 600; color: #0284c7; background: rgba(2,132,199,0.12); padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(2,132,199,0.3);">
+                            👤 ${name}
+                        </span>
+                        <button id="btn-logout-nav" class="btn-login" style="cursor: pointer; border: none; background: transparent;">Sign Out</button>
+                    `;
+                    const logoutBtn = document.getElementById('btn-logout-nav');
+                    if (logoutBtn) {
+                        logoutBtn.addEventListener('click', async () => {
+                            await window.PrivCloudAuth.signOut();
+                            window.location.reload();
+                        });
+                    }
+                };
+
+                renderNav(displayName);
+
+                if (!meta.full_name && user.email && window.PrivCloudAuth.resolveIdentifier) {
+                    window.PrivCloudAuth.resolveIdentifier(user.email).then(res => {
+                        if (res && res.fullName) {
+                            renderNav(res.fullName);
+                        }
+                    }).catch(() => {});
+                }
+            }
+        };
+
+        window.PrivCloudAuth.getSession().then(updateNavbarUser);
+
+        const client = window.PrivCloudAuth.getClient();
+        if (client) {
+            client.auth.onAuthStateChange((_event, session) => {
+                updateNavbarUser(session);
+            });
+        }
+    }
+}

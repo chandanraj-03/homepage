@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PrivCloud 3.0 — Secure Checkout & License Activation</title>
+    <title>PrivCloud — Secure Checkout & License Activation</title>
 
     <!-- Google Fonts & Icon -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,7 +13,7 @@
     <link rel="icon" type="image/png" href="https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/logo.png">
 
     <!-- Stylesheets -->
-    <link rel="stylesheet" href="purchase.css?v=10">
+    <link rel="stylesheet" href="purchase.css?v=120">
     <link rel="stylesheet" href="../landing_page/chatbot/chatbot.css?v=20">
 
     <!-- Razorpay Standard Checkout JS -->
@@ -24,19 +24,22 @@
     <script src="../supabaseClient.js?v=20"></script>
 </head>
 
-<body>
+<body class="purchase-body">
 
     <!-- Top Navigation Bar -->
-    <nav class="navbar">
+    <nav class="navbar" id="site-navbar">
         <a href="../index.html#a8f10e7b9c2d4a6e" class="nav-brand">
             <img src="https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/logo.png" alt="PrivCloud Logo" class="nav-logo">
-            <span class="nav-brand-text">PrivCloud</span>
+            <div class="nav-brand-info">
+                <span class="nav-brand-text">PrivCloud</span>
+                <span class="nav-brand-subtitle">my cloud. my data. my control</span>
+            </div>
         </a>
         <ul class="nav-links">
             <li><a href="../index.html#a8f10e7b9c2d4a6e">Overview</a></li>
             <li><a href="../index.html#3b8c2f1e4a7d90bc">Features</a></li>
-            <li><a href="../index.html#7e2a9b4c0f81d3ea">About Us</a></li>
             <li><a href="../product_page/product.html">Product</a></li>
+            <li><a href="../demo_page/demo.html">Guide & Demo</a></li>
         </ul>
         <div class="nav-actions" id="user-badge-container">
             <a href="../auth_page/auth.html#e9b4c0f81d3ea72a" class="btn-login">Login</a>
@@ -160,7 +163,7 @@
                     <div style="margin-top: 24px; text-align: left; background: rgba(15, 23, 42, 0.04); padding: 18px; border-radius: 14px;">
                         <h4 style="font-size: 0.92rem; font-weight: 800; color: #0f172a; margin-bottom: 8px;">⚡ 3-Step Setup Instructions:</h4>
                         <ol style="font-size: 0.85rem; color: #475569; padding-left: 18px; line-height: 1.6;">
-                            <li>Run <code>PrivCloud_Setup_v3.0.exe</code> on your Windows 10/11 PC.</li>
+                            <li>Run <code>PrivCloud_Setup.exe</code> on your Windows 10/11 PC.</li>
                             <li>Open <code>Settings.bat</code> from your desktop and enter your License Key.</li>
                             <li>Select your storage drive and scan the QR code to pair your phone!</li>
                         </ol>
@@ -176,7 +179,7 @@
                 <ul class="order-cost-breakdown">
                     <li>
                         <span>Product</span>
-                        <strong style="color: #0f172a;">PrivCloud 3.0</strong>
+                        <strong style="color: #0f172a;">PrivCloud</strong>
                     </li>
                     <li>
                         <span>Subtotal</span>
