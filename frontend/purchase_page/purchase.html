@@ -13,8 +13,9 @@
     <link rel="icon" type="image/png" href="https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/logo.png">
 
     <!-- Stylesheets -->
+    <link rel="stylesheet" href="../mobileNav.css?v=1">
     <link rel="stylesheet" href="purchase.css?v=120">
-    <link rel="stylesheet" href="../landing_page/chatbot/chatbot.css?v=20">
+    <link rel="stylesheet" href="../landing_page/chatbot/chatbot.css?v=27">
 
     <!-- Razorpay Standard Checkout JS -->
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
@@ -22,6 +23,7 @@
     <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../supabaseClient.js?v=20"></script>
+    <script src="../mobileNav.js?v=1"></script>
 </head>
 
 <body class="purchase-body">
@@ -37,15 +39,91 @@
         </a>
         <ul class="nav-links">
             <li><a href="../index.html#a8f10e7b9c2d4a6e">Overview</a></li>
-            <li><a href="../index.html#3b8c2f1e4a7d90bc">Features</a></li>
-            <li><a href="../product_page/product.html">Product</a></li>
+            <li><a href="../product_page/product.html">App</a></li>
             <li><a href="../demo_page/demo.html">Guide & Demo</a></li>
+            <li><a href="../feedback_page/feedback.html">Feedback</a></li>
+            <li><a href="../support_page/support.html" style="color: #0284c7; font-weight: 700;">Support 🎧</a></li>
         </ul>
         <div class="nav-actions" id="user-badge-container">
             <a href="../auth_page/auth.html#e9b4c0f81d3ea72a" class="btn-login">Login</a>
             <a href="../auth_page/auth.html#f2d8a0c4e6b1973f" class="btn-register">Register</a>
         </div>
+        <button class="mobile-nav-toggle" id="mobile-nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false">
+            <span class="hamburger-bar"></span>
+            <span class="hamburger-bar"></span>
+            <span class="hamburger-bar"></span>
+        </button>
     </nav>
+
+    <!-- Mobile Navigation Drawer & Backdrop -->
+    <div class="mobile-nav-backdrop" id="mobile-nav-backdrop"></div>
+    <aside class="mobile-nav-drawer" id="mobile-nav-drawer" aria-hidden="true">
+        <div class="mobile-drawer-header">
+            <div class="nav-brand">
+                <img src="https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/logo.png"
+                    alt="PrivCloud Logo" class="nav-logo">
+                <div class="nav-brand-info">
+                    <span class="nav-brand-text">PrivCloud</span>
+                </div>
+            </div>
+            <button class="mobile-drawer-close" id="mobile-drawer-close" aria-label="Close menu">&times;</button>
+        </div>
+        <ul class="mobile-nav-links">
+            <li>
+                <a href="../index.html#a8f10e7b9c2d4a6e" class="mobile-nav-link">
+                    <div class="mobile-nav-link-left">
+                        <span class="mobile-nav-link-icon">🏠</span>
+                        <span>Overview</span>
+                    </div>
+                    <span class="mobile-nav-link-arrow">→</span>
+                </a>
+            </li>
+            <li>
+                <a href="../product_page/product.html" class="mobile-nav-link">
+                    <div class="mobile-nav-link-left">
+                        <span class="mobile-nav-link-icon">💎</span>
+                        <span>App</span>
+                    </div>
+                    <span class="mobile-nav-link-arrow">→</span>
+                </a>
+            </li>
+            <li>
+                <a href="../demo_page/demo.html" class="mobile-nav-link">
+                    <div class="mobile-nav-link-left">
+                        <span class="mobile-nav-link-icon">📖</span>
+                        <span>Guide & Demo</span>
+                    </div>
+                    <span class="mobile-nav-link-arrow">→</span>
+                </a>
+            </li>
+            <li>
+                <a href="../feedback_page/feedback.html" class="mobile-nav-link">
+                    <div class="mobile-nav-link-left">
+                        <span class="mobile-nav-link-icon">⭐</span>
+                        <span>Feedback</span>
+                    </div>
+                    <span class="mobile-nav-link-arrow">→</span>
+                </a>
+            </li>
+            <li>
+                <a href="../support_page/support.html" class="mobile-nav-link">
+                    <div class="mobile-nav-link-left">
+                        <span class="mobile-nav-link-icon">🎧</span>
+                        <span>Customer Support</span>
+                    </div>
+                    <span class="mobile-nav-link-arrow">→</span>
+                </a>
+            </li>
+        </ul>
+        <div class="mobile-nav-actions" id="mobile-nav-actions">
+            <a href="../auth_page/auth.html#e9b4c0f81d3ea72a" class="mobile-btn-login">Login</a>
+            <a href="../auth_page/auth.html#f2d8a0c4e6b1973f" class="mobile-btn-register">Register</a>
+        </div>
+        <div class="mobile-drawer-footer">
+            <span>🔒</span>
+            <span>Self-Hosted & Private Personal Cloud</span>
+        </div>
+    </aside>
 
     <!-- Main Purchase Container -->
     <main class="container">
@@ -105,9 +183,85 @@
                         </div>
                     </div>
 
-                    <!-- Payment Section (Hidden for Free Trial) -->
+                    <!-- Free Trial Optional Donation / Skip Donation Box (Visible on Free Trial) -->
+                    <div id="trial-donation-container" class="trial-donation-card">
+                        <div class="donation-header">
+                            <div class="donation-header-title">
+                                <span class="donation-header-icon">🤝</span>
+                                <div>
+                                    <h4 class="donation-title-text">Support PrivCloud Open Source</h4>
+                                    <p class="donation-subtitle-text">PrivCloud Free Trial is 100% free. You can choose to skip or optionally contribute a small donation to support ongoing development.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Toggle / Selection Mode Cards -->
+                        <div class="donation-mode-toggle">
+                            <label class="donation-mode-option active" id="mode-skip-donation">
+                                <input type="radio" name="trial_donation_mode" value="skip" checked>
+                                <div class="mode-content">
+                                    <span class="mode-icon">🚀</span>
+                                    <div class="mode-text">
+                                        <strong>Skip Donation</strong>
+                                        <span>Continue 100% Free (₹0)</span>
+                                    </div>
+                                </div>
+                            </label>
+                            <label class="donation-mode-option" id="mode-add-donation">
+                                <input type="radio" name="trial_donation_mode" value="donate">
+                                <div class="mode-content">
+                                    <span class="mode-icon">🤝</span>
+                                    <div class="mode-text">
+                                        <strong>Donate & Support</strong>
+                                        <span>Contribute an amount</span>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- Donation Amount Options (Shown when Donate is selected) -->
+                        <div id="donation-amount-panel" class="donation-amount-panel" style="display: none;">
+                            <div class="donation-amount-label">Select Contribution Amount:</div>
+                            <div class="donation-presets-grid">
+                                <button type="button" class="donation-preset-btn active" data-amount="99">
+                                    <span class="preset-emoji">☕</span>
+                                    <span class="preset-val">₹99</span>
+                                    <span class="preset-sub">Coffee</span>
+                                </button>
+                                <button type="button" class="donation-preset-btn" data-amount="199">
+                                    <span class="preset-emoji">⚡</span>
+                                    <span class="preset-val">₹199</span>
+                                    <span class="preset-sub">Server Boost</span>
+                                </button>
+                                <button type="button" class="donation-preset-btn" data-amount="499">
+                                    <span class="preset-emoji">🚀</span>
+                                    <span class="preset-val">₹499</span>
+                                    <span class="preset-sub">Champion</span>
+                                </button>
+                                <button type="button" class="donation-preset-btn" data-amount="999">
+                                    <span class="preset-emoji">🌟</span>
+                                    <span class="preset-val">₹999</span>
+                                    <span class="preset-sub">VIP Patron</span>
+                                </button>
+                            </div>
+
+                            <div class="donation-custom-row">
+                                <label for="custom-donation-input">Or Enter Custom Amount (₹):</label>
+                                <div class="custom-input-wrapper">
+                                    <span class="currency-symbol">₹</span>
+                                    <input type="number" id="custom-donation-input" min="1" max="100000" placeholder="e.g. 250" step="1">
+                                </div>
+                            </div>
+                            
+                            <div class="donation-impact-note">
+                                <span>🛡️</span> All donations fund privacy-first zero-telemetry development and hosting infrastructure.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Section (Hidden for Free Trial without Donation) -->
                     <div id="payment-section-container">
-                        <h4 class="card-section-title"><span>💳</span> Secure Payment via Razorpay</h4>
+                        <h4 class="card-section-title" id="payment-section-title"><span>💳</span> Secure Payment via Razorpay</h4>
                         
                         <div class="razorpay-gateway-badge-box">
                             <div class="razorpay-header-row">
@@ -117,7 +271,7 @@
                                 </div>
                                 <span class="razorpay-pci-pill">PCI-DSS Level 1</span>
                             </div>
-                            <p class="razorpay-desc-text">
+                            <p class="razorpay-desc-text" id="razorpay-desc-text">
                                 Pay securely using UPI (Google Pay, PhonePe, Paytm), Credit & Debit Cards (Visa, Mastercard, RuPay), Net Banking, or Digital Wallets in the checkout modal.
                             </p>
                             <div class="payment-badges-row">
@@ -160,6 +314,16 @@
                         </button>
                     </div>
 
+                    <!-- Post-Purchase Support & Feedback Actions -->
+                    <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 14px;">
+                        <a href="../feedback_page/feedback.html" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 12px; font-size: 0.88rem; font-weight: 700; background: rgba(2, 132, 199, 0.1); color: #0284c7; border: 1px solid rgba(2, 132, 199, 0.3); transition: all 0.2s;">
+                            <span>⭐ Give Feedback / Review</span>
+                        </a>
+                        <a href="../support_page/support.html" style="text-decoration: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 12px; font-size: 0.88rem; font-weight: 700; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; border: none; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25); transition: all 0.2s;">
+                            <span>🎧 Connect to VIP Customer Support</span>
+                        </a>
+                    </div>
+
                     <div style="margin-top: 24px; text-align: left; background: rgba(15, 23, 42, 0.04); padding: 18px; border-radius: 14px;">
                         <h4 style="font-size: 0.92rem; font-weight: 800; color: #0f172a; margin-bottom: 8px;">⚡ 3-Step Setup Instructions:</h4>
                         <ol style="font-size: 0.85rem; color: #475569; padding-left: 18px; line-height: 1.6;">
@@ -179,11 +343,15 @@
                 <ul class="order-cost-breakdown">
                     <li>
                         <span>Product</span>
-                        <strong style="color: #0f172a;">PrivCloud</strong>
+                        <strong style="color: #0f172a;" id="invoice-plan-name">Free Trial Edition</strong>
                     </li>
                     <li>
-                        <span>Subtotal</span>
+                        <span>Plan License</span>
                         <span id="invoice-subtotal">₹0</span>
+                    </li>
+                    <li id="invoice-donation-row" style="display: none;">
+                        <span>Optional Donation</span>
+                        <span id="invoice-donation" style="color: #0284c7; font-weight: 700;">₹0</span>
                     </li>
                     <li>
                         <span>Taxes & GST (18%)</span>
@@ -244,7 +412,7 @@
 
     <!-- Scripts -->
     <script src="purchase.js?v=10"></script>
-    <script src="../landing_page/chatbot/chatbot.js?v=20"></script>
+    <script src="../landing_page/chatbot/chatbot.js?v=26"></script>
 
 </body>
 

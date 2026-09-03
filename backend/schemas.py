@@ -55,3 +55,7 @@ class ResendOtpRequest(BaseModel):
     email: str
     type: Optional[str] = "signup"
 
+class UpdatePasswordRequest(BaseModel):
+    email: str
+    new_password: str
+

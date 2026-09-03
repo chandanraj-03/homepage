@@ -1,0 +1,387 @@
+/* ==========================================================================
+   PrivCloud — Unified Mobile Navigation Stylesheet (mobileNav.css)
+   Theme: Frosted Sky-Blue Glassmorphism · Premium SaaS Responsive UI
+   ========================================================================== */
+
+/* ----------------------------------------------------
+   1. HAMBURGER TOGGLE BUTTON
+   ---------------------------------------------------- */
+.mobile-nav-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 5px;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    background: rgba(2, 132, 199, 0.08);
+    border: 1px solid rgba(2, 132, 199, 0.22);
+    border-radius: 12px;
+    cursor: pointer;
+    z-index: 1001;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-nav-toggle:hover {
+    background: rgba(2, 132, 199, 0.16);
+    border-color: rgba(2, 132, 199, 0.4);
+    transform: scale(1.04);
+}
+
+.mobile-nav-toggle:active {
+    transform: scale(0.96);
+}
+
+.mobile-nav-toggle .hamburger-bar {
+    display: block;
+    width: 20px;
+    height: 2px;
+    background: #0f172a;
+    border-radius: 2px;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease, background 0.3s ease;
+    transform-origin: center;
+}
+
+/* Active Morph to Close 'X' */
+.mobile-nav-toggle.is-active .hamburger-bar:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+    background: #0284c7;
+}
+
+.mobile-nav-toggle.is-active .hamburger-bar:nth-child(2) {
+    opacity: 0;
+    transform: scaleX(0);
+}
+
+.mobile-nav-toggle.is-active .hamburger-bar:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+    background: #0284c7;
+}
+
+/* ----------------------------------------------------
+   2. BACKDROP OVERLAY
+   ---------------------------------------------------- */
+.mobile-nav-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 99995;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mobile-nav-backdrop.is-open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* ----------------------------------------------------
+   3. MOBILE DRAWER CONTAINER
+   ---------------------------------------------------- */
+.mobile-nav-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: min(340px, 86vw);
+    height: 100vh;
+    height: 100dvh;
+    background: rgba(255, 255, 255, 0.97);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-left: 1px solid rgba(255, 255, 255, 0.9);
+    box-shadow: -12px 0 40px rgba(15, 23, 42, 0.16);
+    z-index: 100000;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 20px 24px;
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.mobile-nav-drawer.is-open {
+    transform: translateX(0);
+}
+
+/* Drawer Header */
+.mobile-drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.mobile-drawer-header .nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+}
+
+.mobile-drawer-header .nav-logo {
+    height: 34px;
+    width: auto;
+    border-radius: 8px;
+}
+
+.mobile-drawer-header .nav-brand-text {
+    font-size: 1.2rem;
+    font-weight: 800;
+    letter-spacing: -0.4px;
+    background: linear-gradient(135deg, #0f172a 0%, #0284c7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.mobile-drawer-close {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(15, 23, 42, 0.05);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    font-size: 1.35rem;
+    line-height: 1;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-drawer-close:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.25);
+    transform: rotate(90deg);
+}
+
+/* ----------------------------------------------------
+   4. DRAWER NAVIGATION LINKS
+   ---------------------------------------------------- */
+.mobile-nav-links {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 18px 0;
+    flex: 1;
+    margin: 0;
+}
+
+.mobile-nav-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-radius: 14px;
+    text-decoration: none;
+    font-size: 0.98rem;
+    font-weight: 600;
+    color: #334155;
+    background: transparent;
+    border: 1px solid transparent;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-nav-link-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.mobile-nav-link-icon {
+    font-size: 1.15rem;
+    width: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mobile-nav-link-arrow {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.mobile-nav-link:hover {
+    background: rgba(2, 132, 199, 0.08);
+    color: #0284c7;
+    border-color: rgba(2, 132, 199, 0.16);
+    transform: translateX(3px);
+}
+
+.mobile-nav-link:hover .mobile-nav-link-arrow {
+    color: #0284c7;
+    transform: translateX(2px);
+}
+
+.mobile-nav-link.active {
+    background: linear-gradient(135deg, rgba(2, 132, 199, 0.14) 0%, rgba(0, 114, 255, 0.08) 100%);
+    color: #0284c7;
+    border-color: rgba(2, 132, 199, 0.26);
+    font-weight: 700;
+    box-shadow: 0 2px 10px rgba(2, 132, 199, 0.08);
+}
+
+.mobile-nav-link.active .mobile-nav-link-arrow {
+    color: #0284c7;
+    transform: translateX(3px);
+}
+
+/* ----------------------------------------------------
+   5. DRAWER AUTH ACTIONS
+   ---------------------------------------------------- */
+.mobile-nav-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.mobile-btn-login {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px 18px;
+    border-radius: 14px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    color: #0f172a;
+    background: #ffffff;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transition: all 0.2s ease;
+}
+
+.mobile-btn-login:hover {
+    background: #f8fafc;
+    border-color: rgba(15, 23, 42, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.mobile-btn-register {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px 20px;
+    border-radius: 14px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    color: #ffffff !important;
+    background: linear-gradient(135deg, #0284c7 0%, #0072ff 100%);
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
+    transition: all 0.25s ease;
+}
+
+.mobile-btn-register:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(2, 132, 199, 0.4);
+}
+
+/* User Logged In State */
+.mobile-user-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 11px 16px;
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: #0284c7;
+    background: rgba(2, 132, 199, 0.1);
+    border-radius: 14px;
+    border: 1px solid rgba(2, 132, 199, 0.25);
+}
+
+.mobile-btn-logout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 11px 16px;
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.08);
+    border-radius: 14px;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.mobile-btn-logout:hover {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.35);
+}
+
+/* ----------------------------------------------------
+   6. DRAWER FOOTER
+   ---------------------------------------------------- */
+.mobile-drawer-footer {
+    padding-top: 16px;
+    text-align: center;
+    font-size: 0.78rem;
+    color: #94a3b8;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+/* ----------------------------------------------------
+   7. BODY LOCK & RESPONSIVE BREAKPOINTS
+   ---------------------------------------------------- */
+body.nav-drawer-open {
+    overflow: hidden !important;
+    touch-action: none;
+}
+
+@media (max-width: 768px) {
+    .mobile-nav-toggle {
+        display: flex;
+    }
+}
+
+@media (max-width: 480px) {
+    .nav-brand-subtitle {
+        display: none !important;
+    }
+
+    .navbar > .nav-actions {
+        display: none !important;
+    }
+
+    .navbar {
+        padding: 0 16px;
+        height: 60px;
+    }
+
+    .overview-section,
+    body.product-body,
+    body.demo-body,
+    body.purchase-body,
+    body.auth-body {
+        padding-top: 60px;
+    }
+}

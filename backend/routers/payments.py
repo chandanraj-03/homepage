@@ -13,10 +13,37 @@ from backend.schemas import CreateOrderRequest, VerifyPaymentRequest
 
 router = APIRouter(prefix="/api", tags=["Payments"])
 
+import time
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+
+def create_resilient_razorpay_client():
+    """Create a fresh Razorpay client with automated HTTP connection retries."""
+    if not RAZORPAY_KEY_ID or not RAZORPAY_KEY_SECRET:
+        return None
+    try:
+        import razorpay
+        client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+        if hasattr(client, 'session') and isinstance(client.session, requests.Session):
+            retry_strategy = Retry(
+                total=3,
+                backoff_factor=0.3,
+                status_forcelist=[500, 502, 503, 504],
+                raise_on_status=False
+            )
+            adapter = HTTPAdapter(max_retries=retry_strategy)
+            client.session.mount('https://', adapter)
+            client.session.mount('http://', adapter)
+        return client
+    except Exception as err:
+        print(f"[Razorpay] Client creation error: {err}")
+        return None
+
 @router.post("/create-order", summary="Create Razorpay Order")
 async def create_order(payload: CreateOrderRequest):
     """
-    Create Razorpay Order for frontend checkout.
+    Create Razorpay Order for frontend checkout with automatic retries on connection reset.
     Expects JSON: { "amount": <amount_in_paise>, "currency": "INR", "receipt": "<optional_receipt_id>", "notes": {...} }
     Returns JSON: { "order_id": "...", "amount": ..., "currency": "...", "key_id": "..." }
     """
@@ -24,12 +51,6 @@ async def create_order(payload: CreateOrderRequest):
         return JSONResponse(
             status_code=500,
             content={'error': 'Razorpay payment gateway credentials not configured on server.'}
-        )
-
-    if not razorpay_client:
-        return JSONResponse(
-            status_code=500,
-            content={'error': 'Razorpay client is not initialized.'}
         )
 
     raw_amount = payload.amount
@@ -58,32 +79,47 @@ async def create_order(payload: CreateOrderRequest):
             content={'error': 'Minimum order amount is 100 paise (₹1.00).'}
         )
 
-    try:
-        order_params = {
-            'amount': amount_paise,
-            'currency': currency,
-            'receipt': str(receipt),
-            'notes': notes,
-            'payment_capture': 1
-        }
-        order = razorpay_client.order.create(data=order_params)
-        
-        return {
-            'order_id': order['id'],
-            'amount': order['amount'],
-            'currency': order['currency'],
-            'key_id': RAZORPAY_KEY_ID
-        }
+    order_params = {
+        'amount': amount_paise,
+        'currency': currency,
+        'receipt': str(receipt),
+        'notes': notes,
+        'payment_capture': 1
+    }
 
-    except Exception as e:
-        error_message = str(e)
-        status_code = 500
-        if 'unauthorized' in error_message.lower() or 'auth' in error_message.lower():
-            status_code = 401
-        return JSONResponse(
-            status_code=status_code,
-            content={'error': f'Failed to create Razorpay order: {error_message}'}
-        )
+    # Attempt order creation with automatic retry for transient socket/connection drops
+    last_exception = None
+    for attempt in range(1, 4):
+        try:
+            client = create_resilient_razorpay_client()
+            if not client:
+                raise Exception("Razorpay client is not initialized.")
+            
+            order = client.order.create(data=order_params)
+            
+            return {
+                'order_id': order['id'],
+                'amount': order['amount'],
+                'currency': order['currency'],
+                'key_id': RAZORPAY_KEY_ID
+            }
+        except Exception as e:
+            last_exception = e
+            error_str = str(e).lower()
+            # If network/connection drop, wait briefly and retry with a fresh session
+            if attempt < 3 and ('connection' in error_str or 'remotedisconnected' in error_str or 'timeout' in error_str):
+                time.sleep(0.3 * attempt)
+                continue
+            break
+
+    error_message = str(last_exception) if last_exception else "Unknown error occurred"
+    status_code = 500
+    if 'unauthorized' in error_message.lower() or 'auth' in error_message.lower():
+        status_code = 401
+    return JSONResponse(
+        status_code=status_code,
+        content={'error': f'Failed to create Razorpay order: {error_message}'}
+    )
 
 @router.post("/verify-payment", summary="Verify Razorpay Payment")
 async def verify_payment(payload: VerifyPaymentRequest):

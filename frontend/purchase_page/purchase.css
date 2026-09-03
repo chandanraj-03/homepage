@@ -697,18 +697,322 @@ body {
     color: #047857;
 }
 
+/* Free Trial Donation Card & Components */
+.trial-donation-card {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1.5px solid rgba(2, 132, 199, 0.25);
+    border-radius: 18px;
+    padding: 22px;
+    margin-bottom: 24px;
+    box-shadow: 0 6px 20px rgba(2, 132, 199, 0.06);
+    transition: all 0.3s ease;
+    animation: fadeIn 0.35s ease;
+}
+
+.donation-header {
+    margin-bottom: 16px;
+}
+
+.donation-header-title {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.donation-header-icon {
+    font-size: 1.5rem;
+    line-height: 1;
+    background: rgba(2, 132, 199, 0.08);
+    padding: 8px;
+    border-radius: 12px;
+    border: 1px solid rgba(2, 132, 199, 0.2);
+    color: #0284c7;
+}
+
+.donation-title-text {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 4px;
+}
+
+.donation-subtitle-text {
+    font-size: 0.84rem;
+    color: #475569;
+    line-height: 1.45;
+}
+
+/* Donation Mode Toggle (Radio Cards) */
+.donation-mode-toggle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.donation-mode-option {
+    display: block;
+    position: relative;
+    border: 2px solid rgba(15, 23, 42, 0.1);
+    border-radius: 14px;
+    padding: 14px 16px;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.8);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    user-select: none;
+}
+
+.donation-mode-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.donation-mode-option:hover {
+    background: #ffffff;
+    border-color: rgba(2, 132, 199, 0.4);
+    transform: translateY(-1px);
+}
+
+.donation-mode-option.active {
+    background: #ffffff;
+    border-color: #0284c7;
+    box-shadow: 0 6px 18px rgba(2, 132, 199, 0.15);
+}
+
+.donation-mode-option#mode-add-donation.active {
+    border-color: #0284c7;
+    box-shadow: 0 6px 18px rgba(2, 132, 199, 0.18);
+    background: linear-gradient(135deg, rgba(2, 132, 199, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
+}
+
+.donation-mode-option#mode-skip-donation.active {
+    border-color: #10b981;
+    box-shadow: 0 6px 18px rgba(16, 185, 129, 0.15);
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(255, 255, 255, 0.95) 100%);
+}
+
+.mode-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.mode-icon {
+    font-size: 1.4rem;
+    line-height: 1;
+}
+
+.mode-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.mode-text strong {
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.mode-text span {
+    font-size: 0.76rem;
+    font-weight: 500;
+    color: #64748b;
+}
+
+/* Donation Amount Panel */
+.donation-amount-panel {
+    background: rgba(240, 249, 255, 0.6);
+    border: 1.5px solid rgba(2, 132, 199, 0.2);
+    border-radius: 14px;
+    padding: 16px;
+    margin-top: 14px;
+    animation: fadeIn 0.3s ease;
+}
+
+.donation-amount-label {
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: #334155;
+    margin-bottom: 10px;
+}
+
+.donation-presets-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.donation-preset-btn {
+    background: #ffffff;
+    border: 1.5px solid rgba(15, 23, 42, 0.12);
+    border-radius: 12px;
+    padding: 10px 6px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    outline: none;
+}
+
+.donation-preset-btn:hover {
+    border-color: #0284c7;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.12);
+}
+
+.donation-preset-btn.active {
+    background: linear-gradient(135deg, rgba(2, 132, 199, 0.12) 0%, rgba(0, 114, 255, 0.04) 100%);
+    border-color: #0284c7;
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.18);
+    transform: translateY(-2px);
+}
+
+.preset-emoji {
+    font-size: 1.1rem;
+}
+
+.preset-val {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.donation-preset-btn.active .preset-val {
+    color: #0284c7;
+}
+
+.preset-sub {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #64748b;
+}
+
+/* Custom Donation Input */
+.donation-custom-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+    background: #ffffff;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(15, 23, 42, 0.1);
+}
+
+.donation-custom-row label {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #475569;
+    flex: 1;
+}
+
+.custom-input-wrapper {
+    display: flex;
+    align-items: center;
+    background: #f8fafc;
+    border: 1.5px solid rgba(15, 23, 42, 0.15);
+    border-radius: 8px;
+    padding: 4px 10px;
+    width: 140px;
+    transition: all 0.2s ease;
+}
+
+.custom-input-wrapper:focus-within {
+    border-color: #0284c7;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+}
+
+.custom-input-wrapper .currency-symbol {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin-right: 4px;
+}
+
+#custom-donation-input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #0f172a;
+    outline: none;
+    font-family: inherit;
+}
+
+.donation-impact-note {
+    font-size: 0.76rem;
+    color: #64748b;
+    line-height: 1.4;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    padding-top: 4px;
+}
+
 @media (max-width: 860px) {
     .checkout-grid {
         grid-template-columns: 1fr;
     }
     .purchase-title {
         font-size: 2rem;
+        line-height: 1.25;
     }
     .navbar {
         padding: 0 16px;
+        height: 64px;
     }
     .nav-links {
         display: none;
     }
 }
+
+@media (max-width: 520px) {
+    .donation-mode-toggle {
+        grid-template-columns: 1fr;
+    }
+    .donation-presets-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .donation-custom-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    .custom-input-wrapper {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .navbar {
+        height: 60px;
+        padding: 0 14px;
+    }
+
+    .nav-brand-subtitle {
+        display: none !important;
+    }
+
+    .purchase-title {
+        font-size: 1.6rem;
+    }
+
+    .purchase-subtitle {
+        font-size: 0.95rem;
+    }
+
+    body.purchase-body {
+        padding-top: 60px;
+    }
+}
+
+
 

@@ -98,7 +98,10 @@ function switchAuthMode(mode, updateHistory = true) {
     } else if (mode === 'forgot') {
         if (viewForgot) viewForgot.classList.remove('hidden');
         if (pageTitle) pageTitle.textContent = "PrivCloud - Reset Password";
-        if (subtitle) subtitle.style.display = 'none';
+        if (subtitle) {
+            subtitle.style.display = 'block';
+            subtitle.textContent = "Recover access to your private vault.";
+        }
         if (secondaryCard) {
             secondaryCard.style.display = 'flex';
             if (secondaryText) secondaryText.textContent = "Remember your password?";
@@ -113,12 +116,18 @@ function switchAuthMode(mode, updateHistory = true) {
     } else if (mode === 'otp') {
         if (viewOtp) viewOtp.classList.remove('hidden');
         if (pageTitle) pageTitle.textContent = "PrivCloud - Verify Code";
-        if (subtitle) subtitle.style.display = 'none';
+        if (subtitle) {
+            subtitle.style.display = 'block';
+            subtitle.textContent = "Confirm your identity with 6-digit code.";
+        }
         if (secondaryCard) secondaryCard.style.display = 'none';
     } else if (mode === 'reset-password') {
         if (viewResetPassword) viewResetPassword.classList.remove('hidden');
         if (pageTitle) pageTitle.textContent = "PrivCloud - Set New Password";
-        if (subtitle) subtitle.style.display = 'none';
+        if (subtitle) {
+            subtitle.style.display = 'block';
+            subtitle.textContent = "Create a new strong password for your vault.";
+        }
         if (secondaryCard) secondaryCard.style.display = 'none';
     } else {
         // Default: login
@@ -392,10 +401,11 @@ async function handleLoginSubmit(e) {
             return;
         }
 
-        showAuthAlert("Login successful! Redirecting...", true);
+        const displayName = (res && res.user) ? window.PrivCloudAuth.getUserDisplayName(res.user) : identifier;
+        showAuthAlert("Login successful! Entering PrivCloud...", true);
         setTimeout(() => {
-            window.location.href = getPostAuthRedirectDestination();
-        }, 800);
+            playAuthTransitionVideo(getPostAuthRedirectDestination(), displayName);
+        }, 300);
 
     } catch (err) {
         showAuthAlert(err.message || "An unexpected error occurred during login.");
@@ -553,9 +563,12 @@ async function handleForgotSubmit(e) {
 // 6-BOX OTP VERIFICATION ENGINE
 // ----------------------------------------------------
 function showOtpView(email, username = '', purpose = 'signup') {
-    registeredEmail = email;
-    registeredUsername = username;
+    registeredEmail = email || registeredEmail || (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('privcloud_auth_email') : '') || '';
+    registeredUsername = username || registeredUsername || '';
     otpPurpose = purpose;
+    if (typeof sessionStorage !== 'undefined' && email) {
+        sessionStorage.setItem('privcloud_auth_email', email);
+    }
     switchAuthMode('otp', false);
 
     const titleEl = document.getElementById('otp-view-title');
@@ -743,10 +756,10 @@ async function handleOtpVerify(e) {
             return;
         }
 
-        showAuthAlert("Account verified! Redirecting...", true);
+        showAuthAlert("Account verified! Welcome to PrivCloud...", true);
         setTimeout(() => {
-            window.location.href = getPostAuthRedirectDestination();
-        }, 800);
+            playAuthTransitionVideo(getPostAuthRedirectDestination(), registeredUsername || registeredEmail);
+        }, 300);
 
     } catch (err) {
         showAuthAlert(err.message || "Verification failed. Please try again.");
@@ -835,7 +848,15 @@ async function handleNewPasswordSubmit(e) {
             return;
         }
 
-        const res = await window.PrivCloudAuth.updatePassword(registeredEmail, newPass);
+        const targetEmail = (registeredEmail || (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('privcloud_auth_email') : '') || (document.getElementById('forgot-identifier')?.value || '')).trim();
+
+        if (!targetEmail) {
+            showAuthAlert("Session expired or email missing. Please restart the password reset process.");
+            switchAuthMode('forgot');
+            return;
+        }
+
+        const res = await window.PrivCloudAuth.updatePassword(targetEmail, newPass);
         if (res && res.error) {
             showAuthAlert(res.error.message || "Failed to update password.");
         } else {
@@ -843,7 +864,7 @@ async function handleNewPasswordSubmit(e) {
             switchAuthMode('login');
             const loginIdent = document.getElementById('login-identifier');
             if (loginIdent) {
-                loginIdent.value = registeredEmail;
+                loginIdent.value = targetEmail;
             }
             const loginPass = document.getElementById('login-password');
             if (loginPass) {
@@ -911,6 +932,9 @@ const PLAN_TOKEN_MAP = {
     'free': '9a8f10e7b9c2d4a6'
 };
 
+const AUTH_TRANSITION_VIDEO_URL = "https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/after_auth.mp4";
+let transitionTriggered = false;
+
 function getPostAuthRedirectDestination() {
     const urlParams = new URLSearchParams(window.location.search);
     const redirectTarget = urlParams.get('redirect');
@@ -920,8 +944,110 @@ function getPostAuthRedirectDestination() {
     if (redirectTarget === 'purchase') {
         return `../purchase_page/purchase.html?plan=${encodeURIComponent(planToken)}`;
     }
-    return '../index.html';
+    return '../product_page/product.html';
 }
+
+function playAuthTransitionVideo(destinationUrl = null, userDisplayName = '') {
+    if (transitionTriggered) return;
+    transitionTriggered = true;
+
+    const targetUrl = destinationUrl || getPostAuthRedirectDestination();
+    const overlay = document.getElementById('auth-transition-overlay');
+    const video = document.getElementById('auth-transition-video');
+    const skipBtn = document.getElementById('auth-transition-skip-btn');
+
+    // Store auth flag for product page welcome notification
+    try {
+        sessionStorage.setItem('privcloud_just_authenticated', '1');
+        if (userDisplayName) {
+            sessionStorage.setItem('privcloud_auth_user_name', userDisplayName);
+        }
+    } catch (e) {}
+
+    if (!overlay) {
+        window.location.href = targetUrl;
+        return;
+    }
+
+    // Activate clean video transition overlay
+    overlay.classList.remove('hidden');
+    void overlay.offsetWidth; // Reflow
+    overlay.classList.add('active');
+
+    let navigated = false;
+    const executeNavigation = () => {
+        if (navigated) return;
+        navigated = true;
+        overlay.style.opacity = '0';
+        setTimeout(() => {
+            window.location.href = targetUrl;
+        }, 280);
+    };
+
+    if (skipBtn) {
+        skipBtn.onclick = (e) => {
+            e.preventDefault();
+            executeNavigation();
+        };
+    }
+
+    const keyHandler = (e) => {
+        if (e.key === 'Escape' || e.key === ' ' || e.key === 'Enter') {
+            window.removeEventListener('keydown', keyHandler);
+            executeNavigation();
+        }
+    };
+    window.addEventListener('keydown', keyHandler);
+
+    let maxFallbackTimeout = 4000;
+
+    if (video) {
+        const srcElem = video.querySelector('source');
+        if (srcElem && srcElem.src !== AUTH_TRANSITION_VIDEO_URL) {
+            srcElem.src = AUTH_TRANSITION_VIDEO_URL;
+            video.load();
+        }
+
+        video.currentTime = 0;
+        video.muted = true;
+
+        const onVideoMeta = () => {
+            if (video.duration && !isNaN(video.duration) && video.duration > 0) {
+                maxFallbackTimeout = Math.min(8000, Math.floor(video.duration * 1000) + 150);
+            }
+        };
+
+        if (video.readyState >= 1) {
+            onVideoMeta();
+        } else {
+            video.addEventListener('loadedmetadata', onVideoMeta, { once: true });
+        }
+
+        video.addEventListener('ended', () => {
+            executeNavigation();
+        }, { once: true });
+
+        video.addEventListener('error', (err) => {
+            console.warn("[PrivCloud Transition] Video playback fallback:", err);
+            setTimeout(executeNavigation, 2000);
+        }, { once: true });
+
+        const playPromise = video.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(err => {
+                console.warn("[PrivCloud Transition] Auto-play notice:", err);
+            });
+        }
+    }
+
+    // Safety timeout in case video does not trigger ended event
+    setTimeout(() => {
+        if (!navigated) {
+            executeNavigation();
+        }
+    }, maxFallbackTimeout);
+}
+window.playAuthTransitionVideo = playAuthTransitionVideo;
 
 async function handleHashRouting() {
     const hash = window.location.hash.toLowerCase().replace(/^#/, '');
@@ -938,8 +1064,8 @@ async function handleHashRouting() {
                         const displayName = window.PrivCloudAuth.getUserDisplayName(session.user);
                         showAuthAlert(`Welcome back, ${displayName}! Redirecting...`, true);
                         setTimeout(() => {
-                            window.location.href = getPostAuthRedirectDestination();
-                        }, 800);
+                            playAuthTransitionVideo(getPostAuthRedirectDestination(), displayName);
+                        }, 300);
                         return;
                     }
                 }

@@ -2593,6 +2593,7 @@ body.demo-body {
 @media (max-width: 768px) {
     .navbar {
         padding: 0 16px;
+        height: 64px;
     }
 
     .nav-links {
@@ -2600,7 +2601,8 @@ body.demo-body {
     }
 
     .demo-hero-title {
-        font-size: 2.1rem;
+        font-size: 2rem;
+        line-height: 1.25;
     }
 
     .wizard-panels-viewport {
@@ -2620,3 +2622,27 @@ body.demo-body {
         flex-direction: column;
     }
 }
+
+@media (max-width: 480px) {
+    .navbar {
+        height: 60px;
+        padding: 0 14px;
+    }
+
+    .nav-brand-subtitle {
+        display: none !important;
+    }
+
+    .demo-hero-title {
+        font-size: 1.65rem;
+    }
+
+    .demo-hero-subtitle {
+        font-size: 0.95rem;
+    }
+
+    body.demo-body {
+        padding-top: 60px;
+    }
+}
+

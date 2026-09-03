@@ -28,20 +28,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 100);
     }
 
-    // Section scrollspy with 16-character alphanumeric section IDs
+    // Section active state for Overview page
     function getActiveSection() {
-        const scrollY = window.pageYOffset || document.documentElement.scrollTop;
-
-        const featEl = document.getElementById('3b8c2f1e4a7d90bc');
-
-        if (featEl) {
-            const featTop = featEl.offsetTop - 120;
-            const featBottom = featTop + featEl.offsetHeight;
-            if (scrollY >= featTop && scrollY < featBottom) {
-                return '3b8c2f1e4a7d90bc';
-            }
-        }
-
         return 'a8f10e7b9c2d4a6e';
     }
 

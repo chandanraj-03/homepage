@@ -10,12 +10,14 @@
     <link rel="icon" type="image/png" href="https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/logo.png">
     
     <!-- Base styles and about specific styles -->
+    <link rel="stylesheet" href="../../mobileNav.css">
     <link rel="stylesheet" href="../overview/overview.css">
     <link rel="stylesheet" href="about.css">
 
     <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../../supabaseClient.js"></script>
+    <script src="../../mobileNav.js"></script>
 </head>
 <body>
 
@@ -30,15 +32,91 @@
         </a>
         <ul class="nav-links">
             <li><a href="../../index.html#a8f10e7b9c2d4a6e">Overview</a></li>
-            <li><a href="../../index.html#3b8c2f1e4a7d90bc">Features</a></li>
-            <li><a href="../../product_page/product.html">Product</a></li>
+            <li><a href="../../product_page/product.html">App</a></li>
             <li><a href="../../demo_page/demo.html">Guide & Demo</a></li>
+            <li><a href="../../feedback_page/feedback.html">Feedback</a></li>
+            <li><a href="../../support_page/support.html" style="color: #0284c7; font-weight: 700;">Support 🎧</a></li>
         </ul>
         <div class="nav-actions">
             <a href="../../auth_page/auth.html#e9b4c0f81d3ea72a" class="btn-login">Login</a>
             <a href="../../auth_page/auth.html#f2d8a0c4e6b1973f" class="btn-register">Register</a>
         </div>
+        <button class="mobile-nav-toggle" id="mobile-nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false">
+            <span class="hamburger-bar"></span>
+            <span class="hamburger-bar"></span>
+            <span class="hamburger-bar"></span>
+        </button>
     </nav>
+
+    <!-- Mobile Navigation Drawer & Backdrop -->
+    <div class="mobile-nav-backdrop" id="mobile-nav-backdrop"></div>
+    <aside class="mobile-nav-drawer" id="mobile-nav-drawer" aria-hidden="true">
+        <div class="mobile-drawer-header">
+            <div class="nav-brand">
+                <img src="https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/logo.png"
+                    alt="PrivCloud Logo" class="nav-logo">
+                <div class="nav-brand-info">
+                    <span class="nav-brand-text">PrivCloud</span>
+                </div>
+            </div>
+            <button class="mobile-drawer-close" id="mobile-drawer-close" aria-label="Close menu">&times;</button>
+        </div>
+        <ul class="mobile-nav-links">
+            <li>
+                <a href="../../index.html#a8f10e7b9c2d4a6e" class="mobile-nav-link">
+                    <div class="mobile-nav-link-left">
+                        <span class="mobile-nav-link-icon">🏠</span>
+                        <span>Overview</span>
+                    </div>
+                    <span class="mobile-nav-link-arrow">→</span>
+                </a>
+            </li>
+            <li>
+                <a href="../../product_page/product.html" class="mobile-nav-link">
+                    <div class="mobile-nav-link-left">
+                        <span class="mobile-nav-link-icon">💎</span>
+                        <span>App</span>
+                    </div>
+                    <span class="mobile-nav-link-arrow">→</span>
+                </a>
+            </li>
+            <li>
+                <a href="../../demo_page/demo.html" class="mobile-nav-link">
+                    <div class="mobile-nav-link-left">
+                        <span class="mobile-nav-link-icon">📖</span>
+                        <span>Guide & Demo</span>
+                    </div>
+                    <span class="mobile-nav-link-arrow">→</span>
+                </a>
+            </li>
+            <li>
+                <a href="../../feedback_page/feedback.html" class="mobile-nav-link">
+                    <div class="mobile-nav-link-left">
+                        <span class="mobile-nav-link-icon">⭐</span>
+                        <span>Feedback</span>
+                    </div>
+                    <span class="mobile-nav-link-arrow">→</span>
+                </a>
+            </li>
+            <li>
+                <a href="../../support_page/support.html" class="mobile-nav-link">
+                    <div class="mobile-nav-link-left">
+                        <span class="mobile-nav-link-icon">🎧</span>
+                        <span>Customer Support</span>
+                    </div>
+                    <span class="mobile-nav-link-arrow">→</span>
+                </a>
+            </li>
+        </ul>
+        <div class="mobile-nav-actions" id="mobile-nav-actions">
+            <a href="../../auth_page/auth.html#e9b4c0f81d3ea72a" class="mobile-btn-login">Login</a>
+            <a href="../../auth_page/auth.html#f2d8a0c4e6b1973f" class="mobile-btn-register">Register</a>
+        </div>
+        <div class="mobile-drawer-footer">
+            <span>🔒</span>
+            <span>Self-Hosted & Private Personal Cloud</span>
+        </div>
+    </aside>
 
     <!-- Site Footer -->
     <footer class="site-footer">

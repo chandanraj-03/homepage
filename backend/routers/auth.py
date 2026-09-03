@@ -16,7 +16,8 @@ from backend.schemas import (
     VerifyProfileRequest,
     ForgotPasswordRequest,
     VerifyOtpRequest,
-    ResendOtpRequest
+    ResendOtpRequest,
+    UpdatePasswordRequest
 )
 from backend.users_db import (
     validate_username_format,
@@ -26,7 +27,8 @@ from backend.users_db import (
     generate_user_otp,
     verify_user_otp,
     mark_user_verified,
-    generate_username_suggestions
+    generate_username_suggestions,
+    update_user_password_admin
 )
 
 router = APIRouter(prefix="/api", tags=["Authentication & Config"])
@@ -256,4 +258,37 @@ async def resend_otp_endpoint(payload: ResendOtpRequest):
     return {
         'success': True,
         'message': f"A new 6-digit confirmation code has been generated for {email}."
+    }
+
+@router.post("/auth/update-password", summary="Update User Password")
+async def update_password_endpoint(payload: UpdatePasswordRequest):
+    """
+    Secure backend endpoint to update a user's password using Supabase Service Role Admin API.
+    Used during password reset flow after successful OTP verification.
+    """
+    email = payload.email.strip()
+    new_password = payload.new_password.strip()
+    
+    if not email:
+        return JSONResponse(
+            status_code=400,
+            content={'success': False, 'message': 'Email is required.'}
+        )
+        
+    if not new_password or len(new_password) < 6:
+        return JSONResponse(
+            status_code=400,
+            content={'success': False, 'message': 'Password must be at least 6 characters long.'}
+        )
+        
+    success, message = update_user_password_admin(email=email, new_password=new_password)
+    if not success:
+        return JSONResponse(
+            status_code=400,
+            content={'success': False, 'message': message}
+        )
+        
+    return {
+        'success': True,
+        'message': message
     }

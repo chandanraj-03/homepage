@@ -58,3 +58,21 @@ async def serve_demo():
         return FileResponse(demo_path)
     raise HTTPException(status_code=404, detail="demo.html not found")
 
+@router.get("/feedback", summary="Serve Dedicated Feedback & Roadmap Page")
+@router.get("/feedback.html", summary="Serve Dedicated Feedback & Roadmap Page")
+async def serve_feedback():
+    """Serve dedicated community feedback, verified buyer reviews, and suggestions page."""
+    feedback_path = os.path.join(FRONTEND_DIR, 'feedback_page', 'feedback.html')
+    if os.path.isfile(feedback_path):
+        return FileResponse(feedback_path)
+    raise HTTPException(status_code=404, detail="feedback.html not found")
+
+@router.get("/support", summary="Serve Dedicated Customer Support Chat Page")
+@router.get("/support.html", summary="Serve Dedicated Customer Support Chat Page")
+async def serve_support():
+    """Serve dedicated real-time customer support chat page."""
+    support_path = os.path.join(FRONTEND_DIR, 'support_page', 'support.html')
+    if os.path.isfile(support_path):
+        return FileResponse(support_path)
+    raise HTTPException(status_code=404, detail="support.html not found")
+

@@ -18,7 +18,7 @@ for path in (BASE_DIR, WORKSPACE_DIR):
         sys.path.insert(0, path)
 
 from backend.config import FRONTEND_DIR
-from backend.routers import pages_router, auth_router, chatbot_router, payments_router
+from backend.routers import pages_router, auth_router, chatbot_router, payments_router, feedback_router, support_router
 
 # Initialize FastAPI application
 app = FastAPI(
@@ -37,7 +37,7 @@ app.add_middleware(
 )
 
 # ----------------- Connect Modular Routers -----------------
-# 1. Page Routes (/, /auth, /product, /purchase, /login, /register, etc.)
+# 1. Page Routes (/, /auth, /product, /purchase, /login, /register, /feedback, /support, etc.)
 app.include_router(pages_router)
 
 # 2. Authentication & Config API (/api/config, /api/auth/validate-email)
@@ -48,6 +48,12 @@ app.include_router(chatbot_router)
 
 # 4. Razorpay Payment API (/api/create-order, /api/verify-payment)
 app.include_router(payments_router)
+
+# 5. Community Feedback & Suggestions API (/api/feedback)
+app.include_router(feedback_router)
+
+# 6. Customer Support Render Proxy API (/api/support)
+app.include_router(support_router)
 
 # ----------------- Dynamic Static Asset Route -----------------
 @app.get("/{filename:path}", include_in_schema=False)

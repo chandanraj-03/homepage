@@ -269,6 +269,21 @@ body {
     }
 }
 
+/* Support tab is hidden by default across desktop & mobile nav, only visible when buyer is verified */
+.nav-links a[href*="support.html"],
+.mobile-nav-links a[href*="support.html"],
+.nav-links li:has(a[href*="support.html"]),
+.mobile-nav-links li:has(a[href*="support.html"]) {
+    display: none;
+}
+
+body.buyer-verified .nav-links a[href*="support.html"],
+body.buyer-verified .mobile-nav-links a[href*="support.html"],
+body.buyer-verified .nav-links li:has(a[href*="support.html"]),
+body.buyer-verified .mobile-nav-links li:has(a[href*="support.html"]) {
+    display: inline-flex !important;
+}
+
 @media (max-width: 768px) {
     .navbar {
         padding: 0 16px;
@@ -279,12 +294,103 @@ body {
         display: none;
     }
 
+    .about-section {
+        margin-top: 24px;
+        margin-bottom: 60px;
+    }
+
+    .about-text-container {
+        padding: 0 12px;
+    }
+
     .about-text-container p {
         font-size: 1.05rem;
-        line-height: 1.7;
+        line-height: 1.75;
+        margin-bottom: 18px;
     }
 
     .video-placeholder-wrapper {
-        height: 60vh;
+        height: 55vh;
+        min-height: 280px;
     }
 }
+
+@media (max-width: 480px) {
+    .navbar {
+        height: 60px;
+        padding: 0 14px;
+    }
+
+    .nav-brand-text {
+        font-size: 1.2rem;
+    }
+
+    .nav-brand-subtitle {
+        display: none !important;
+    }
+
+    .overview-section {
+        padding-top: 60px;
+    }
+
+    .video-placeholder-wrapper {
+        height: 48vh;
+        min-height: 240px;
+    }
+
+    .about-text-container p {
+        font-size: 0.98rem;
+        line-height: 1.68;
+    }
+}
+
+/* ==========================================================================
+   Site Footer & Logo
+   ========================================================================== */
+.site-footer {
+    background: rgba(255, 255, 255, 0.9);
+    border-top: 1px solid rgba(226, 232, 240, 0.8);
+    padding: 24px 20px;
+    margin-top: 40px;
+    width: 100%;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.footer-logo {
+    height: 32px !important;
+    width: auto !important;
+    max-width: 36px !important;
+    max-height: 36px !important;
+    object-fit: contain;
+}
+
+.footer-brand-name {
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: #0f172a;
+}
+
+.footer-tagline {
+    font-size: 0.85rem;
+    color: #64748b;
+}
+
+.footer-copy {
+    font-size: 0.85rem;
+    color: #64748b;
+}

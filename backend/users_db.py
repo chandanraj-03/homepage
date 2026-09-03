@@ -493,3 +493,74 @@ def verify_user_otp(email: str, code: str) -> Tuple[bool, str]:
             return False, "Too many invalid attempts. Please request a new confirmation code."
         return False, f"Invalid confirmation code. {remaining} attempt(s) remaining."
 
+def update_user_password_admin(email: str, new_password: str) -> Tuple[bool, str]:
+    """
+    Update a user's password using Supabase Auth Admin API with Service Role Key.
+    """
+    if not SUPABASE_URL or not ACTIVE_SUPABASE_KEY:
+        return False, "Database connection not configured."
+    
+    target_email = (email or "").strip().lower()
+    if not target_email:
+        return False, "Email cannot be empty."
+    
+    if not new_password or len(new_password) < 6:
+        return False, "Password must be at least 6 characters long."
+    
+    try:
+        with httpx.Client(timeout=10.0) as client:
+            user_id = None
+
+            # 1. Fetch user ID from Supabase Admin API
+            r = client.get(
+                f"{SUPABASE_URL.rstrip('/')}/auth/v1/admin/users",
+                headers=_get_headers()
+            )
+            if r.status_code == 200:
+                users_data = r.json()
+                users_list = users_data.get("users", []) if isinstance(users_data, dict) else (users_data if isinstance(users_data, list) else [])
+                for u in users_list:
+                    if (u.get("email") or "").strip().lower() == target_email:
+                        user_id = u.get("id")
+                        break
+
+            # 2. Fallback: check public.Users table
+            if not user_id:
+                db_rows = _supabase_query({"email": f"ilike.{target_email}", "select": "id,email"})
+                if db_rows and len(db_rows) > 0:
+                    user_id = db_rows[0].get("id")
+
+            # 3. Fallback: check by username in public.Users table
+            if not user_id:
+                db_rows_user = _supabase_query({"username": f"ilike.{target_email}", "select": "id,email"})
+                if db_rows_user and len(db_rows_user) > 0:
+                    user_id = db_rows_user[0].get("id")
+                    if db_rows_user[0].get("email"):
+                        target_email = db_rows_user[0].get("email").strip().lower()
+
+            if not user_id:
+                return False, f"No account found associated with '{target_email}'."
+
+            # 4. Update user password via Supabase Admin API
+            put_resp = client.put(
+                f"{SUPABASE_URL.rstrip('/')}/auth/v1/admin/users/{user_id}",
+                headers=_get_headers(),
+                json={"password": new_password}
+            )
+
+            if put_resp.status_code in (200, 204):
+                print(f"[PrivCloud Auth] Password successfully updated for {target_email} (User ID: {user_id}).")
+                return True, "Password has been successfully updated."
+            else:
+                err_msg = put_resp.text
+                try:
+                    err_json = put_resp.json()
+                    err_msg = err_json.get("msg") or err_json.get("message") or err_json.get("error_description") or err_msg
+                except Exception:
+                    pass
+                print(f"[PrivCloud Auth] Failed to update password for {target_email}: {err_msg}")
+                return False, f"Failed to update password: {err_msg}"
+    except Exception as e:
+        print(f"[PrivCloud Auth] Exception during password update: {e}")
+        return False, f"Password update failed: {str(e)}"
+

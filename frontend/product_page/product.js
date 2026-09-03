@@ -7,6 +7,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     initSmoothScrolling();
     initNavbarAuth();
+    checkPostAuthWelcomeToast();
 });
 
 /* ==========================================================================
@@ -146,3 +147,44 @@ function initNavbarAuth() {
         }
     }
 }
+
+/* ==========================================================================
+   5. Post-Auth Welcome Toast Notification
+   ========================================================================== */
+
+function checkPostAuthWelcomeToast() {
+    try {
+        if (sessionStorage.getItem('privcloud_just_authenticated')) {
+            sessionStorage.removeItem('privcloud_just_authenticated');
+            const savedName = sessionStorage.getItem('privcloud_auth_user_name') || '';
+            if (savedName) sessionStorage.removeItem('privcloud_auth_user_name');
+
+            const toast = document.createElement('div');
+            toast.className = 'product-auth-welcome-toast';
+            toast.innerHTML = `
+                <div class="product-auth-toast-icon">✨</div>
+                <div class="product-auth-toast-content">
+                    <span class="product-auth-toast-title">Authenticated Successfully</span>
+                    <span class="product-auth-toast-msg">${savedName ? `Welcome, ${savedName}! ` : ''}Your PrivCloud personal cloud space is ready.</span>
+                </div>
+                <button class="product-auth-toast-close" aria-label="Close">&times;</button>
+            `;
+            document.body.appendChild(toast);
+
+            setTimeout(() => toast.classList.add('visible'), 150);
+
+            const closeToast = () => {
+                toast.classList.remove('visible');
+                setTimeout(() => toast.remove(), 400);
+            };
+
+            const closeBtn = toast.querySelector('.product-auth-toast-close');
+            if (closeBtn) closeBtn.onclick = closeToast;
+
+            setTimeout(closeToast, 5000);
+        }
+    } catch (e) {
+        console.warn('Toast display error:', e);
+    }
+}
+
