@@ -9,11 +9,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const SECTION_ALIAS_MAP = {
         'overview': 'a8f10e7b9c2d4a6e',
         'features': '3b8c2f1e4a7d90bc',
-        'about-us': '7e2a9b4c0f81d3ea',
-        'about': '7e2a9b4c0f81d3ea',
         'sec-a8f10e': 'a8f10e7b9c2d4a6e',
-        'sec-3b8c2f': '3b8c2f1e4a7d90bc',
-        'sec-7e2a9b': '7e2a9b4c0f81d3ea'
+        'sec-3b8c2f': '3b8c2f1e4a7d90bc'
     };
 
     // Auto-resolve legacy / simple addresses to secure 16-character alphanumeric hashes
@@ -31,35 +28,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 100);
     }
 
-    // Section scrollspy with 16-character alphanumeric section IDs
+    // Section active state for Overview page
     function getActiveSection() {
-        const scrollY = window.pageYOffset || document.documentElement.scrollTop;
-        const windowHeight = window.innerHeight;
-        const documentHeight = document.documentElement.scrollHeight;
-
-        // Reached bottom of page
-        if (scrollY + windowHeight >= documentHeight - 120) {
-            return '7e2a9b4c0f81d3ea';
-        }
-
-        const aboutEl = document.getElementById('7e2a9b4c0f81d3ea');
-        const featEl = document.getElementById('3b8c2f1e4a7d90bc');
-
-        if (aboutEl) {
-            const aboutTop = aboutEl.offsetTop - 120;
-            if (scrollY >= aboutTop) {
-                return '7e2a9b4c0f81d3ea';
-            }
-        }
-
-        if (featEl) {
-            const featTop = featEl.offsetTop - 120;
-            const featBottom = featTop + featEl.offsetHeight;
-            if (scrollY >= featTop && scrollY < featBottom) {
-                return '3b8c2f1e4a7d90bc';
-            }
-        }
-
         return 'a8f10e7b9c2d4a6e';
     }
 
@@ -109,20 +79,35 @@ document.addEventListener('DOMContentLoaded', () => {
             const navActions = document.querySelector('.nav-actions');
             if (!navActions) return;
             if (session && session.user) {
-                const email = session.user.email || 'User';
-                const username = email.split('@')[0];
-                navActions.innerHTML = `
-                    <span style="font-size: 0.88rem; font-weight: 600; color: #0284c7; background: rgba(2,132,199,0.08); padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(2,132,199,0.2);">
-                        👤 ${username}
-                    </span>
-                    <button id="btn-logout" class="btn-login" style="cursor: pointer; border: none; background: transparent;">Sign Out</button>
-                `;
-                const logoutBtn = document.getElementById('btn-logout');
-                if (logoutBtn) {
-                    logoutBtn.addEventListener('click', async () => {
-                        await window.PrivCloudAuth.signOut();
-                        window.location.reload();
-                    });
+                const user = session.user;
+                const meta = user.user_metadata || {};
+                let displayName = meta.full_name || meta.name || user.email?.split('@')[0] || 'User';
+
+                const renderNav = (name) => {
+                    navActions.innerHTML = `
+                        <span style="font-size: 0.88rem; font-weight: 600; color: #0284c7; background: rgba(2,132,199,0.08); padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(2,132,199,0.2);">
+                            👤 ${name}
+                        </span>
+                        <button id="btn-logout" class="btn-login" style="cursor: pointer; border: none; background: transparent;">Sign Out</button>
+                    `;
+                    const logoutBtn = document.getElementById('btn-logout');
+                    if (logoutBtn) {
+                        logoutBtn.addEventListener('click', async () => {
+                            await window.PrivCloudAuth.signOut();
+                            window.location.reload();
+                        });
+                    }
+                };
+
+                renderNav(displayName);
+
+                // Asynchronously fetch full name from backend if not yet in session metadata
+                if (!meta.full_name && user.email && window.PrivCloudAuth.resolveIdentifier) {
+                    window.PrivCloudAuth.resolveIdentifier(user.email).then(res => {
+                        if (res && res.fullName) {
+                            renderNav(res.fullName);
+                        }
+                    }).catch(() => {});
                 }
             }
         };

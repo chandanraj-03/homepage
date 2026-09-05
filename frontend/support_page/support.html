@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrivCloud — Dedicated Customer Support Hub</title>
+    <meta name="description" content="Connect directly with PrivCloud engineering support for assistance with hardware setup, personal cloud sync, media streaming, and licenses.">
+    <link rel="icon" type="image/png" href="https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/logo.png">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="../landing_page/overview/overview.css">
+    <link rel="stylesheet" href="../mobileNav.css?v=2">
+    <link rel="stylesheet" href="../landing_page/chatbot/chatbot.css">
+    <link rel="stylesheet" href="support.css?v=2">
+
+    <!-- Supabase Auth -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../supabaseClient.js?v=6"></script>
+    <script src="../mobileNav.js?v=2"></script>
+</head>
+<body>
+
+    <!-- Top Navigation Bar -->
+    <nav class="navbar" id="site-navbar">
+        <a href="../index.html" class="nav-brand">
+            <img src="https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/logo.png"
+                alt="PrivCloud Logo" class="nav-logo">
+            <div class="nav-brand-info">
+                <span class="nav-brand-text">PrivCloud</span>
+                <span class="nav-brand-subtitle">my cloud. my data. my control</span>
+            </div>
+        </a>
+        <ul class="nav-links">
+            <li><a href="../index.html">Overview</a></li>
+            <li><a href="../product_page/product.html">App</a></li>
+            <li><a href="../demo_page/demo.html">Guide & Demo</a></li>
+            <li><a href="../feedback_page/feedback.html">Feedback</a></li>
+            <li><a href="support.html" class="active" style="color: #0284c7; font-weight: 700;">Support 🎧</a></li>
+        </ul>
+        <div class="nav-actions" id="user-badge-container">
+            <a href="../auth_page/auth.html#e9b4c0f81d3ea72a" class="btn-login">Login</a>
+            <a href="../auth_page/auth.html#f2d8a0c4e6b1973f" class="btn-register">Register</a>
+        </div>
+        <button class="mobile-nav-toggle" id="mobile-nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false">
+            <span class="hamburger-bar"></span>
+            <span class="hamburger-bar"></span>
+            <span class="hamburger-bar"></span>
+        </button>
+    </nav>
+
+    <!-- Mobile Navigation Drawer -->
+    <div class="mobile-nav-backdrop" id="mobile-nav-backdrop"></div>
+    <aside class="mobile-nav-drawer" id="mobile-nav-drawer" aria-hidden="true">
+        <div class="mobile-drawer-header">
+            <div class="nav-brand">
+                <img src="https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/logo.png"
+                    alt="PrivCloud Logo" class="nav-logo">
+                <div class="nav-brand-info">
+                    <span class="nav-brand-text">PrivCloud</span>
+                </div>
+            </div>
+            <button class="mobile-drawer-close" id="mobile-drawer-close" aria-label="Close menu">&times;</button>
+        </div>
+        <ul class="mobile-nav-links">
+            <li>
+                <a href="../index.html" class="mobile-nav-link">
+                    <div class="mobile-nav-link-left">
+                        <span class="mobile-nav-link-icon">🏠</span>
+                        <span>Overview</span>
+                    </div>
+                    <span class="mobile-nav-link-arrow">→</span>
+                </a>
+            </li>
+            <li>
+                <a href="../product_page/product.html" class="mobile-nav-link">
+                    <div class="mobile-nav-link-left">
+                        <span class="mobile-nav-link-icon">💎</span>
+                        <span>App</span>
+                    </div>
+                    <span class="mobile-nav-link-arrow">→</span>
+                </a>
+            </li>
+            <li>
+                <a href="../demo_page/demo.html" class="mobile-nav-link">
+                    <div class="mobile-nav-link-left">
+                        <span class="mobile-nav-link-icon">📖</span>
+                        <span>Guide & Demo</span>
+                    </div>
+                    <span class="mobile-nav-link-arrow">→</span>
+                </a>
+            </li>
+            <li>
+                <a href="../feedback_page/feedback.html" class="mobile-nav-link">
+                    <div class="mobile-nav-link-left">
+                        <span class="mobile-nav-link-icon">⭐</span>
+                        <span>Feedback</span>
+                    </div>
+                    <span class="mobile-nav-link-arrow">→</span>
+                </a>
+            </li>
+            <li>
+                <a href="support.html" class="mobile-nav-link active">
+                    <div class="mobile-nav-link-left">
+                        <span class="mobile-nav-link-icon">🎧</span>
+                        <span>Customer Support</span>
+                    </div>
+                    <span class="mobile-nav-link-arrow">→</span>
+                </a>
+            </li>
+        </ul>
+        <div class="mobile-nav-actions" id="mobile-nav-actions">
+            <a href="../auth_page/auth.html#e9b4c0f81d3ea72a" class="mobile-btn-login">Login</a>
+            <a href="../auth_page/auth.html#f2d8a0c4e6b1973f" class="mobile-btn-register">Register</a>
+        </div>
+        <div class="mobile-drawer-footer">
+            <span>🔒</span>
+            <span>Self-Hosted & Private Personal Cloud</span>
+        </div>
+    </aside>
+
+    <!-- Main Container -->
+    <main class="support-container">
+        
+        <!-- Hero Section -->
+        <header class="support-hero">
+            <div class="support-status-badge" id="support-status-badge">
+                <span class="status-dot" id="support-status-dot"></span>
+                <span id="support-status-text">Connecting to Live Support Desk...</span>
+            </div>
+            <h1 class="support-hero-title">
+                Customer <span>Support Desk</span>
+            </h1>
+            <p class="support-hero-subtitle">
+                Direct real-time technical assistance with our engineering team for node deployment, Windows setup, storage drives, and license activation.
+            </p>
+        </header>
+
+        <!-- 1. Verification Loading State -->
+        <div id="support-loading-gate" style="text-align: center; padding: 60px 20px; color: #0284c7; font-weight: 700;">
+            <div style="font-size: 2rem; margin-bottom: 12px; animation: spin 1s linear infinite; display: inline-block;">⚙️</div>
+            <div>Verifying PrivCloud license eligibility...</div>
+        </div>
+
+        <!-- 2. Locked Gate (Shown if user is not logged in or has not purchased) -->
+        <div id="support-locked-gate" class="support-locked-card" style="display: none;">
+            <div class="lock-shield-icon">🔒</div>
+            <h2 class="lock-title">Customer Support Requires a Verified License</h2>
+            <p class="lock-desc">
+                Live 1-on-1 direct engineering assistance is an exclusive service reserved for customers with an active 
+                <strong>PrivCloud Basic</strong> or <strong>Pro Lifetime License</strong>.
+            </p>
+            <div class="lock-perks-box">
+                <div class="lock-perk-item">✓ Direct live chat with PrivCloud core engineers</div>
+                <div class="lock-perk-item">✓ Remote encrypted tunnel & port-forwarding configuration</div>
+                <div class="lock-perk-item">✓ Dedicated node setup, local drive mounting & mobile sync help</div>
+                <div class="lock-perk-item">✓ Lifetime Priority Queue routing</div>
+            </div>
+            <div class="lock-actions-row">
+                <a href="../auth_page/auth.html#e9b4c0f81d3ea72a" class="btn-lock-login">🔑 Sign In with License Account</a>
+                <a href="../purchase_page/purchase.html" class="btn-lock-buy">💎 Buy License (From ₹1,499)</a>
+            </div>
+        </div>
+
+        <!-- 3. Active Chat Layout (2-Column Dashboard: Cards on Left, Message Area on Right) -->
+        <div class="support-main-layout" id="support-active-chat" style="display: none;">
+            
+            <!-- Left Side: Profile & SLA Info Cards -->
+            <aside class="support-sidebar">
+                
+                <!-- Card 1: Verified Buyer Account Profile -->
+                <div class="overview-card">
+                    <div class="overview-card-header">
+                        <span class="overview-icon">👤</span>
+                        <span class="overview-card-title">Verified Buyer Profile</span>
+                    </div>
+                    <div class="user-profile-header">
+                        <div class="user-avatar-large" id="customer-display-avatar">CU</div>
+                        <div style="flex: 1;">
+                            <div class="user-meta-name" id="customer-display-name">Customer</div>
+                            <div class="user-meta-email" id="customer-display-email">customer@privcloud.com</div>
+                        </div>
+                    </div>
+
+                    <div class="tier-badge-pill tier-basic" id="customer-display-tier">
+                        <span>⭐</span>
+                        <span>Verified License Holder</span>
+                    </div>
+
+                    <div class="vip-routing-box" id="customer-vip-banner" style="display: none; margin-top: 12px;">
+                        <span style="font-size: 1.2rem;">👑</span>
+                        <div>
+                            <div class="vip-routing-title">PRO VIP Priority Routing Active</div>
+                            <div class="vip-routing-desc">Your messages are placed at the top of our engineering queue.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2: Live Engineering SLA & Status -->
+                <div class="overview-card">
+                    <div class="overview-card-header">
+                        <span class="overview-icon">🛡️</span>
+                        <span class="overview-card-title">Live Engineering SLA</span>
+                    </div>
+                    <table class="session-info-table">
+                        <tr>
+                            <td>Support Reference</td>
+                            <td id="session-display-id">priv_sup_...</td>
+                        </tr>
+                        <tr>
+                            <td>Desk Status</td>
+                            <td style="color: #059669;">● Online & Connected</td>
+                        </tr>
+                        <tr>
+                            <td>Avg Response</td>
+                            <td style="color: #0284c7;">&lt; 5 mins</td>
+                        </tr>
+                        <tr>
+                            <td>Encrypted Tunnel</td>
+                            <td style="color: #6366f1;">AES-256 E2E</td>
+                        </tr>
+                    </table>
+                </div>
+
+            </aside>
+
+            <!-- Right Side: Live Support Chat / Message Area -->
+            <section class="support-chat-console" id="support-chat-console-box">
+                
+                <div class="chat-console-header">
+                    <div class="console-agent-info">
+                        <div class="agent-shield-icon">🛡️</div>
+                        <div>
+                            <div class="agent-title">PrivCloud Support Engineering</div>
+                            <div class="agent-sub">
+                                <span class="status-dot" style="width:6px;height:6px;"></span>
+                                <span>Active • Direct connection</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="btn-chat-action" id="btn-clear-support-chat">Clear Chat</button>
+                    </div>
+                </div>
+
+                <!-- Messages Stream -->
+                <div class="chat-console-body" id="support-chat-messages">
+                    <!-- Populated by support.js -->
+                </div>
+
+                <!-- Chat Input Footer -->
+                <div class="chat-console-footer">
+                    <!-- Permission Status Toast / Alert -->
+                    <div class="attachment-permission-toast" id="attachment-permission-toast" style="display: none;">
+                        <span class="toast-icon">✨</span>
+                        <span id="attachment-permission-text">Image attachments enabled by support engineer</span>
+                    </div>
+
+                    <!-- Staged Attachment Preview Bar -->
+                    <div class="attachment-staging-box" id="support-attachment-preview" style="display: none;">
+                        <div class="staging-thumb-wrap">
+                            <img id="staging-preview-img" src="" alt="Preview" class="staging-thumb">
+                            <div class="staging-spinner" id="staging-spinner" style="display: none;">
+                                <div class="mini-spinner"></div>
+                            </div>
+                        </div>
+                        <div class="staging-meta">
+                            <div class="staging-filename" id="staging-filename">image.png</div>
+                            <div class="staging-filesize" id="staging-filesize">0 KB</div>
+                        </div>
+                        <button type="button" class="staging-remove-btn" id="btn-remove-attachment" title="Remove attachment" aria-label="Remove attachment">&times;</button>
+                    </div>
+
+                    <form class="support-input-form" id="support-chat-form">
+                        <!-- Hidden File Input for Images -->
+                        <input type="file" id="support-image-input" accept="image/png, image/jpeg, image/jpg, image/webp, image/gif" style="display: none;">
+
+                        <!-- Attach Image Button (toggled via permissions) -->
+                        <button type="button" class="btn-support-attach locked" id="btn-attach-image" title="Image attachments require support engineer permission" aria-label="Attach Image">
+                            <svg class="attach-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                            </svg>
+                            <span class="attach-lock-indicator" id="attach-lock-indicator" title="Permission required">🔒</span>
+                        </button>
+
+                        <textarea 
+                            id="support-message-input" 
+                            class="support-textarea" 
+                            rows="1" 
+                            placeholder="Type your question or message... (Enter to send)"></textarea>
+                        <button type="submit" class="btn-support-send" id="btn-submit-support-msg">
+                            <span>Send</span>
+                            <span>➤</span>
+                        </button>
+                    </form>
+                </div>
+
+            </section>
+
+        </div>
+
+    </main>
+
+    <!-- Image Lightbox Modal for Full-Size Viewing -->
+    <div class="support-lightbox" id="support-lightbox" style="display: none;" role="dialog" aria-modal="true" aria-label="Image Preview">
+        <div class="lightbox-backdrop" id="lightbox-backdrop"></div>
+        <div class="lightbox-content">
+            <div class="lightbox-header">
+                <span class="lightbox-title" id="lightbox-title">Attached Image</span>
+                <div class="lightbox-actions">
+                    <a href="#" target="_blank" download id="lightbox-download-link" class="btn-lightbox-action" title="Download image">⬇️ Download</a>
+                    <button type="button" class="btn-lightbox-close" id="btn-lightbox-close" title="Close preview">&times;</button>
+                </div>
+            </div>
+            <div class="lightbox-body">
+                <img src="" alt="Enlarged Attachment" id="lightbox-image" class="lightbox-image">
+            </div>
+        </div>
+    </div>
+
+    <!-- Site Footer -->
+    <footer class="site-footer">
+        <div class="container footer-content">
+            <div class="footer-brand">
+                <img src="https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/logo.png"
+                    alt="PrivCloud Logo" class="footer-logo" style="height: 32px; width: auto; max-width: 36px; object-fit: contain;">
+                <span class="footer-brand-name">PrivCloud</span>
+                <span class="footer-tagline">— Self-Hosted Personal Cloud Platform</span>
+            </div>
+            <div class="footer-copy">
+                &copy; 2026 PrivCloud. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Logic Script -->
+    <script src="support.js?v=8"></script>
+</body>
+</html>

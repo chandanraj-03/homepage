@@ -1,17 +1,20 @@
+# Operating System & Cache
 .DS_Store
 __pycache__/
 *.pyc
+.venv/
+
+# Environment & Secrets
 .env
 .env*.local
 .env.production
-.env.example
-frontend/config.js
-config.js
-
-chatbot.py
-supabasepassword.txt
 .password.txt
 password.txt
+supabasepassword.txt
+
+# Generated / Dynamic configs & SQL
+frontend/config.js
+config.js
 supabase_schema.sql
 supabase.schema.sql
 *.sql

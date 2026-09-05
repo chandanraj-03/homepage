@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrivCloud — Community Feedback & Product Roadmap</title>
+    <meta name="description" content="Read authentic reviews from verified Basic and Pro purchasers running PrivCloud on their personal computers, or view the public feature roadmap.">
+    <link rel="icon" type="image/png" href="https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/logo.png">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Core Navbar & Mobile Nav Styles -->
+    <link rel="stylesheet" href="../landing_page/overview/overview.css">
+    <link rel="stylesheet" href="../mobileNav.css?v=1">
+    <link rel="stylesheet" href="../landing_page/chatbot/chatbot.css">
+    
+    <!-- Dedicated Feedback Page Styles -->
+    <link rel="stylesheet" href="feedback.css?v=1">
+
+    <!-- Supabase JS Client for Auth -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../supabaseClient.js?v=6"></script>
+    <script src="../mobileNav.js?v=1"></script>
+</head>
+<body>
+
+    <!-- 1. Top Navigation Bar -->
+    <nav class="navbar" id="site-navbar">
+        <a href="../index.html" class="nav-brand">
+            <img src="https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/logo.png"
+                alt="PrivCloud Logo" class="nav-logo">
+            <div class="nav-brand-info">
+                <span class="nav-brand-text">PrivCloud</span>
+                <span class="nav-brand-subtitle">my cloud. my data. my control</span>
+            </div>
+        </a>
+        <ul class="nav-links">
+            <li><a href="../index.html">Overview</a></li>
+            <li><a href="../product_page/product.html">App</a></li>
+            <li><a href="../demo_page/demo.html">Guide & Demo</a></li>
+            <li><a href="feedback.html" class="active" style="color: #0284c7; font-weight: 700;">Feedback</a></li>
+            <li><a href="../support_page/support.html" style="color: #0284c7; font-weight: 700;">Support 🎧</a></li>
+        </ul>
+        <div class="nav-actions" id="user-badge-container">
+            <a href="../auth_page/auth.html#e9b4c0f81d3ea72a" class="btn-login">Login</a>
+            <a href="../auth_page/auth.html#f2d8a0c4e6b1973f" class="btn-register">Register</a>
+        </div>
+        <button class="mobile-nav-toggle" id="mobile-nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false">
+            <span class="hamburger-bar"></span>
+            <span class="hamburger-bar"></span>
+            <span class="hamburger-bar"></span>
+        </button>
+    </nav>
+
+    <!-- Mobile Navigation Drawer & Backdrop -->
+    <div class="mobile-nav-backdrop" id="mobile-nav-backdrop"></div>
+    <aside class="mobile-nav-drawer" id="mobile-nav-drawer" aria-hidden="true">
+        <div class="mobile-drawer-header">
+            <div class="nav-brand">
+                <img src="https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/logo.png"
+                    alt="PrivCloud Logo" class="nav-logo">
+                <div class="nav-brand-info">
+                    <span class="nav-brand-text">PrivCloud</span>
+                </div>
+            </div>
+            <button class="mobile-drawer-close" id="mobile-drawer-close" aria-label="Close menu">&times;</button>
+        </div>
+        <ul class="mobile-nav-links">
+            <li>
+                <a href="../index.html" class="mobile-nav-link">
+                    <div class="mobile-nav-link-left">
+                        <span class="mobile-nav-link-icon">🏠</span>
+                        <span>Overview</span>
+                    </div>
+                    <span class="mobile-nav-link-arrow">→</span>
+                </a>
+            </li>
+            <li>
+                <a href="../product_page/product.html" class="mobile-nav-link">
+                    <div class="mobile-nav-link-left">
+                        <span class="mobile-nav-link-icon">💎</span>
+                        <span>App</span>
+                    </div>
+                    <span class="mobile-nav-link-arrow">→</span>
+                </a>
+            </li>
+            <li>
+                <a href="../demo_page/demo.html" class="mobile-nav-link">
+                    <div class="mobile-nav-link-left">
+                        <span class="mobile-nav-link-icon">📖</span>
+                        <span>Guide & Demo</span>
+                    </div>
+                    <span class="mobile-nav-link-arrow">→</span>
+                </a>
+            </li>
+            <li>
+                <a href="feedback.html" class="mobile-nav-link active">
+                    <div class="mobile-nav-link-left">
+                        <span class="mobile-nav-link-icon">⭐</span>
+                        <span>Feedback</span>
+                    </div>
+                    <span class="mobile-nav-link-arrow">→</span>
+                </a>
+            </li>
+            <li>
+                <a href="../support_page/support.html" class="mobile-nav-link">
+                    <div class="mobile-nav-link-left">
+                        <span class="mobile-nav-link-icon">🎧</span>
+                        <span>Customer Support</span>
+                    </div>
+                    <span class="mobile-nav-link-arrow">→</span>
+                </a>
+            </li>
+        </ul>
+        <div class="mobile-nav-actions" id="mobile-nav-actions">
+            <a href="../auth_page/auth.html#e9b4c0f81d3ea72a" class="mobile-btn-login">Login</a>
+            <a href="../auth_page/auth.html#f2d8a0c4e6b1973f" class="mobile-btn-register">Register</a>
+        </div>
+        <div class="mobile-drawer-footer">
+            <span>🔒</span>
+            <span>Self-Hosted & Private Personal Cloud</span>
+        </div>
+    </aside>
+
+    <!-- Main Feedback Container -->
+    <main class="feedback-container">
+        
+        <!-- Hero Section -->
+        <header class="feedback-hero">
+            <div class="feedback-badge-top">
+                <span>🛡️ Verified Buyer Community</span>
+            </div>
+            <h1 class="feedback-hero-title">
+                Customer Reviews & <span>Product Roadmap</span>
+            </h1>
+            <p class="feedback-hero-subtitle">
+                Authentic real-world experiences and feature requests submitted exclusively by verified Basic and Pro purchasers running PrivCloud on their personal hardware.
+            </p>
+
+            <!-- Stats Grid -->
+            <div class="feedback-stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">
+                        <span id="stat-average-rating">4.9</span>
+                        <span class="stat-stars">★★★★★</span>
+                    </div>
+                    <div class="stat-label">Average Customer Rating</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="stat-total-reviews">1,200+</div>
+                    <div class="stat-label">Verified Deployments</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" style="color: #059669;">99.2%</div>
+                    <div class="stat-label">Satisfaction & Retention Rate</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" style="color: #7c3aed;">6 Active</div>
+                    <div class="stat-label">Community Features in Pipeline</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Action Bar: Switch Views & Submit Trigger -->
+        <section class="feedback-action-bar">
+            <div class="view-tabs">
+                <button class="view-tab active" id="tab-reviews">
+                    <span>⭐ Buyer Reviews</span>
+                </button>
+                <button class="view-tab" id="tab-suggestions">
+                    <span>💡 Feature Suggestions & Roadmap</span>
+                </button>
+            </div>
+
+            <button class="btn-open-submit" id="btn-open-submit">
+                <span>✍️ Submit Review / Idea</span>
+            </button>
+        </section>
+
+        <!-- Filter & Search Bar -->
+        <section class="feedback-filter-bar">
+            <div class="category-pills">
+                <button class="category-pill active" data-category="all">All Categories</button>
+                <button class="category-pill" data-category="Remote Tunnel">Remote Tunnel</button>
+                <button class="category-pill" data-category="Media Suite">Media Suite</button>
+                <button class="category-pill" data-category="Storage & Sync">Storage & Sync</button>
+                <button class="category-pill" data-category="Security">Security</button>
+            </div>
+
+            <div class="filter-selects">
+                <select class="select-filter" id="filter-plan" aria-label="Filter by Edition">
+                    <option value="all">All Editions</option>
+                    <option value="pro">👑 Pro Lifetime Edition</option>
+                    <option value="basic">⭐ Basic Lifetime Edition</option>
+                </select>
+
+                <select class="select-filter" id="filter-sort" aria-label="Sort Reviews">
+                    <option value="top">🔥 Most Helpful / Upvoted</option>
+                    <option value="recent">⏱️ Newest First</option>
+                    <option value="rating">★ Highest Rating</option>
+                </select>
+            </div>
+        </section>
+
+        <!-- Dynamic Feedback Cards Grid -->
+        <section class="cards-grid" id="feedback-cards-container">
+            <!-- Rendered by feedback.js -->
+        </section>
+
+    </main>
+
+    <!-- Modal 1: Friendly Locked Notice (For Trial / Guest Users) -->
+    <div class="modal-backdrop" id="modal-locked-notice">
+        <div class="modal-box">
+            <button class="modal-close-btn" aria-label="Close modal">&times;</button>
+            <div class="lock-icon-circle">🔒</div>
+            <h3 class="modal-title">Verified Buyers Only</h3>
+            <p class="modal-desc">
+                Submissions are reserved for verified <strong>Basic</strong> and <strong>Pro</strong> lifetime purchasers to ensure all reviews and roadmap suggestions reflect authentic, long-term personal cloud usage.
+            </p>
+            <div style="background: #f8fafc; border-radius: 14px; padding: 16px; margin-bottom: 24px; text-align: left; font-size: 0.9rem; color: #475569;">
+                <div style="font-weight: 700; color: #0f172a; margin-bottom: 6px;">Already purchased an edition?</div>
+                <div>Please sign in with the email address used during checkout so our system can detect your verified buyer license.</div>
+            </div>
+            <div class="modal-actions">
+                <a href="../auth_page/auth.html#e9b4c0f81d3ea72a" class="btn-modal-primary">Sign In with Buyer Email</a>
+                <a href="../product_page/product.html" class="btn-modal-secondary">View Lifetime Editions</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 2: Verified Buyer Submission Portal -->
+    <div class="modal-backdrop" id="modal-feedback-submission">
+        <div class="modal-box">
+            <button class="modal-close-btn" aria-label="Close modal">&times;</button>
+            
+            <div class="verified-buyer-banner">
+                <span style="font-size: 1.5rem;">👑</span>
+                <div>
+                    <div style="font-weight: 700; color: #0f172a; font-size: 0.95rem;">
+                        Verified Purchaser: <span id="modal-user-name">Customer</span>
+                    </div>
+                    <span class="badge-verified-pro" id="modal-user-badge">👑 Verified Pro Buyer</span>
+                </div>
+            </div>
+
+            <h3 class="modal-title" style="text-align: left; font-size: 1.4rem;">Submit Community Feedback</h3>
+            
+            <form id="feedback-submission-form">
+                <div class="form-group">
+                    <label class="form-label" for="form-feedback-type">Submission Type</label>
+                    <select class="form-select" id="form-feedback-type" required>
+                        <option value="review">⭐ Product Review & Rating</option>
+                        <option value="suggestion">💡 Feature Suggestion & Roadmap Idea</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="form-rating-group">
+                    <label class="form-label">Your Rating (1 to 5 Stars)</label>
+                    <div class="stars-selector" id="modal-stars-selector">
+                        <span data-star="1" class="active">★</span>
+                        <span data-star="2" class="active">★</span>
+                        <span data-star="3" class="active">★</span>
+                        <span data-star="4" class="active">★</span>
+                        <span data-star="5" class="active">★</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="form-usage-duration">How long have you run PrivCloud on your PC?</label>
+                    <select class="form-select" id="form-usage-duration" required>
+                        <option value="2–4 weeks" selected>2 to 4 weeks</option>
+                        <option value="1+ months">1+ months</option>
+                        <option value="3+ months">3+ months</option>
+                        <option value="1–2 weeks">1 to 2 weeks</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="form-category">Category</label>
+                    <select class="form-select" id="form-category" required>
+                        <option value="Remote Tunnel">Remote Tunnel & Access</option>
+                        <option value="Media Suite">Media Suite (Video/Audio/Photos)</option>
+                        <option value="Storage & Sync">Storage & Local Synchronization</option>
+                        <option value="Security">Security & Encryption</option>
+                        <option value="General">General Experience & Setup</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="form-title">Headline / Summary</label>
+                    <input type="text" class="form-input" id="form-title" placeholder="e.g. Exceptional replacement for cloud storage subscriptions" minlength="3" maxlength="150" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="form-content">Detailed Experience or Idea</label>
+                    <textarea class="form-textarea" id="form-content" rows="4" placeholder="Tell the community how PrivCloud runs on your machine, specific features you rely on, or exact workflow improvements you'd like to see..." minlength="10" maxlength="2000" required></textarea>
+                </div>
+
+                <button type="submit" class="btn-open-submit" id="btn-submit-feedback" style="width: 100%; justify-content: center;">
+                    <span>Publish to Verified Community Feed</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Site Footer -->
+    <footer class="site-footer">
+        <div class="container footer-content">
+            <div class="footer-brand">
+                <img src="https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/logo.png"
+                    alt="PrivCloud Logo" class="footer-logo" style="height: 32px; width: auto; max-width: 36px; object-fit: contain;">
+                <span class="footer-brand-name">PrivCloud</span>
+                <span class="footer-tagline">— Self-Hosted Cloud Platform</span>
+            </div>
+            <div class="footer-copy">
+                &copy; 2026 PrivCloud. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Logic Scripts -->
+    <script src="feedback.js?v=1"></script>
+    <script src="../landing_page/chatbot/chatbot.js"></script>
+</body>
+</html>
