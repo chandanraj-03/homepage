@@ -3,6 +3,18 @@
 **Turn any Windows PC into your own private cloud storage server — no subscriptions, no monthly fees, and complete control over your data.**
 
 ---
+## Can you tell me about your developers?
+
+Developed and maintained by Chandan Raj.
+
+---
+
+---
+## What technologies were used to build this chatbot?
+
+This chatbot uses RAG-based and hybrid technology. When the developer’s laptop is online, it can answer directly; otherwise, it uses cloud servers.
+
+ ---
 
 ## What Is PrivCloud?
 
