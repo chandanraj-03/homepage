@@ -32,8 +32,8 @@
                      window.location.pathname.includes('/demo_page/') || 
                      window.location.pathname.includes('/purchase_page/') || 
                      window.location.pathname.includes('/auth_page/')
-            ? '../landing_page/chatbot/supportChat.js?v=1'
-            : 'landing_page/chatbot/supportChat.js?v=1';
+            ? '../landing_page/chatbot/supportChat.js?v=2'
+            : 'landing_page/chatbot/supportChat.js?v=2';
         document.head.appendChild(script);
     }
 
@@ -51,7 +51,7 @@
             <!-- Proactive Welcome Pill -->
             <div class="privcloud-chat-promo-pill" id="privcloud-chat-promo">
                 <span class="promo-sparkle">🤖</span>
-                <span>Ask PrivCloud AI Assistant</span>
+                <span>PrivCloud AI Assistant</span>
                 <span class="promo-close" id="promo-close-btn" title="Dismiss">&times;</span>
             </div>
 
@@ -114,14 +114,14 @@
                     </div>
                 </div>
 
-                <!-- Support Mode Switcher (Visible only to verified Basic/Pro buyers) -->
-                <div class="chat-mode-tabs" id="chat-mode-tabs" style="display: none;">
+                <!-- Support Mode Switcher (Always visible and accessible to all users) -->
+                <div class="chat-mode-tabs" id="chat-mode-tabs">
                     <button class="chat-mode-tab active" id="mode-tab-ai" type="button" title="24/7 AI Troubleshooting">
                         <span>🤖 AI Assistant</span>
                     </button>
-                    <button class="chat-mode-tab" id="mode-tab-live" type="button" title="Direct Live Agent Support via Render API" style="display: none;">
-                        <span>🎧 VIP Support</span>
-                        <span class="live-status-pill">Render API</span>
+                    <button class="chat-mode-tab" id="mode-tab-live" type="button" title="Direct Live Customer Support">
+                        <span>🎧 Live Support</span>
+                        <span class="live-status-pill" id="live-tab-status-pill">Online</span>
                     </button>
                 </div>
 
@@ -150,7 +150,7 @@
                     <div class="chat-footer-caption">
                         <div class="footer-caption-left">
                             <span class="footer-caption-status-dot" id="footer-status-dot" style="display:none;"></span>
-                            <span id="footer-status-text">For more information <a href="mailto:rajchandan739@gmail.com" class="chat-footer-contact-link">contact PrivCloud</a></span>
+                            <span id="footer-status-text">For more information <a href="mailto:privcloud0@gmail.com" class="chat-footer-contact-link">contact PrivCloud</a></span>
                         </div>
                         <span>Shift + Enter for new line</span>
                     </div>
@@ -284,10 +284,9 @@
                 if (session && session.user) {
                     const user = session.user;
                     const meta = user.user_metadata || {};
-                    const plan = (meta.plan_tier || meta.plan || "").toLowerCase();
-                    if (plan === 'pro' || plan === 'basic' || meta.is_vip || meta.is_admin || (user.email && (user.email.includes('admin') || user.email.includes('pro')))) {
-                        isBuyer = true;
-                    }
+                    isBuyer = window.PrivCloudAuth.isBuyer 
+                        ? window.PrivCloudAuth.isBuyer(user)
+                        : (meta.plan_tier === 'pro' || meta.plan_tier === 'basic' || meta.is_vip);
                 }
             } catch (e) {}
         }
@@ -296,41 +295,62 @@
         const liveTab = document.getElementById("mode-tab-live");
         const tabsBar = document.getElementById("chat-mode-tabs");
         const promoText = document.querySelector("#privcloud-chat-promo span:nth-child(2)");
+        const statusPill = document.getElementById("live-tab-status-pill");
 
-        if (liveTab) liveTab.style.display = isBuyer ? "inline-flex" : "none";
-        if (tabsBar) tabsBar.style.display = isBuyer ? "flex" : "none";
-        if (promoText) promoText.textContent = isBuyer ? "VIP Customer Support & AI" : "Ask PrivCloud AI Assistant";
-
-        if (!isBuyer && state.mode === "live") {
-            switchSupportMode("ai");
+        if (liveTab) liveTab.style.display = "inline-flex";
+        if (tabsBar) tabsBar.style.display = "flex";
+        if (statusPill) {
+            statusPill.textContent = isBuyer ? "Live Desk" : "Basic / Pro";
+            statusPill.style.background = isBuyer ? "rgba(16, 185, 129, 0.12)" : "rgba(100, 116, 139, 0.12)";
+            statusPill.style.color = isBuyer ? "#059669" : "#475569";
+        }
+        const promoIcon = document.querySelector("#privcloud-chat-promo .promo-sparkle");
+        if (promoIcon) {
+            promoIcon.textContent = isBuyer ? "🎧" : "🤖";
+        }
+        if (promoText) {
+            promoText.textContent = isBuyer ? "Live Support & AI Assistant" : "PrivCloud AI Assistant";
         }
     }
 
     function switchSupportMode(newMode) {
-        if (newMode === "live" && !state.isBuyer) {
-            showToast("🔒 Live Support is reserved for verified Basic/Pro buyers.");
-            return;
-        }
-
         state.mode = newMode;
         const tabAi = document.getElementById("mode-tab-ai");
         const tabLive = document.getElementById("mode-tab-live");
         const subtitle = document.getElementById("header-backend-subtitle");
         const inputField = document.getElementById("chat-user-input");
+        const sendBtn = document.getElementById("chat-send-btn");
 
         if (newMode === "live") {
             if (tabAi) tabAi.classList.remove("active");
             if (tabLive) tabLive.classList.add("active");
-            if (subtitle) subtitle.textContent = "support-chat-api.onrender.com";
-            if (inputField) inputField.placeholder = "Describe your issue for live human support...";
-            if (window.PrivCloudSupportChat && window.PrivCloudSupportChat.startSession) {
-                window.PrivCloudSupportChat.startSession();
+            if (subtitle) subtitle.textContent = state.isBuyer ? "Live Engineering Desk" : "Support (Basic & Pro Required)";
+            
+            if (state.isBuyer) {
+                if (inputField) {
+                    inputField.disabled = false;
+                    inputField.placeholder = "Describe your question or issue for live support...";
+                }
+                if (sendBtn) sendBtn.disabled = false;
+                if (window.PrivCloudSupportChat && window.PrivCloudSupportChat.startSession) {
+                    window.PrivCloudSupportChat.startSession();
+                }
+            } else {
+                if (inputField) {
+                    inputField.disabled = true;
+                    inputField.placeholder = "Live support requires an active Basic or Pro plan.";
+                }
+                if (sendBtn) sendBtn.disabled = true;
             }
         } else {
             if (tabLive) tabLive.classList.remove("active");
             if (tabAi) tabAi.classList.add("active");
             if (subtitle) subtitle.textContent = "Product Assistant";
-            if (inputField) inputField.placeholder = "Ask anything about PrivCloud features, setup, storage...";
+            if (inputField) {
+                inputField.disabled = false;
+                inputField.placeholder = "Ask anything about PrivCloud features, setup, storage...";
+            }
+            if (sendBtn) sendBtn.disabled = false;
         }
 
         renderMessages();
@@ -452,7 +472,7 @@
     }
 
     function sanitizeBotResponse(rawText) {
-        const contactFallback = "Ask questions or queries related to the PrivCloud product so I can help you best. You can also explore our key features, pricing, and documentation.\n\nFor more information, [contact PrivCloud](mailto:rajchandan739@gmail.com).";
+        const contactFallback = "Ask questions or queries related to the PrivCloud product so I can help you best. You can also explore our key features, pricing, and documentation.\n\nFor more information, [contact PrivCloud](mailto:privcloud0@gmail.com).";
 
         if (!rawText) {
             return contactFallback;
@@ -501,21 +521,40 @@
             inputField.style.height = "auto";
         }
 
-        // Live Render Support Mode Message Dispatch
+        // Handle Live Support Mode Routing
         if (state.mode === "live") {
-            const userMsg = {
+            if (!state.isBuyer) {
+                showToast("Live engineering support requires an active Basic or Pro plan.");
+                return;
+            }
+
+            const liveUserMsg = {
                 id: "live_msg_" + Date.now(),
                 role: "user",
                 sender: "customer",
                 content: text,
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             };
-            state.liveMessages.push(userMsg);
+            state.liveMessages.push(liveUserMsg);
             renderMessages();
             scrollToBottom();
 
+            // Ensure PrivCloudSupportChat is ready
+            if (!window.PrivCloudSupportChat) {
+                for (let i = 0; i < 20; i++) {
+                    if (window.PrivCloudSupportChat) break;
+                    await new Promise(r => setTimeout(r, 100));
+                }
+            }
+
             if (window.PrivCloudSupportChat && window.PrivCloudSupportChat.sendMessage) {
-                window.PrivCloudSupportChat.sendMessage(text);
+                try {
+                    await window.PrivCloudSupportChat.sendMessage(text);
+                } catch (sendErr) {
+                    console.error("[PrivCloud Chatbot] Error dispatching live support message:", sendErr);
+                }
+            } else {
+                console.error("[PrivCloud Chatbot] PrivCloudSupportChat not available to send message");
             }
             return;
         }
@@ -588,7 +627,7 @@
             const botMsg = {
                 id: "msg_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7),
                 role: "assistant",
-                content: "Ask questions or queries related to the PrivCloud product so I can help you best. You can also explore our key features, pricing, and documentation.\n\nFor more information, [contact PrivCloud](mailto:rajchandan739@gmail.com).",
+                content: "Ask questions or queries related to the PrivCloud product so I can help you best. You can also explore our key features, pricing, and documentation.\n\nFor more information, [contact PrivCloud](mailto:privcloud0@gmail.com).",
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             };
 
@@ -668,7 +707,7 @@
         const footerStatusDot = document.getElementById("footer-status-dot");
         if (footerStatusDot) footerStatusDot.style.display = "none";
         if (footerStatusText) {
-            footerStatusText.innerHTML = 'For more information <a href="mailto:rajchandan739@gmail.com" class="chat-footer-contact-link">contact PrivCloud</a>';
+            footerStatusText.innerHTML = 'For more information <a href="mailto:privcloud0@gmail.com" class="chat-footer-contact-link">contact PrivCloud</a>';
         }
     }
 
@@ -677,7 +716,7 @@
         const footerStatusDot = document.getElementById("footer-status-dot");
         if (footerStatusDot) footerStatusDot.style.display = "none";
         if (footerStatusText) {
-            footerStatusText.innerHTML = 'For more information <a href="mailto:rajchandan739@gmail.com" class="chat-footer-contact-link">contact PrivCloud</a>';
+            footerStatusText.innerHTML = 'For more information <a href="mailto:privcloud0@gmail.com" class="chat-footer-contact-link">contact PrivCloud</a>';
         }
     }
 
@@ -693,6 +732,31 @@
 
         // Render Live Support View
         if (state.mode === "live") {
+            if (!state.isBuyer) {
+                const lockCard = document.createElement("div");
+                lockCard.className = "chat-welcome-card";
+                lockCard.style.marginTop = "14px";
+                lockCard.style.textAlign = "center";
+                lockCard.style.padding = "24px 16px";
+                lockCard.innerHTML = `
+                    <div style="font-size: 2.2rem; margin-bottom: 8px;">🔒</div>
+                    <div class="welcome-title" style="font-size: 1rem; margin-bottom: 6px; color: #0f172a;">Live Customer Support</div>
+                    <p style="margin: 0 0 16px 0; color: #475569; font-size: 0.85rem; line-height: 1.55;">
+                        Direct real-time technical assistance with our engineering team is available exclusively to customers with a <strong>Basic Edition</strong> or <strong>Pro VIP</strong> license.
+                    </p>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <a href="${window.location.pathname.includes('/purchase_page/') ? '#' : (window.location.pathname.includes('/feedback_page/') || window.location.pathname.includes('/product_page/') || window.location.pathname.includes('/demo_page/') || window.location.pathname.includes('/auth_page/') ? '../purchase_page/purchase.html' : 'purchase_page/purchase.html')}" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: #ffffff; font-weight: 700; font-size: 0.86rem; padding: 10px 14px; border-radius: 10px; text-decoration: none; display: block;">
+                            Explore Basic & Pro Plans ➔
+                        </a>
+                        <a href="${window.location.pathname.includes('/auth_page/') ? '#' : (window.location.pathname.includes('/feedback_page/') || window.location.pathname.includes('/product_page/') || window.location.pathname.includes('/demo_page/') || window.location.pathname.includes('/purchase_page/') ? '../auth_page/auth.html' : 'auth_page/auth.html')}" style="background: rgba(2, 132, 199, 0.08); color: #0284c7; font-weight: 600; font-size: 0.82rem; padding: 8px 12px; border-radius: 8px; text-decoration: none; display: block;">
+                            Already a Customer? Sign In
+                        </a>
+                    </div>
+                `;
+                body.appendChild(lockCard);
+                return;
+            }
+
             const supportState = window.PrivCloudSupportChat ? window.PrivCloudSupportChat.getState() : {};
             const isVip = supportState.isVip;
 
@@ -701,14 +765,14 @@
             banner.innerHTML = `
                 <span style="font-size: 1.25rem;">${isVip ? "👑" : "🎧"}</span>
                 <div style="flex: 1;">
-                    <div style="font-weight: 700; font-size: 0.84rem; color: #7e22ce;">
+                    <div style="font-weight: 700; font-size: 0.84rem; color: ${isVip ? '#b45309' : '#0369a1'};">
                         ${isVip ? "👑 PRO VIP PRIORITY QUEUE ACTIVE" : "Live Customer Support Desk"}
                     </div>
                     <div style="font-size: 0.73rem; opacity: 0.85; color: #475569;">
                         Connected to <code>support-chat-api.onrender.com</code>
                     </div>
                 </div>
-                <a href="${window.location.pathname.includes('/support_page/') ? '#' : (window.location.pathname.includes('/feedback_page/') || window.location.pathname.includes('/product_page/') || window.location.pathname.includes('/demo_page/') || window.location.pathname.includes('/purchase_page/') || window.location.pathname.includes('/auth_page/') ? '../support_page/support.html' : 'support_page/support.html')}" style="font-size: 0.72rem; font-weight: 700; color: #0284c7; text-decoration: none; background: rgba(2,132,199,0.1); padding: 4px 8px; border-radius: 6px;">Support Hub ↗</a>
+                <span style="font-size: 0.72rem; font-weight: 700; color: #059669; background: rgba(16,185,129,0.1); padding: 4px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;">● Live Desk</span>
             `;
             body.appendChild(banner);
 
@@ -839,9 +903,21 @@
         });
     }
 
+    const ROTATING_PROCESSING_MESSAGES = [
+        "Thinking… 🫧",
+        "Working on it…",
+        "One moment…",
+        "Preparing…",
+        "Almost there…"
+    ];
+
+    let typingRotationInterval = null;
+
     function renderTypingIndicator() {
         const body = document.getElementById("chat-messages-container");
         if (!body || document.getElementById("chat-typing-row")) return;
+
+        let messageIndex = 0;
 
         const row = document.createElement("div");
         row.className = "chat-msg-row bot-row";
@@ -851,13 +927,38 @@
                 <span class="typing-dot"></span>
                 <span class="typing-dot"></span>
                 <span class="typing-dot"></span>
-                <span class="typing-text">Searching documentation...</span>
+                <span class="typing-text" id="chat-typing-text">${ROTATING_PROCESSING_MESSAGES[0]}</span>
             </div>
         `;
         body.appendChild(row);
+
+        if (typingRotationInterval) {
+            clearInterval(typingRotationInterval);
+            typingRotationInterval = null;
+        }
+
+        typingRotationInterval = setInterval(() => {
+            const textEl = document.getElementById("chat-typing-text");
+            if (!textEl) {
+                if (typingRotationInterval) clearInterval(typingRotationInterval);
+                return;
+            }
+            messageIndex = (messageIndex + 1) % ROTATING_PROCESSING_MESSAGES.length;
+            textEl.style.opacity = "0";
+            setTimeout(() => {
+                if (textEl && document.getElementById("chat-typing-row")) {
+                    textEl.textContent = ROTATING_PROCESSING_MESSAGES[messageIndex];
+                    textEl.style.opacity = "1";
+                }
+            }, 180);
+        }, 3000);
     }
 
     function removeTypingIndicator() {
+        if (typingRotationInterval) {
+            clearInterval(typingRotationInterval);
+            typingRotationInterval = null;
+        }
         const el = document.getElementById("chat-typing-row");
         if (el) el.remove();
     }
@@ -1036,17 +1137,11 @@
 
     // Global helper APIs to open Support or AI chatbot directly from navbar or links
     window.openCustomerSupport = function () {
-        if (!state.isBuyer) {
-            alert("🔒 Customer Support is exclusively available to verified Basic and Pro license holders. Please log in with your purchase account or buy a license.");
-            const target = window.location.pathname.includes('/support_page/') || window.location.pathname.includes('/feedback_page/') || window.location.pathname.includes('/product_page/') || window.location.pathname.includes('/demo_page/') || window.location.pathname.includes('/purchase_page/') || window.location.pathname.includes('/auth_page/')
-                ? '../purchase_page/purchase.html'
-                : 'purchase_page/purchase.html';
-            window.location.href = target;
-            return;
-        }
         toggleChat(true);
         switchSupportMode('live');
     };
+
+    window.openSupportChatWidget = window.openCustomerSupport;
 
     window.PrivCloudChatbot = {
         openLiveSupport: window.openCustomerSupport,

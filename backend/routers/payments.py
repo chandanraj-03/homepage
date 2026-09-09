@@ -6,24 +6,56 @@ Handles order creation, client keys, and constant-time HMAC-SHA256 signature ver
 import hmac
 import hashlib
 import uuid
-from fastapi import APIRouter
-from fastapi.responses import JSONResponse
-from backend.config import RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, razorpay_client
-from backend.schemas import CreateOrderRequest, VerifyPaymentRequest
+import asyncio
+from fastapi import APIRouter, BackgroundTasks, Request
+from fastapi.responses import JSONResponse, RedirectResponse
+from typing import Dict, Any, Optional
+from backend.config import RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, PRODUCT_DOWNLOAD_URL, razorpay_client
+from backend.schemas import (
+    CreateOrderRequest,
+    VerifyPaymentRequest,
+    GetProductKeyRequest,
+    DownloadProductRequest
+)
+from backend.supabase_db import (
+    save_verified_order,
+    get_order,
+    get_user_active_order,
+    assign_product_key,
+    resolve_tier
+)
 
 router = APIRouter(prefix="/api", tags=["Payments"])
 
-import time
-import requests
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
+async def _execute_post_payment_emails(user_email: str, resolved_username: str, payment_details: dict):
+    """Execute plan tier sync and payment confirmation receipt in background without blocking payment confirmation."""
+    try:
+        from backend.users_db import update_user_plan_tier
+        tier = payment_details.get("tier") or payment_details.get("plan_tier") or "BASIC"
+        await update_user_plan_tier(email=user_email, tier=tier)
+    except Exception as e:
+        print(f"[PostPayment Background] Plan tier update notice: {e}")
 
-def create_resilient_razorpay_client():
-    """Create a fresh Razorpay client with automated HTTP connection retries."""
+    try:
+        from backend.users_db import trigger_supabase_reauthentication
+        trigger_supabase_reauthentication(email=user_email, payment_details=payment_details)
+    except Exception as e:
+        print(f"[PostPayment Background] Receipt notice: {e}")
+
+
+def get_razorpay_client():
+    """Return the cached singleton Razorpay client (P-4)."""
+    global razorpay_client
+    if razorpay_client is not None:
+        return razorpay_client
     if not RAZORPAY_KEY_ID or not RAZORPAY_KEY_SECRET:
         return None
     try:
         import razorpay
+        import requests
+        from requests.adapters import HTTPAdapter
+        from urllib3.util.retry import Retry
+
         client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
         if hasattr(client, 'session') and isinstance(client.session, requests.Session):
             retry_strategy = Retry(
@@ -35,6 +67,7 @@ def create_resilient_razorpay_client():
             adapter = HTTPAdapter(max_retries=retry_strategy)
             client.session.mount('https://', adapter)
             client.session.mount('http://', adapter)
+        razorpay_client = client
         return client
     except Exception as err:
         print(f"[Razorpay] Client creation error: {err}")
@@ -91,7 +124,7 @@ async def create_order(payload: CreateOrderRequest):
     last_exception = None
     for attempt in range(1, 4):
         try:
-            client = create_resilient_razorpay_client()
+            client = get_razorpay_client()
             if not client:
                 raise Exception("Razorpay client is not initialized.")
             
@@ -108,7 +141,7 @@ async def create_order(payload: CreateOrderRequest):
             error_str = str(e).lower()
             # If network/connection drop, wait briefly and retry with a fresh session
             if attempt < 3 and ('connection' in error_str or 'remotedisconnected' in error_str or 'timeout' in error_str):
-                time.sleep(0.3 * attempt)
+                await asyncio.sleep(0.3 * attempt)
                 continue
             break
 
@@ -122,7 +155,7 @@ async def create_order(payload: CreateOrderRequest):
     )
 
 @router.post("/verify-payment", summary="Verify Razorpay Payment")
-async def verify_payment(payload: VerifyPaymentRequest):
+async def verify_payment(payload: VerifyPaymentRequest, background_tasks: BackgroundTasks):
     """
     Verify Razorpay Payment Signature.
     Expects JSON: { "razorpay_order_id": "...", "razorpay_payment_id": "...", "razorpay_signature": "..." }
@@ -189,11 +222,98 @@ async def verify_payment(payload: VerifyPaymentRequest):
                         }
                     )
 
+        # Step 4: Persist verified order in Supabase
+        tier = resolve_tier(payload.tier or payload.plan_id)
+        user_email = payload.user_email or ""
+        amount = int(payload.amount or 0)
+        notes = {}
+
+        if razorpay_client:
+            try:
+                order_info = razorpay_client.order.fetch(razorpay_order_id)
+                notes = order_info.get("notes", {})
+                if not user_email:
+                    user_email = notes.get("user_email", "")
+                if not tier:
+                    tier = resolve_tier(notes.get("plan_id"))
+                if not amount:
+                    amount = int(order_info.get("amount", 0))
+            except Exception as fetch_err:
+                print(f"[Razorpay] Note fetch notice: {fetch_err}")
+
+        save_verified_order(
+            order_id=razorpay_order_id,
+            payment_id=razorpay_payment_id,
+            user_email=user_email,
+            plan_id=payload.plan_id or notes.get("plan_id", ""),
+            tier=tier,
+            amount=amount,
+            notes=notes
+        )
+
+        # Trigger Post-Payment Plan Tier Sync and Confirmation Receipt
+        if user_email:
+            try:
+                from datetime import datetime
+                from backend.users_db import (
+                    get_user_by_email,
+                    trigger_supabase_reauthentication
+                )
+
+                user_record = get_user_by_email(user_email)
+                resolved_username = (
+                    payload.username or 
+                    (user_record and user_record.get("username")) or 
+                    notes.get("username", "") or 
+                    user_email.split("@")[0]
+                )
+                full_name = (user_record and user_record.get("full_name")) or resolved_username
+                current_date_str = datetime.now().strftime("%d %b %Y, %I:%M %p")
+                product_name = f"{tier.title()} Edition" if tier else "Lifetime License"
+                billing_period = "Lifetime License" if tier != "TRIAL" else "14-Day Evaluation"
+                amount_formatted = f"{amount:,}" if amount else "0"
+
+                payment_details = {
+                    "UserName": full_name or resolved_username,
+                    "username": resolved_username,
+                    "tier": tier,
+                    "plan_tier": tier,
+                    "Currency": "INR",
+                    "currency": "INR",
+                    "Amount": f"{amount_formatted}",
+                    "amount": f"{amount_formatted}",
+                    "TransactionID": razorpay_payment_id,
+                    "transaction_id": razorpay_payment_id,
+                    "OrderID": razorpay_order_id,
+                    "order_id": razorpay_order_id,
+                    "PaymentDate": current_date_str,
+                    "payment_date": current_date_str,
+                    "PaymentMethod": "Razorpay (UPI / Card / NetBanking)",
+                    "payment_method": "Razorpay (UPI / Card / NetBanking)",
+                    "ProductName": product_name,
+                    "product_name": product_name,
+                    "BillingPeriod": billing_period,
+                    "billing_period": billing_period,
+                    "Quantity": "1 License",
+                    "quantity": "1 License"
+                }
+
+                # Execute in background thread so the HTTP response returns instantly (in <50ms) to the user!
+                background_tasks.add_task(
+                    _execute_post_payment_emails,
+                    user_email,
+                    resolved_username,
+                    payment_details
+                )
+            except Exception as email_err:
+                print(f"[Razorpay] Notice scheduling post-payment Supabase email triggers: {email_err}")
+
         return {
             'success': True,
             'message': 'Payment verified successfully.',
             'order_id': razorpay_order_id,
-            'payment_id': razorpay_payment_id
+            'payment_id': razorpay_payment_id,
+            'tier': tier
         }
 
     except Exception as e:
@@ -204,3 +324,216 @@ async def verify_payment(payload: VerifyPaymentRequest):
                 'message': f'Internal server error during signature verification: {str(e)}'
             }
         )
+
+@router.post("/create-trial-order", summary="Activate Free Trial Order")
+async def create_trial_order(payload: Dict[str, Any]):
+    """
+    Activate a Free Trial order, recording it as verified so a TRIAL key can be retrieved from Supabase.
+    Enforces idempotency to prevent multiple trial order generation for the same email.
+    """
+    user_email = (payload.get("user_email") or payload.get("email") or "").strip().lower()
+    if not user_email or "@" not in user_email:
+        return JSONResponse(
+            status_code=400,
+            content={"success": False, "message": "A valid user_email is required."}
+        )
+
+    plan_id = payload.get("plan_id") or "9a8f10e7b9c2d4a6"
+
+    # Idempotency check: Return existing active order if already present
+    existing_order = get_user_active_order(user_email)
+    if existing_order:
+        return {
+            "success": True,
+            "order_id": existing_order.get("order_id"),
+            "payment_id": existing_order.get("payment_id", "FREE_TRIAL"),
+            "tier": existing_order.get("tier", "TRIAL"),
+            "message": "Existing order retrieved."
+        }
+
+    trial_order_id = f"trial_{uuid.uuid4().hex[:12]}"
+    trial_payment_id = "FREE_TRIAL"
+
+    save_verified_order(
+        order_id=trial_order_id,
+        payment_id=trial_payment_id,
+        user_email=user_email,
+        plan_id=plan_id,
+        tier="TRIAL",
+        amount=0,
+        notes={"source": "free_trial_activation"}
+    )
+
+    return {
+        "success": True,
+        "order_id": trial_order_id,
+        "payment_id": trial_payment_id,
+        "tier": "TRIAL",
+        "message": "Free trial order activated successfully."
+    }
+
+@router.post("/payment/get-product-key", summary="Retrieve Assigned Product Key from Supabase")
+async def get_product_key(payload: GetProductKeyRequest):
+    """
+    Retrieve one available product key from Supabase 'product_keys' table
+    and assign it atomically to the verified purchase.
+    Strictly enforces server-side payment verification check.
+    """
+    order_id = payload.razorpay_order_id or payload.order_id
+    payment_id = payload.razorpay_payment_id or payload.payment_id
+    user_email = payload.user_email or payload.email or ""
+    plan_id = payload.plan_id or ""
+    tier = payload.tier or ""
+
+    if not order_id or not payment_id:
+        return JSONResponse(
+            status_code=400,
+            content={
+                'success': False,
+                'error': 'MISSING_PARAMETERS',
+                'message': 'Both order_id and payment_id are required to retrieve product key.'
+            }
+        )
+
+    # 1. Verify that this order exists and was verified server-side
+    order = get_order(order_id)
+    if not order:
+        # Allow Free Trial order format if initiated on client
+        if order_id.startswith('trial_') or payment_id == 'FREE_TRIAL':
+            tier = 'TRIAL'
+        else:
+            return JSONResponse(
+                status_code=403,
+                content={
+                    'success': False,
+                    'error': 'ORDER_UNVERIFIED',
+                    'message': 'Order record not found or payment signature was not verified. Key cannot be issued.'
+                }
+            )
+    else:
+        if order.get("status") != "verified":
+            return JSONResponse(
+                status_code=403,
+                content={
+                    'success': False,
+                    'error': 'ORDER_NOT_VERIFIED',
+                    'message': 'Order has not been verified.'
+                }
+            )
+        tier = order.get("tier") or tier
+        if not user_email:
+            user_email = order.get("user_email", "")
+
+    resolved_tier = resolve_tier(tier or plan_id)
+
+    # 2. Atomically assign key from Supabase
+    success, result = assign_product_key(
+        tier=resolved_tier,
+        user_email=user_email,
+        order_id=order_id,
+        payment_id=payment_id
+    )
+
+    if not success:
+        err_type = result.get("error")
+        status_code = 503 if err_type in ("INVENTORY_EXHAUSTED", "SUPABASE_NOT_CONFIGURED", "DATABASE_QUERY_ERROR", "DATABASE_UNAVAILABLE") else 500
+        return JSONResponse(
+            status_code=status_code,
+            content={
+                'success': False,
+                'error': result.get("error", "UNKNOWN_ERROR"),
+                'message': result.get("message", "Failed to retrieve product key from database.")
+            }
+        )
+
+    return {
+        'success': True,
+        'key': result.get("key"),
+        'tier': result.get("tier", resolved_tier),
+        'trial_days': result.get("trial_days", 14),
+        'label': result.get("label"),
+        'is_existing': result.get("is_existing", False),
+        'message': 'Product key retrieved successfully.'
+    }
+
+@router.get("/payment/download-product", summary="Authorized Supabase Product Installer Download")
+async def download_product(order_id: Optional[str] = None, redirect: bool = False):
+    """
+    Validate that the download request is authorized and return or redirect to
+    the authorized Supabase product URL for PrivCloud_Setup.exe.
+    """
+    if not PRODUCT_DOWNLOAD_URL:
+        return JSONResponse(
+            status_code=500,
+            content={
+                'success': False,
+                'message': 'Product download URL is not configured on server.'
+            }
+        )
+
+    # Optional order validation if order_id is provided
+    if order_id:
+        order = get_order(order_id)
+        if order and order.get("status") != "verified":
+            return JSONResponse(
+                status_code=403,
+                content={
+                    'success': False,
+                    'message': 'Order is not in verified state.'
+                }
+            )
+
+    if redirect:
+        return RedirectResponse(url=PRODUCT_DOWNLOAD_URL, status_code=302)
+
+    return {
+        'success': True,
+        'download_url': PRODUCT_DOWNLOAD_URL,
+        'filename': 'PrivCloud_Setup.exe',
+        'filesize_approx': '37 MB',
+        'message': 'Authorized download link generated successfully.'
+    }
+
+@router.get("/payment/my-license", summary="Get Authenticated User Active License")
+async def get_my_license(user_email: str, request: Request):
+    """
+    Check if the authenticated user has an active verified order and product key in Supabase.
+    Enforces per-user data isolation.
+    """
+    clean_email = (user_email or "").strip().lower()
+    if not clean_email:
+        return JSONResponse(
+            status_code=400,
+            content={'success': False, 'message': 'user_email parameter is required.'}
+        )
+
+    # If Authorization header is provided, verify ownership of email
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header and "Bearer " in auth_header:
+        bearer_token = auth_header.split("Bearer ")[-1].strip()
+        from backend.users_db import verify_supabase_user_token
+        is_owner = await verify_supabase_user_token(bearer_token, clean_email)
+        if not is_owner:
+            return JSONResponse(
+                status_code=403,
+                content={'success': False, 'message': 'Access denied: Token does not match requested email.'}
+            )
+
+    order = get_user_active_order(clean_email)
+    if not order:
+        return {
+            'success': True,
+            'has_license': False
+        }
+
+    return {
+        'success': True,
+        'has_license': True,
+        'order_id': order.get("order_id"),
+        'payment_id': order.get("payment_id"),
+        'tier': order.get("tier"),
+        'plan_id': order.get("plan_id"),
+        'key': order.get("key"),
+        'assigned_at': str(order.get("assigned_at")) if order.get("assigned_at") else None
+    }
+

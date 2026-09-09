@@ -6,7 +6,7 @@
 :root {
     --bg-light-start: #bae6fd;
     --bg-light-end: #e0f2fe;
-    
+
     --text-main: #0f172a;
     --text-muted: #334155;
     --text-subtle: #64748b;
@@ -29,19 +29,21 @@
     --grad-emerald: linear-gradient(135deg, #10b981 0%, #059669 100%);
     --grad-dark: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
     --grad-gold: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    
+
     --radius-sm: 8px;
     --radius-md: 14px;
     --radius-lg: 20px;
     --radius-xl: 28px;
-    
+
     --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.04);
     --shadow-card: 0 12px 36px rgba(2, 132, 199, 0.08);
     --shadow-glow: 0 0 25px rgba(2, 132, 199, 0.18);
     --shadow-hover: 0 20px 40px rgba(2, 132, 199, 0.15);
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -196,7 +198,7 @@ body.product-body {
 
 .btn-login:hover {
     background: #ffffff;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
 }
 
 .btn-register {
@@ -301,9 +303,20 @@ body.product-body {
 }
 
 @keyframes pulseDot {
-    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.7); }
-    70% { transform: scale(1); box-shadow: 0 0 0 7px rgba(2, 132, 199, 0); }
-    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(2, 132, 199, 0); }
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.7);
+    }
+
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 7px rgba(2, 132, 199, 0);
+    }
+
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(2, 132, 199, 0);
+    }
 }
 
 .meta-chip-badge.emerald {
@@ -1448,12 +1461,12 @@ body.product-body {
     .flow-steps-grid {
         flex-direction: column;
     }
-    
+
     .flow-arrow-indicator {
         transform: rotate(90deg);
         margin: 4px 0;
     }
-    
+
     .product-hero-title {
         font-size: 2.5rem;
     }
@@ -1477,7 +1490,7 @@ body.product-body {
     .pricing-box.pro-featured {
         transform: none;
     }
-    
+
     .pricing-box.pro-featured:hover {
         transform: translateY(-4px);
     }
@@ -1596,4 +1609,3 @@ body.product-body {
         max-width: calc(100% - 32px);
     }
 }
-

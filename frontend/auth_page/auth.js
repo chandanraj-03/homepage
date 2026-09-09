@@ -11,8 +11,8 @@ const AUTH_HASH_MAP = {
     forgot: 'forgot'
 };
 
-// Allowed email provider domains
-const ALLOWED_EMAIL_DOMAINS = [
+// Allowed email provider domains (synced dynamically from backend /api/config)
+let ALLOWED_EMAIL_DOMAINS = [
     'gmail.com', 'googlemail.com',
     'outlook.com', 'hotmail.com', 'live.com', 'msn.com',
     'yahoo.com', 'yahoo.co.in', 'ymail.com',
@@ -22,6 +22,17 @@ const ALLOWED_EMAIL_DOMAINS = [
     'aol.com',
     'gmx.com', 'mail.com'
 ];
+
+try {
+    const configUrl = (typeof window !== 'undefined' && window.getPrivCloudApiUrl) 
+        ? window.getPrivCloudApiUrl('/api/config') 
+        : (window.location.protocol === 'file:' ? 'http://localhost:5001/api/config' : '/api/config');
+    fetch(configUrl).then(r => r.json()).then(cfg => {
+        if (cfg && Array.isArray(cfg.allowedEmailDomains) && cfg.allowedEmailDomains.length > 0) {
+            ALLOWED_EMAIL_DOMAINS = cfg.allowedEmailDomains;
+        }
+    }).catch(() => {});
+} catch (e) {}
 
 let currentAuthMode = 'login'; // 'login' | 'register' | 'forgot' | 'otp' | 'reset-password'
 let registeredEmail = '';
@@ -229,6 +240,8 @@ function applyUsernameSuggestion(username) {
     clearAuthAlert();
 }
 
+let currentUsernameCheckQuery = "";
+
 function handleUsernameInput(input) {
     clearAuthAlert();
     const rawVal = input.value.trim().toLowerCase();
@@ -279,10 +292,19 @@ function handleUsernameInput(input) {
         feedbackSpan.textContent = 'Checking...';
     }
 
+    currentUsernameCheckQuery = rawVal;
+
     usernameDebounceTimer = setTimeout(async () => {
         try {
             if (window.PrivCloudAuth && window.PrivCloudAuth.checkUsernameAvailability) {
                 const res = await window.PrivCloudAuth.checkUsernameAvailability(rawVal, fullName);
+                
+                // Discard stale responses if user continued typing
+                const activeVal = input.value.trim().toLowerCase();
+                if (activeVal !== rawVal) {
+                    return;
+                }
+
                 if (res.available) {
                     if (feedbackSpan) {
                         feedbackSpan.className = 'status-feedback available';
@@ -466,6 +488,16 @@ async function handleRegisterSubmit(e) {
         return;
     }
 
+    if (isUsernameAvailable === false) {
+        showAuthAlert("This username is already taken. Please choose another username from the suggestions below.");
+        if (usernameInput) {
+            usernameInput.classList.remove('input-valid');
+            usernameInput.classList.add('input-invalid');
+            usernameInput.focus();
+        }
+        return;
+    }
+
     const btn = document.getElementById('btn-register-submit');
     const btnText = btn ? btn.querySelector('.btn-text') : null;
     const spinner = btn ? btn.querySelector('.btn-spinner') : null;
@@ -490,7 +522,33 @@ async function handleRegisterSubmit(e) {
         });
 
         if (res.error) {
-            showAuthAlert(res.error.message || "Failed to create account.");
+            const errMsg = res.error.message || "Failed to create account.";
+            showAuthAlert(errMsg);
+
+            // If error indicates username is taken, immediately synchronize username UI feedback & suggestions
+            if (errMsg.toLowerCase().includes("username is already taken") || errMsg.toLowerCase().includes("choose another")) {
+                isUsernameAvailable = false;
+                const feedbackSpan = document.getElementById('username-feedback');
+                if (feedbackSpan) {
+                    feedbackSpan.className = 'status-feedback taken';
+                    feedbackSpan.textContent = errMsg;
+                }
+                if (usernameInput) {
+                    usernameInput.classList.remove('input-valid');
+                    usernameInput.classList.add('input-invalid');
+                    usernameInput.focus();
+                }
+                // Fetch and render smart username suggestions
+                try {
+                    if (window.PrivCloudAuth && window.PrivCloudAuth.checkUsernameAvailability) {
+                        window.PrivCloudAuth.checkUsernameAvailability(username, fullName).then(availRes => {
+                            if (availRes && availRes.suggestions && availRes.suggestions.length > 0) {
+                                renderUsernameSuggestions(availRes.suggestions);
+                            }
+                        });
+                    }
+                } catch (_) {}
+            }
             return;
         }
 
@@ -498,7 +556,21 @@ async function handleRegisterSubmit(e) {
         showOtpView(email, username);
 
     } catch (err) {
-        showAuthAlert(err.message || "An unexpected error occurred during signup.");
+        const errMsg = err.message || "An unexpected error occurred during signup.";
+        showAuthAlert(errMsg);
+        if (errMsg.toLowerCase().includes("username is already taken") || errMsg.toLowerCase().includes("choose another")) {
+            isUsernameAvailable = false;
+            const feedbackSpan = document.getElementById('username-feedback');
+            if (feedbackSpan) {
+                feedbackSpan.className = 'status-feedback taken';
+                feedbackSpan.textContent = errMsg;
+            }
+            if (usernameInput) {
+                usernameInput.classList.remove('input-valid');
+                usernameInput.classList.add('input-invalid');
+                usernameInput.focus();
+            }
+        }
     } finally {
         if (btn) btn.disabled = false;
         if (btnText) btnText.textContent = "Create Account";

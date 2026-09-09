@@ -1,0 +1,1568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Support Desk — PrivCloud VIP & Community</title>
+    <link rel="icon" type="image/png" href="https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Supabase Auth Script -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../supabaseClient.js?v=126"></script>
+
+    <style>
+        :root {
+            --primary: #0284c7;
+            --primary-hover: #0369a1;
+            --primary-gradient: linear-gradient(135deg, #0284c7, #0369a1);
+            --vip-gradient: linear-gradient(135deg, #0f172a, #0369a1);
+            --vip-gold: #f59e0b;
+            --bg-page: linear-gradient(to bottom, #bae6fd, #e0f2fe);
+            --chat-bg: rgba(255, 255, 255, 0.95);
+            --text-dark: #0f172a;
+            --text-muted: #64748b;
+            --border-color: rgba(226, 232, 240, 0.85);
+            --bubble-admin: #ffffff;
+            --bubble-customer: linear-gradient(135deg, #0284c7, #0369a1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-page);
+            background-attachment: fixed;
+            color: var(--text-dark);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            padding: 16px;
+        }
+
+        .chat-wrapper {
+            width: 100%;
+            max-width: 500px;
+            height: calc(100vh - 32px);
+            max-height: 880px;
+            background: var(--chat-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+            border-radius: 22px;
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 16px 48px rgba(2, 132, 199, 0.12), 0 4px 16px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 0;
+            }
+            .chat-wrapper {
+                max-width: 100%;
+                height: 100vh;
+                max-height: 100vh;
+                border-radius: 0;
+                border: none;
+            }
+        }
+
+        /* HEADER */
+        .chat-header {
+            background: var(--primary-gradient);
+            color: #ffffff;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25);
+            z-index: 20;
+            transition: background 0.4s ease, box-shadow 0.4s ease;
+        }
+
+        .chat-wrapper.tier-pro .chat-header {
+            background: var(--vip-gradient);
+            box-shadow: 0 4px 16px rgba(2, 132, 199, 0.25);
+        }
+
+        .header-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: #ffffff;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.15rem;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+        }
+
+        .chat-wrapper.tier-pro .header-avatar {
+            color: #0284c7;
+        }
+
+        .header-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .header-title-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-title {
+            font-size: 1rem;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .header-tier-tag {
+            font-size: 0.68rem;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            letter-spacing: 0.03em;
+        }
+
+        .header-status {
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            opacity: 0.92;
+            margin-top: 2px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4ade80;
+            box-shadow: 0 0 6px #4ade80;
+        }
+
+        .status-dot.offline {
+            background: #f87171;
+            box-shadow: 0 0 6px #f87171;
+        }
+
+
+
+        /* TIER SWITCHER BAR */
+        .tier-control-bar {
+            background: rgba(255, 255, 255, 0.95);
+            border-bottom: 1px solid var(--border-color);
+            padding: 8px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.78rem;
+            gap: 8px;
+        }
+
+        .identity-display {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-muted);
+            min-width: 0;
+        }
+
+        .identity-name {
+            font-weight: 700;
+            color: var(--text-dark);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 140px;
+        }
+
+        .btn-edit-name {
+            background: none;
+            border: none;
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 0 2px;
+        }
+
+        .verified-tier-badge {
+            font-size: 0.72rem;
+            font-weight: 800;
+            padding: 3px 10px;
+            border-radius: 20px;
+            letter-spacing: 0.04em;
+            background: rgba(2, 132, 199, 0.1);
+            color: #0284c7;
+            border: 1px solid rgba(2, 132, 199, 0.25);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .verified-tier-badge.tier-pro {
+            background: rgba(245, 158, 11, 0.12);
+            color: #d97706;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .verified-tier-badge.locked {
+            background: rgba(100, 116, 139, 0.12);
+            color: #475569;
+            border: 1px solid rgba(100, 116, 139, 0.25);
+        }
+
+        /* BANNER */
+        .banner {
+            padding: 8px 14px;
+            font-size: 0.78rem;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid transparent;
+        }
+
+        .banner.connecting {
+            background: #fef3c7;
+            color: #92400e;
+            border-color: #fde68a;
+            display: flex;
+        }
+
+        .banner.error {
+            background: #fee2e2;
+            color: #b91c1c;
+            border-color: #fecaca;
+            display: flex;
+        }
+
+        /* MESSAGES BODY */
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .welcome-card {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 16px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .welcome-icon {
+            font-size: 2rem;
+            margin-bottom: 6px;
+        }
+
+        .welcome-title {
+            font-size: 0.96rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+        }
+
+        .welcome-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.45;
+            margin-bottom: 12px;
+        }
+
+        .quick-chips-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .quick-chip {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            color: var(--primary);
+            font-size: 0.74rem;
+            font-weight: 600;
+            padding: 8px 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .quick-chip:hover {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+            transform: translateY(-1px);
+        }
+
+        /* Message Bubble Rows */
+        .message-row {
+            display: flex;
+            flex-direction: column;
+            max-width: 84%;
+            animation: fadeInMsg 0.2s ease forwards;
+        }
+
+        @keyframes fadeInMsg {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message-row.customer {
+            align-self: flex-end;
+        }
+
+        .message-row.admin {
+            align-self: flex-start;
+        }
+
+        .bubble-sender-badge {
+            font-size: 0.7rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .customer .bubble-sender-badge {
+            color: var(--primary);
+            align-self: flex-end;
+        }
+
+        .admin .bubble-sender-badge {
+            color: #059669;
+            align-self: flex-start;
+        }
+
+        .bubble {
+            padding: 11px 15px;
+            border-radius: 16px;
+            font-size: 0.88rem;
+            line-height: 1.48;
+            position: relative;
+            word-break: break-word;
+        }
+
+        .customer .bubble {
+            background: var(--primary-gradient);
+            color: #ffffff;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25);
+        }
+
+        .admin .bubble {
+            background: #ffffff;
+            color: var(--text-dark);
+            border: 1px solid var(--border-color);
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+        }
+
+        .bubble .time {
+            font-size: 0.68rem;
+            margin-top: 4px;
+            display: block;
+            text-align: right;
+            opacity: 0.75;
+        }
+
+        .message-image {
+            max-width: 280px;
+            max-height: 220px;
+            border-radius: 10px;
+            margin-top: 6px;
+            display: block;
+            cursor: pointer;
+            object-fit: cover;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .message-image:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .typing-indicator {
+            padding: 4px 16px;
+            font-size: 0.75rem;
+            font-style: italic;
+            color: var(--primary);
+            min-height: 22px;
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        /* INPUT BAR */
+        .chat-input-bar {
+            padding: 12px 16px;
+            background: #ffffff;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+        }
+
+        .attach-button {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: #f1f5f9;
+            border: 1px solid var(--border-color);
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+            outline: none;
+        }
+
+        .attach-button:not(.disabled):not(:disabled) {
+            background: #f0f9ff;
+            border-color: rgba(2, 132, 199, 0.35);
+            color: #0284c7;
+            box-shadow: 0 2px 8px rgba(2, 132, 199, 0.12);
+        }
+
+        .attach-button:not(.disabled):not(:disabled):hover {
+            background: #e0f2fe;
+            border-color: #0284c7;
+            color: #0369a1;
+            transform: translateY(-1px);
+        }
+
+        .attach-button.disabled,
+        .attach-button:disabled {
+            opacity: 0.42;
+            cursor: not-allowed;
+            background: #f8fafc;
+            border-color: #e2e8f0;
+            color: #94a3b8;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .attach-button.has-attachment {
+            background: #ecfdf5;
+            border-color: #10b981;
+            color: #059669;
+        }
+
+        .input-and-preview-wrap {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            position: relative;
+        }
+
+        .image-preview-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f0f9ff;
+            border: 1.5px dashed #38bdf8;
+            border-radius: 10px;
+            padding: 6px 10px;
+            margin-bottom: 6px;
+            animation: previewSlideDown 0.2s ease forwards;
+        }
+
+        @keyframes previewSlideDown {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .preview-thumb-wrap {
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #e2e8f0;
+            flex-shrink: 0;
+        }
+
+        .preview-thumb {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .preview-meta {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .preview-name {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #0f172a;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .preview-size {
+            font-size: 0.70rem;
+            color: #64748b;
+        }
+
+        .preview-remove-btn {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1rem;
+            line-height: 1;
+            transition: all 0.15s;
+            flex-shrink: 0;
+        }
+
+        .preview-remove-btn:hover {
+            background: #ef4444;
+            color: #ffffff;
+        }
+
+        .message-input {
+            width: 100%;
+            border: 1px solid var(--border-color);
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-size: 0.88rem;
+            font-family: inherit;
+            resize: none;
+            outline: none;
+            max-height: 100px;
+            transition: all 0.2s;
+            box-sizing: border-box;
+        }
+
+        .message-input:focus {
+            background: #ffffff;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+        }
+
+        .send-button {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: var(--primary-gradient);
+            border: none;
+            color: #ffffff;
+            font-size: 1.05rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .chat-wrapper.tier-pro .send-button {
+            background: var(--primary-gradient);
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+        }
+
+        .send-button:hover {
+            transform: translateY(-1px);
+        }
+
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="chat-wrapper" id="chatWrapper">
+
+    <!-- HEADER -->
+    <header class="chat-header">
+        <div class="header-avatar" id="headerAvatar">🎧</div>
+        <div class="header-info">
+            <div class="header-title-row">
+                <span class="header-title" id="deskTitle">Customer Support Desk</span>
+                <span class="header-tier-tag" id="headerTierTag">COMMUNITY</span>
+            </div>
+            <div class="header-status">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusText">Connecting...</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- TIER SELECTOR & IDENTITY BAR -->
+    <div class="tier-control-bar">
+        <div class="identity-display">
+            <span>Chatting as:</span>
+            <span class="identity-name" id="identityName">Customer</span>
+            <button class="btn-edit-name" id="editNameBtn" title="Change name">✏️</button>
+        </div>
+        <div id="verifiedTierBadge" class="verified-tier-badge">⭐ BASIC LICENSE</div>
+    </div>
+
+    <!-- CONNECTION BANNER -->
+    <div class="banner" id="banner">
+        <span id="bannerText">Connecting to support server...</span>
+        <button id="bannerRetryBtn" style="background:none; border:none; color:inherit; text-decoration:underline; cursor:pointer; font-weight:700; margin-left:8px;">Retry</button>
+    </div>
+
+    <!-- MESSAGES STREAM -->
+    <div class="messages-container" id="messages">
+        <div class="welcome-card" id="welcome">
+            <div class="welcome-icon" id="welcomeIcon">👋</div>
+            <div class="welcome-title" id="welcomeTitle">PrivCloud Support Desk</div>
+            <div class="welcome-desc" id="welcomeDesc">
+                Welcome to PrivCloud Live Support. Our engineering team is online and synced directly with the Support Admin Portal.
+            </div>
+            <div class="quick-chips-grid" id="quickChipsContainer">
+                <!-- Chips injected dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- TYPING INDICATOR -->
+    <div class="typing-indicator" id="typing"></div>
+
+    <!-- INPUT BAR -->
+    <div class="chat-input-bar">
+        <input type="file" id="imageFileInput" accept="image/jpeg,image/png,image/webp,image/gif" style="display: none;">
+        <button type="button" id="attachButton" class="attach-button disabled" title="Image upload is disabled by support admin" disabled aria-label="Attach Image">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+            </svg>
+        </button>
+        <div class="input-and-preview-wrap">
+            <div id="imagePreviewArea" class="image-preview-area" style="display: none;">
+                <div class="preview-thumb-wrap">
+                    <img id="imagePreviewThumb" class="preview-thumb" src="" alt="Preview">
+                </div>
+                <div class="preview-meta">
+                    <div class="preview-name" id="previewFileName">image.png</div>
+                    <div class="preview-size" id="previewFileSize">1.2 MB</div>
+                </div>
+                <button type="button" id="removeAttachmentBtn" class="preview-remove-btn" title="Remove attachment">&times;</button>
+            </div>
+            <textarea 
+                id="messageInput" 
+                class="message-input" 
+                rows="1" 
+                placeholder="Type your message... (Enter to send)" 
+                maxlength="5000"></textarea>
+        </div>
+        <button id="sendButton" class="send-button" title="Send message">➤</button>
+    </div>
+
+</div>
+
+<script>
+/* =====================================================
+   CONFIG & TIER MANAGEMENT (COMMUNITY, BASIC & PRO)
+===================================================== */
+const API_URL = "https://support-chat-api.onrender.com";
+const WS_URL = API_URL.replace("https://", "wss://").replace("http://", "ws://");
+
+function resolveProxyBase() {
+    if (typeof window === 'undefined') return '/api/support';
+    const port = window.location.port;
+    const hostname = window.location.hostname;
+    if (port === '5001' || (!port && hostname !== 'localhost' && hostname !== '127.0.0.1')) {
+        return '/api/support';
+    }
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        return 'http://127.0.0.1:5001/api/support';
+    }
+    return '/api/support';
+}
+const PROXY_URL = resolveProxyBase();
+
+const TIER_CONFIG = {
+    basic: {
+        id: "basic",
+        label: "⭐ BASIC",
+        deskTitle: "Support Chat Desk",
+        prefix: "[⭐ Basic]",
+        avatar: "SC",
+        welcomeIcon: "👋",
+        welcomeTitle: "PrivCloud Support Desk",
+        welcomeDesc: "Welcome to PrivCloud Support. Our engineers are online to assist with node setup, local sync, and storage.",
+        chips: [
+            { icon: "📦", label: "Node Setup", text: "Hello! I need assistance setting up my PrivCloud personal cloud node on Windows." },
+            { icon: "💽", label: "Drive Mounting", text: "How do I mount external hard drives or USB storage in PrivCloud?" },
+            { icon: "🔑", label: "License Key", text: "Can you help me verify and activate my Basic lifetime license token?" },
+            { icon: "🌐", label: "LAN Transfer", text: "How do I optimize local Gigabit LAN sync speeds across my devices?" }
+        ]
+    },
+    pro: {
+        id: "pro",
+        label: "👑 PRO VIP",
+        deskTitle: "VIP Engineering Desk",
+        prefix: "[👑 Pro VIP]",
+        avatar: "👑",
+        welcomeIcon: "👑",
+        welcomeTitle: "VIP Engineering Priority Desk",
+        welcomeDesc: "Welcome, Pro VIP Customer! Your requests are prioritized at the top of our queue for direct engineering assistance.",
+        chips: [
+            { icon: "⚡", label: "Remote Tunnel", text: "Hi, I need help configuring the encrypted remote HTTPS tunnel on my router." },
+            { icon: "🎬", label: "4K Media Sync", text: "How do I configure hardware transcoding for remote 4K video streaming?" },
+            { icon: "🎛️", label: "Custom Domain", text: "Can you assist with setting up a custom domain and SSL certificates for my node?" },
+            { icon: "🛡️", label: "Priority SLA", text: "I have a mission-critical storage query for the senior engineering team." }
+        ]
+    }
+};
+
+function getSafeUUID() {
+    try {
+        if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+            return crypto.randomUUID();
+        }
+    } catch (_) {}
+    return "guest_" + Math.random().toString(36).substring(2, 10) + "_" + Date.now().toString(36);
+}
+
+let currentTier = localStorage.getItem("support_user_tier") || "basic";
+let baseCustomerName = localStorage.getItem("support_customer_name") || "Valued Customer";
+let customerEmail = localStorage.getItem("support_customer_email") || "";
+let currentOrderId = localStorage.getItem("support_last_order_id") || "";
+
+async function autoDetectUserContext() {
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const paramTier = urlParams.get("tier");
+        const paramEmail = urlParams.get("email");
+        const paramName = urlParams.get("name");
+        const paramOrder = urlParams.get("order");
+
+        if (paramTier) {
+            const cleanTier = paramTier.toLowerCase().trim();
+            if (cleanTier === "pro" || cleanTier === "basic") {
+                currentTier = cleanTier;
+                localStorage.setItem("support_user_tier", currentTier);
+            }
+        }
+        if (paramEmail && paramEmail.trim()) {
+            customerEmail = paramEmail.trim();
+            localStorage.setItem("support_customer_email", customerEmail);
+        }
+        if (paramName && paramName.trim()) {
+            baseCustomerName = paramName.trim();
+            localStorage.setItem("support_customer_name", baseCustomerName);
+        }
+        if (paramOrder && paramOrder.trim()) {
+            currentOrderId = paramOrder.trim();
+            localStorage.setItem("support_last_order_id", currentOrderId);
+        }
+    } catch (_) {}
+
+    // Check Supabase session
+    if (window.PrivCloudAuth && window.PrivCloudAuth.getSession) {
+        try {
+            const session = await window.PrivCloudAuth.getSession();
+            if (session && session.user) {
+                const u = session.user;
+                if (!customerEmail) customerEmail = u.email || "";
+                const meta = u.user_metadata || {};
+                if (baseCustomerName === "Valued Customer" || !baseCustomerName) {
+                    baseCustomerName = meta.full_name || meta.name || (customerEmail ? customerEmail.split('@')[0] : "Customer");
+                }
+            }
+        } catch (_) {}
+    }
+}
+
+function getCustomerId(tier) {
+    let baseId = localStorage.getItem("support_customer_base_id");
+    if (!baseId) {
+        baseId = getSafeUUID();
+        localStorage.setItem("support_customer_base_id", baseId);
+    }
+    return `cust_${tier}_${baseId.substring(0, 16)}`;
+}
+
+let customerId = getCustomerId(currentTier);
+let accessToken = null;
+let conversationId = null;
+let websocket = null;
+let reconnectTimer = null;
+let pingInterval = null;
+let isCreatingSession = false;
+let allowCustomerAttachments = false;
+let pendingAttachmentFile = null;
+let lastPermissionCheck = 0;
+
+/* DOM ELEMENTS */
+const chatWrapper = document.getElementById("chatWrapper");
+const deskTitle = document.getElementById("deskTitle");
+const headerTierTag = document.getElementById("headerTierTag");
+const headerAvatar = document.getElementById("headerAvatar");
+const statusDot = document.getElementById("statusDot");
+const statusText = document.getElementById("statusText");
+const identityName = document.getElementById("identityName");
+const editNameBtn = document.getElementById("editNameBtn");
+const verifiedTierBadge = document.getElementById("verifiedTierBadge");
+const banner = document.getElementById("banner");
+const bannerText = document.getElementById("bannerText");
+const bannerRetryBtn = document.getElementById("bannerRetryBtn");
+const messagesElement = document.getElementById("messages");
+const welcomeElement = document.getElementById("welcome");
+const welcomeIcon = document.getElementById("welcomeIcon");
+const welcomeTitle = document.getElementById("welcomeTitle");
+const welcomeDesc = document.getElementById("welcomeDesc");
+const quickChipsContainer = document.getElementById("quickChipsContainer");
+const typingElement = document.getElementById("typing");
+const messageInput = document.getElementById("messageInput");
+const sendButton = document.getElementById("sendButton");
+const attachButton = document.getElementById("attachButton");
+const imageFileInput = document.getElementById("imageFileInput");
+const imagePreviewArea = document.getElementById("imagePreviewArea");
+const imagePreviewThumb = document.getElementById("imagePreviewThumb");
+const previewFileName = document.getElementById("previewFileName");
+const previewFileSize = document.getElementById("previewFileSize");
+const removeAttachmentBtn = document.getElementById("removeAttachmentBtn");
+
+function updateAttachmentPermission(allowed, notify = false) {
+    allowCustomerAttachments = Boolean(allowed);
+    if (!attachButton) return;
+    if (allowCustomerAttachments) {
+        attachButton.disabled = false;
+        attachButton.classList.remove("disabled");
+        attachButton.title = "Attach image (Max 10 MB)";
+        if (notify) {
+            showBanner("info", "📷 Support engineer enabled image uploads (Max 10 MB).");
+            setTimeout(() => { if (banner && banner.classList.contains("info")) banner.style.display = "none"; }, 4000);
+        }
+    } else {
+        attachButton.disabled = true;
+        attachButton.classList.add("disabled");
+        attachButton.title = "Image upload is currently disabled by support admin";
+        clearPendingAttachment();
+        if (notify) {
+            showBanner("info", "Image upload permission was disabled by support admin.");
+            setTimeout(() => { if (banner && banner.classList.contains("info")) banner.style.display = "none"; }, 4000);
+        }
+    }
+}
+
+function clearPendingAttachment() {
+    pendingAttachmentFile = null;
+    if (imageFileInput) imageFileInput.value = "";
+    if (imagePreviewArea) imagePreviewArea.style.display = "none";
+    if (imagePreviewThumb) imagePreviewThumb.src = "";
+    if (attachButton) attachButton.classList.remove("has-attachment");
+}
+
+if (attachButton && imageFileInput) {
+    attachButton.onclick = function() {
+        if (!allowCustomerAttachments) {
+            alert("Image upload is currently disabled by support admin. Please ask the support engineer in chat to enable image uploads.");
+            return;
+        }
+        imageFileInput.click();
+    };
+
+    imageFileInput.onchange = function() {
+        const file = this.files && this.files[0];
+        if (!file) return;
+
+        const maxBytes = 10 * 1024 * 1024;
+        if (file.size > maxBytes) {
+            const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
+            alert(`The selected image is too large (${sizeMb} MB). Maximum allowed size is 10 MB.`);
+            this.value = "";
+            clearPendingAttachment();
+            return;
+        }
+
+        const validTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+        if (!validTypes.includes(file.type)) {
+            alert("Only JPEG, PNG, WebP, and GIF images are supported.");
+            this.value = "";
+            clearPendingAttachment();
+            return;
+        }
+
+        pendingAttachmentFile = file;
+        if (previewFileName) previewFileName.textContent = file.name;
+        if (previewFileSize) {
+            previewFileSize.textContent = file.size > 1024 * 1024 
+                ? (file.size / (1024 * 1024)).toFixed(1) + " MB"
+                : Math.round(file.size / 1024) + " KB";
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            if (imagePreviewThumb) imagePreviewThumb.src = e.target.result;
+            if (imagePreviewArea) imagePreviewArea.style.display = "flex";
+            attachButton.classList.add("has-attachment");
+        };
+        reader.readAsDataURL(file);
+    };
+}
+
+if (removeAttachmentBtn) {
+    removeAttachmentBtn.onclick = clearPendingAttachment;
+}
+
+function applyTierUI(tier) {
+    currentTier = tier;
+    localStorage.setItem("support_user_tier", tier);
+    const cfg = TIER_CONFIG[tier] || TIER_CONFIG.basic;
+    const verifiedBadge = document.getElementById("verifiedTierBadge");
+
+    if (tier === "pro") {
+        chatWrapper.classList.add("tier-pro");
+        headerAvatar.textContent = "👑";
+        if (verifiedBadge) {
+            verifiedBadge.textContent = "👑 PRO VIP";
+            verifiedBadge.className = "verified-tier-badge tier-pro";
+        }
+    } else {
+        chatWrapper.classList.remove("tier-pro");
+        headerAvatar.textContent = "🎧";
+        if (verifiedBadge) {
+            verifiedBadge.textContent = "⭐ BASIC";
+            verifiedBadge.className = "verified-tier-badge";
+        }
+    }
+
+    deskTitle.textContent = cfg.deskTitle;
+    headerTierTag.textContent = cfg.label;
+    identityName.textContent = baseCustomerName;
+
+    if (welcomeElement) {
+        welcomeIcon.textContent = cfg.welcomeIcon;
+        welcomeTitle.textContent = cfg.welcomeTitle;
+        welcomeDesc.textContent = cfg.welcomeDesc;
+
+        quickChipsContainer.innerHTML = "";
+
+        if (currentOrderId) {
+            const orderBtn = document.createElement("button");
+            orderBtn.className = "quick-chip";
+            orderBtn.innerHTML = `📦 Order #${currentOrderId}`;
+            const orderText = `Hi dev team! I just completed order #${currentOrderId}. Could you help verify my setup and guide me through the initial node activation?`;
+            orderBtn.onclick = () => sendQuickMessage(orderText);
+            quickChipsContainer.appendChild(orderBtn);
+        }
+
+        cfg.chips.forEach(chip => {
+            const btn = document.createElement("button");
+            btn.className = "quick-chip";
+            btn.innerHTML = `${chip.icon} ${chip.label}`;
+            btn.onclick = () => sendQuickMessage(chip.text);
+            quickChipsContainer.appendChild(btn);
+        });
+    }
+
+    customerId = getCustomerId(tier);
+}
+
+editNameBtn.onclick = function() {
+    const newName = prompt("Enter your display name for the Support Engineers:", baseCustomerName);
+    if (newName && newName.trim()) {
+        baseCustomerName = newName.trim();
+        localStorage.setItem("support_customer_name", baseCustomerName);
+        identityName.textContent = baseCustomerName;
+        createSession(true);
+    }
+};
+
+bannerRetryBtn.onclick = () => startChat(true);
+
+function formatTime(dateStr) {
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? "" : d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function scrollToBottom() {
+    messagesElement.scrollTop = messagesElement.scrollHeight;
+}
+
+function setOnlineState(isOnline, text) {
+    if (isOnline) {
+        statusDot.className = "status-dot";
+        statusText.textContent = text || "Online";
+        banner.style.display = "none";
+    } else {
+        statusDot.className = "status-dot offline";
+        statusText.textContent = text || "Connecting...";
+    }
+}
+
+function showBanner(type, message, showRetry = false) {
+    banner.className = "banner " + type;
+    banner.style.display = "flex";
+    bannerText.innerHTML = message;
+    bannerRetryBtn.style.display = showRetry ? "inline-block" : "none";
+}
+
+function playChime() {
+    try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+        const ctx = new AudioContextClass();
+        if (ctx.state === "suspended") ctx.resume();
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(currentTier === "pro" ? 880 : 659.25, now);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.35);
+    } catch (_) {}
+}
+
+function addMessage(message) {
+    if (welcomeElement && welcomeElement.parentNode) {
+        welcomeElement.remove();
+    }
+
+    if (message.id && document.getElementById("msg-" + message.id)) {
+        return;
+    }
+
+    const row = document.createElement("div");
+    row.id = message.id ? "msg-" + message.id : ("msg-temp-" + Date.now());
+    const isCustomer = message.sender_type === "customer";
+    row.className = "message-row " + (isCustomer ? "customer" : "admin");
+
+    const senderBadge = document.createElement("div");
+    senderBadge.className = "bubble-sender-badge";
+    if (isCustomer) {
+        senderBadge.innerHTML = currentTier === "pro" ? `<span>👑</span> <span>You (Pro VIP)</span>` : `<span>⭐</span> <span>You (${baseCustomerName})</span>`;
+    } else {
+        senderBadge.innerHTML = `<span>🛡️</span> <span>Support Engineer</span>`;
+    }
+    row.appendChild(senderBadge);
+
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+
+    if (message.content) {
+        const text = document.createElement("div");
+        text.textContent = message.content;
+        bubble.appendChild(text);
+    }
+
+    if (message.attachment && message.attachment.url) {
+        const img = document.createElement("img");
+        img.className = "message-image";
+        const rawUrl = message.attachment.url;
+        const fullUrl = rawUrl.startsWith("http") ? rawUrl : (API_URL + rawUrl);
+        img.src = fullUrl;
+        img.alt = message.attachment.name || "Attachment";
+        img.onclick = () => window.open(fullUrl, "_blank");
+        bubble.appendChild(img);
+    }
+
+    const time = document.createElement("span");
+    time.className = "time";
+    time.textContent = formatTime(message.created_at || new Date());
+    bubble.appendChild(time);
+
+    row.appendChild(bubble);
+    messagesElement.appendChild(row);
+    scrollToBottom();
+
+    if (!isCustomer && playAudio) {
+        playChime();
+    }
+}
+
+async function createSession(forceRefresh = false) {
+    if (isCreatingSession) return false;
+    isCreatingSession = true;
+
+    showBanner("connecting", `Connecting to support server...`);
+    statusDot.className = "status-dot";
+    statusText.textContent = "Connecting...";
+
+    const cfg = TIER_CONFIG[currentTier] || TIER_CONFIG.basic;
+    const formattedName = `${cfg.prefix} ${baseCustomerName}`;
+
+    let sessionData = null;
+
+    // 1. Try Direct Render API
+    try {
+        const res = await fetch(`${API_URL}/api/v1/customer/session`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                external_customer_id: customerId,
+                name: formattedName,
+                email: customerEmail || null
+            })
+        });
+
+        if (res.ok) {
+            sessionData = await res.json();
+        }
+    } catch (err) {
+        console.warn("[SupportChat] Direct Render connection error, falling back to proxy:", err);
+    }
+
+    // 2. Fallback to Proxy
+    if (!sessionData) {
+        try {
+            const proxyRes = await fetch(`${PROXY_URL}/session`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    external_customer_id: customerId,
+                    name: formattedName,
+                    email: customerEmail || null
+                })
+            });
+            if (proxyRes.ok) {
+                sessionData = await proxyRes.json();
+            }
+        } catch (_) {}
+    }
+
+    isCreatingSession = false;
+
+    if (sessionData && sessionData.access_token) {
+        accessToken = sessionData.access_token;
+        conversationId = sessionData.conversation_id;
+        updateAttachmentPermission(sessionData.allow_customer_attachments || false);
+
+        localStorage.setItem(`support_token_${currentTier}`, accessToken);
+        localStorage.setItem(`support_conv_${currentTier}`, conversationId);
+
+        setOnlineState(true, currentTier === "pro" ? "VIP Desk Online" : "Online • Synced");
+        return true;
+    } else {
+        showBanner("error", `Support backend waking up (~20s). Reconnecting...`, true);
+        setOnlineState(false, "Reconnecting...");
+        return false;
+    }
+}
+
+async function checkAttachmentPermissionSync() {
+    const now = Date.now();
+    if (now - lastPermissionCheck < 8000 || !customerEmail) return;
+    lastPermissionCheck = now;
+    try {
+        const res = await fetch(`${PROXY_URL}/status?email=${encodeURIComponent(customerEmail)}&name=${encodeURIComponent(baseCustomerName)}&external_customer_id=${encodeURIComponent(customerId)}`);
+        if (res.ok) {
+            const d = await res.json();
+            if (typeof d.allow_customer_attachments === 'boolean' && d.allow_customer_attachments !== allowCustomerAttachments) {
+                updateAttachmentPermission(d.allow_customer_attachments, true);
+            }
+        }
+    } catch (_) {}
+}
+
+async function loadMessages() {
+    if (!accessToken || !conversationId) return;
+
+    try {
+        await checkAttachmentPermissionSync();
+
+        let res = await fetch(`${API_URL}/api/v1/customer/conversations/${conversationId}/messages`, {
+            headers: { "Authorization": `Bearer ${accessToken}` }
+        });
+
+        if (res.status === 401 || res.status === 404) {
+            const ok = await createSession(true);
+            if (ok) await loadMessages();
+            return;
+        }
+
+        if (res.ok) {
+            const messages = await res.json();
+            if (Array.isArray(messages) && messages.length > 0) {
+                if (welcomeElement && welcomeElement.parentNode) welcomeElement.remove();
+                let hasNewMessage = false;
+                messages.forEach(msg => {
+                    if (msg.id && document.getElementById("msg-" + msg.id)) return;
+                    addMessage(msg, false); // false = no chime during background sync
+                    hasNewMessage = true;
+                });
+                if (hasNewMessage) {
+                    scrollToBottom();
+                }
+            }
+        }
+    } catch (err) {
+        console.warn("[SupportChat] Load messages error:", err);
+    }
+}
+
+function connectWebSocket() {
+    if (!accessToken) return;
+
+    if (websocket) {
+        try { websocket.close(); } catch (_) {}
+    }
+
+    clearInterval(pingInterval);
+
+    const url = `${WS_URL}/ws/customer?token=${encodeURIComponent(accessToken)}`;
+    try {
+        websocket = new WebSocket(url);
+    } catch (e) {
+        return;
+    }
+
+    websocket.onopen = function() {
+        setOnlineState(true, currentTier === "pro" ? "VIP Online • Live Sync" : "Online • Live Sync");
+
+        pingInterval = setInterval(() => {
+            if (websocket && websocket.readyState === WebSocket.OPEN) {
+                websocket.send(JSON.stringify({ type: "ping" }));
+            }
+        }, 25000);
+    };
+
+    websocket.onmessage = function(event) {
+        try {
+            const data = JSON.parse(event.data);
+            if (data.type === "message" && data.message) {
+                addMessage(data.message);
+            } else if (data.type === "typing") {
+                typingElement.textContent = data.is_typing ? "Support Engineer is typing..." : "";
+            } else if (data.type === "attachment_permission") {
+                updateAttachmentPermission(data.allowed, true);
+            }
+        } catch (_) {}
+    };
+
+    websocket.onclose = function(e) {
+        clearInterval(pingInterval);
+        if (e.code === 1008) {
+            accessToken = null;
+            localStorage.removeItem(`support_token_${currentTier}`);
+        }
+
+        setOnlineState(false, "Reconnecting...");
+
+        clearTimeout(reconnectTimer);
+        reconnectTimer = setTimeout(async () => {
+            if (!accessToken) {
+                await createSession();
+            }
+            connectWebSocket();
+        }, 3000);
+    };
+
+    websocket.onerror = function() {
+        try { websocket.close(); } catch (_) {}
+    };
+}
+
+async function uploadImageAttachment(file) {
+    const formData = new FormData();
+    formData.append("upload", file, file.name);
+
+    // 1. Direct Render API
+    try {
+        const res = await fetch(`${API_URL}/api/v1/files`, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${accessToken}`
+            },
+            body: formData
+        });
+        if (res.ok) {
+            return await res.json();
+        }
+    } catch (err) {
+        console.warn("[SupportChat] Direct file upload failed, trying proxy:", err);
+    }
+
+    // 2. Fallback to Proxy Upload
+    try {
+        const proxyRes = await fetch(`${PROXY_URL}/upload`, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${accessToken}`
+            },
+            body: formData
+        });
+        if (proxyRes.ok) {
+            return await proxyRes.json();
+        }
+    } catch (err) {
+        console.error("[SupportChat] Proxy file upload failed:", err);
+    }
+    return null;
+}
+
+async function sendMessage() {
+    const content = messageInput.value.trim();
+    if (!content && !pendingAttachmentFile) return;
+
+    if (!accessToken || !conversationId) {
+        sendButton.disabled = true;
+        const ok = await createSession();
+        sendButton.disabled = false;
+        if (!ok) {
+            alert("Connecting to support desk, please try again in a moment.");
+            return;
+        }
+    }
+
+    sendButton.disabled = true;
+    sendButton.textContent = "⏳";
+
+    let attachmentPayload = null;
+    if (pendingAttachmentFile) {
+        statusText.textContent = "Uploading image...";
+        attachmentPayload = await uploadImageAttachment(pendingAttachmentFile);
+        if (!attachmentPayload) {
+            alert("Could not upload image. Please check your connection or choose a smaller image (Max 10 MB).");
+            sendButton.disabled = false;
+            sendButton.textContent = "➤";
+            statusText.textContent = currentTier === "pro" ? "VIP Desk Online" : "Online • Synced";
+            return;
+        }
+    }
+
+    let sendSuccess = false;
+
+    // 1. Direct POST to Render API
+    try {
+        let res = await fetch(`${API_URL}/api/v1/customer/conversations/${conversationId}/messages`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${accessToken}`
+            },
+            body: JSON.stringify({ 
+                content: content,
+                attachment: attachmentPayload
+            })
+        });
+
+        if (res.status === 401 || res.status === 404) {
+            const healed = await createSession(true);
+            if (healed) {
+                res = await fetch(`${API_URL}/api/v1/customer/conversations/${conversationId}/messages`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify({ 
+                        content: content,
+                        attachment: attachmentPayload
+                    })
+                });
+            }
+        }
+
+        if (res.ok) {
+            const msgData = await res.json();
+            addMessage(msgData);
+            sendSuccess = true;
+        }
+    } catch (e) {
+        console.warn("[SupportChat] Direct send error, trying proxy fallback:", e);
+    }
+
+    // 2. Fallback to Proxy POST
+    if (!sendSuccess) {
+        try {
+            const proxyRes = await fetch(`${PROXY_URL}/send`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    conversation_id: conversationId,
+                    access_token: accessToken,
+                    content: content,
+                    attachment: attachmentPayload,
+                    email: customerEmail || null,
+                    name: baseCustomerName,
+                    external_customer_id: customerId
+                })
+            });
+
+            if (proxyRes.ok) {
+                const proxyMsgData = await proxyRes.json();
+                if (proxyMsgData && proxyMsgData.fresh_session) {
+                    accessToken = proxyMsgData.fresh_session.access_token;
+                    conversationId = proxyMsgData.fresh_session.conversation_id;
+                    localStorage.setItem(`support_token_${currentTier}`, accessToken);
+                    localStorage.setItem(`support_conv_${currentTier}`, conversationId);
+                }
+                addMessage(proxyMsgData);
+                sendSuccess = true;
+            }
+        } catch (_) {}
+    }
+
+    sendButton.disabled = false;
+    sendButton.textContent = "➤";
+
+    if (sendSuccess) {
+        messageInput.value = "";
+        messageInput.style.height = "auto";
+        clearPendingAttachment();
+    } else {
+        alert("Could not send message. Reconnecting to support server...");
+        createSession(true);
+    }
+
+    messageInput.focus();
+}
+
+function sendQuickMessage(text) {
+    messageInput.value = text;
+    sendMessage();
+}
+
+let typingTimeout = null;
+messageInput.addEventListener("input", function() {
+    messageInput.style.height = "auto";
+    messageInput.style.height = Math.min(messageInput.scrollHeight, 100) + "px";
+
+    if (websocket && websocket.readyState === WebSocket.OPEN) {
+        websocket.send(JSON.stringify({ type: "typing", is_typing: true }));
+    }
+
+    clearTimeout(typingTimeout);
+    typingTimeout = setTimeout(() => {
+        if (websocket && websocket.readyState === WebSocket.OPEN) {
+            websocket.send(JSON.stringify({ type: "typing", is_typing: false }));
+        }
+    }, 1200);
+});
+
+messageInput.addEventListener("keydown", function(e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+});
+
+sendButton.addEventListener("click", sendMessage);
+
+function showLockedPlanUI() {
+    chatWrapper.classList.remove("tier-pro");
+    deskTitle.textContent = "Live Customer Support Desk";
+    headerTierTag.textContent = "BASIC/PRO ONLY";
+    setOnlineState(false, "Upgrade Required");
+    
+    if (messageInput) {
+        messageInput.disabled = true;
+        messageInput.placeholder = "Live engineering desk requires a Basic or Pro plan.";
+    }
+    if (sendButton) {
+        sendButton.disabled = true;
+    }
+    const editBtn = document.getElementById("editNameBtn");
+    if (editBtn) editBtn.style.display = "none";
+
+    const verifiedBadge = document.getElementById("verifiedTierBadge");
+    if (verifiedBadge) {
+        verifiedBadge.textContent = "🔒 UPGRADE REQUIRED";
+        verifiedBadge.className = "verified-tier-badge locked";
+    }
+
+    messagesElement.innerHTML = `
+        <div style="background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 18px; padding: 30px 22px; text-align: center; margin: auto; max-width: 390px; box-shadow: 0 10px 30px rgba(0,0,0,0.06);">
+            <div style="font-size: 2.6rem; margin-bottom: 12px;">🔒</div>
+            <h3 style="font-size: 1.15rem; font-weight: 800; color: #0f172a; margin-bottom: 8px;">Basic or Pro License Required</h3>
+            <p style="font-size: 0.88rem; color: #475569; line-height: 1.6; margin-bottom: 22px;">
+                Direct 1-on-1 real-time technical assistance with our engineering team is an exclusive benefit for customers who hold an active <strong>Basic Edition</strong> or <strong>Pro VIP Lifetime License</strong>.
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <a href="../purchase_page/purchase.html" target="_top" style="display: block; background: linear-gradient(135deg, #0284c7, #0369a1); color: #ffffff; font-weight: 700; font-size: 0.92rem; padding: 12px 18px; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);">
+                    Explore Basic & Pro Plans ➔
+                </a>
+                <a href="../auth_page/auth.html" target="_top" style="display: block; background: #f1f5f9; color: #0284c7; font-weight: 700; font-size: 0.85rem; padding: 10px 16px; border-radius: 10px; text-decoration: none;">
+                    Already a Customer? Sign In
+                </a>
+            </div>
+        </div>
+    `;
+}
+
+async function startChat(forceRefresh = false) {
+    await autoDetectUserContext();
+
+    if (currentTier !== "basic" && currentTier !== "pro") {
+        showLockedPlanUI();
+        return;
+    }
+
+    applyTierUI(currentTier);
+
+    const success = await createSession(forceRefresh);
+    if (success) {
+        await loadMessages();
+        connectWebSocket();
+    } else {
+        clearTimeout(reconnectTimer);
+        reconnectTimer = setTimeout(() => startChat(), 3500);
+    }
+    messageInput.focus();
+}
+
+// Start polling as secondary sync
+setInterval(() => {
+    if (accessToken && conversationId && (currentTier === "basic" || currentTier === "pro")) {
+        loadMessages();
+    }
+}, 4000);
+
+startChat();
+</script>
+
+</body>
+</html>

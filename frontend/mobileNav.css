@@ -368,7 +368,7 @@ body.nav-drawer-open {
         display: none !important;
     }
 
-    .navbar > .nav-actions {
+    .navbar>.nav-actions {
         display: none !important;
     }
 

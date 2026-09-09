@@ -269,20 +269,7 @@ body {
     }
 }
 
-/* Support tab is hidden by default across desktop & mobile nav, only visible when buyer is verified */
-.nav-links a[href*="support.html"],
-.mobile-nav-links a[href*="support.html"],
-.nav-links li:has(a[href*="support.html"]),
-.mobile-nav-links li:has(a[href*="support.html"]) {
-    display: none;
-}
 
-body.buyer-verified .nav-links a[href*="support.html"],
-body.buyer-verified .mobile-nav-links a[href*="support.html"],
-body.buyer-verified .nav-links li:has(a[href*="support.html"]),
-body.buyer-verified .mobile-nav-links li:has(a[href*="support.html"]) {
-    display: inline-flex !important;
-}
 
 @media (max-width: 768px) {
     .navbar {

@@ -5,7 +5,7 @@ Serves landing page, unified auth, product architecture, and checkout/purchase p
 
 import os
 from fastapi import APIRouter, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from backend.config import FRONTEND_DIR
 
 router = APIRouter(tags=["Pages"])
@@ -67,12 +67,9 @@ async def serve_feedback():
         return FileResponse(feedback_path)
     raise HTTPException(status_code=404, detail="feedback.html not found")
 
-@router.get("/support", summary="Serve Dedicated Customer Support Chat Page")
-@router.get("/support.html", summary="Serve Dedicated Customer Support Chat Page")
+@router.get("/support", summary="Redirect Legacy Support Page")
+@router.get("/support.html", summary="Redirect Legacy Support Page")
 async def serve_support():
-    """Serve dedicated real-time customer support chat page."""
-    support_path = os.path.join(FRONTEND_DIR, 'support_page', 'support.html')
-    if os.path.isfile(support_path):
-        return FileResponse(support_path)
-    raise HTTPException(status_code=404, detail="support.html not found")
+    """Redirect legacy support route to checkout/support modal."""
+    return RedirectResponse(url="/purchase", status_code=302)
 

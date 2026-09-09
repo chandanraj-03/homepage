@@ -33,30 +33,45 @@ class ProxySendMessageRequest(BaseModel):
 async def proxy_customer_session(payload: ProxySessionRequest):
     """
     Proxies session creation to https://support-chat-api.onrender.com/api/v1/customer/session
-    Strictly enforces that the user must be a verified purchaser of Basic or Pro license.
+    Resolves customer tier (Pro VIP, Basic, or Community Support) and guarantees seamless access.
     """
-    if not payload.email or not payload.email.strip() or "@" not in payload.email:
-        raise HTTPException(
-            status_code=401,
-            detail="Authentication required. Please log in with your purchase account to access Customer Support."
-        )
+    clean_email = None
+    if payload.email and payload.email.strip() and "@" in payload.email:
+        clean_email = payload.email.strip().lower()
 
-    clean_email = payload.email.strip().lower()
-    
-    # Verify purchase eligibility (must be basic or pro buyer)
-    elig_res = await verify_eligibility(clean_email)
-    if getattr(elig_res, "status_code", None) == 403 or (isinstance(elig_res, dict) and not elig_res.get("eligible")):
-        raise HTTPException(
-            status_code=403,
-            detail="Customer Support is exclusively reserved for verified Basic and Pro license owners. Please purchase a license to unlock live support."
-        )
+    # Determine customer tier & badge
+    tier_prefix = "[🛡️ Customer]"
+    if clean_email:
+        try:
+            elig_res = await verify_eligibility(clean_email)
+            if isinstance(elig_res, dict) and elig_res.get("eligible"):
+                plan = elig_res.get("plan_tier", "").lower()
+                if plan == "pro" or elig_res.get("is_vip"):
+                    tier_prefix = "[👑 Pro VIP]"
+                elif plan == "basic":
+                    tier_prefix = "[⭐ Basic]"
+        except Exception:
+            pass
 
-    clean_name = payload.name or clean_email.split("@")[0].title()
+    raw_name = (payload.name or (clean_email.split("@")[0].title() if clean_email else "Valued Customer")).strip()
+    # Remove existing prefixes if already included
+    for prefix in ("[👑 Pro VIP]", "[⭐ Basic]", "[🛡️ Customer]", "[💬 Visitor]"):
+        if raw_name.startswith(prefix):
+            raw_name = raw_name[len(prefix):].strip()
+
+    formatted_name = f"{tier_prefix} {raw_name}".strip()
     
+    ext_id = payload.external_customer_id
+    if not ext_id:
+        if clean_email:
+            ext_id = f"priv_{clean_email.replace('@', '_').replace('.', '_')}"
+        else:
+            ext_id = f"guest_{raw_name.lower().replace(' ', '_')}"
+
     body = {
-        "name": clean_name,
+        "name": formatted_name,
         "email": clean_email,
-        "external_customer_id": payload.external_customer_id or f"priv_{clean_email.replace('@', '_').replace('.', '_')}"
+        "external_customer_id": ext_id
     }
 
     try:
@@ -66,7 +81,9 @@ async def proxy_customer_session(payload: ProxySessionRequest):
                 json=body
             )
             if res.status_code in (200, 201):
-                return res.json()
+                data = res.json()
+                data["tier_prefix"] = tier_prefix
+                return data
             else:
                 raise HTTPException(status_code=res.status_code, detail=res.text)
     except httpx.RequestError as exc:
@@ -101,13 +118,14 @@ async def proxy_send_message(payload: ProxySendMessageRequest):
                 return res.json()
 
             # If conversation was deleted on Render (404) or token expired (401/403), auto-heal
-            if res.status_code in (401, 403, 404) and payload.email:
-                clean_email = payload.email.strip().lower()
-                clean_name = payload.name or clean_email.split("@")[0].title()
+            if res.status_code in (401, 403, 404):
+                clean_email = payload.email.strip().lower() if (payload.email and payload.email.strip()) else None
+                clean_name = (payload.name or (clean_email.split("@")[0].title() if clean_email else "Valued Customer")).strip()
+                ext_id = payload.external_customer_id or (f"priv_{clean_email.replace('@', '_').replace('.', '_')}" if clean_email else f"guest_{clean_name.lower().replace(' ', '_')}")
                 session_body = {
                     "name": clean_name,
                     "email": clean_email,
-                    "external_customer_id": payload.external_customer_id or f"priv_{clean_email.replace('@', '_').replace('.', '_')}"
+                    "external_customer_id": ext_id
                 }
                 sess_res = await client.post(
                     f"{SUPPORT_API_BASE}/api/v1/customer/session",
@@ -178,6 +196,9 @@ async def proxy_upload_file(
     }
 
     file_bytes = await file.read()
+    if len(file_bytes) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Image must be 10 MB or smaller")
+
     files = {
         "upload": (file.filename or "attachment.png", file_bytes, file.content_type or "image/png")
     }

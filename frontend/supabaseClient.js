@@ -5,9 +5,28 @@
  */
 
 (function () {
+    // Default Supabase configuration
+    const DEFAULT_SUPABASE_URL = "https://qrxjyvezlotjwggtgoqe.supabase.co";
+    const DEFAULT_SUPABASE_KEY = "sb_publishable_TBuxXwl_-StgMpP1deF7zw_2Z9izNgU";
+
     const runtimeConfig = (typeof window !== 'undefined' && window.PRIVCLOUD_CONFIG) ? window.PRIVCLOUD_CONFIG : {};
-    let SUPABASE_URL = runtimeConfig.supabaseUrl || "https://qrxjyvezlotjwggtgoqe.supabase.co";
-    let SUPABASE_KEY = runtimeConfig.supabaseKey || "sb_publishable_TBuxXwl_-StgMpP1deF7zw_2Z9izNgU";
+    let SUPABASE_URL = runtimeConfig.supabaseUrl || DEFAULT_SUPABASE_URL;
+    let SUPABASE_KEY = runtimeConfig.supabaseKey || DEFAULT_SUPABASE_KEY;
+
+    // Smart API URL Resolver (handles file:///, localhost:5500, localhost:3000, etc.)
+    function getApiUrl(endpoint) {
+        if (typeof window === 'undefined') return endpoint;
+        const clean = endpoint.startsWith('/') ? endpoint : '/' + endpoint;
+        const hostname = window.location.hostname;
+        const isLocal = hostname === 'localhost' || hostname === '127.0.0.1' || window.location.protocol === 'file:';
+        if (window.location.protocol === 'file:' || (window.location.port && window.location.port !== '5001' && isLocal)) {
+            return `http://127.0.0.1:5001${clean}`;
+        }
+        return clean;
+    }
+    if (typeof window !== 'undefined') {
+        window.getPrivCloudApiUrl = getApiUrl;
+    }
 
     let supabaseClient = null;
 
@@ -51,7 +70,7 @@
 
         if (typeof window !== 'undefined' && window.fetch) {
             try {
-                const res = await fetch('/api/config');
+                const res = await fetch(getApiUrl('/api/config'));
                 if (res.ok) {
                     const cfg = await res.json();
                     if (cfg && cfg.supabaseUrl && cfg.supabaseKey) {
@@ -132,7 +151,7 @@
 
         async checkUsernameAvailability(username, fullName = '') {
             try {
-                const res = await fetch('/api/auth/check-username', {
+                const res = await fetch(getApiUrl('/api/auth/check-username'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -163,7 +182,7 @@
 
         async resolveIdentifier(identifier) {
             try {
-                const res = await fetch('/api/auth/resolve-identifier', {
+                const res = await fetch(getApiUrl('/api/auth/resolve-identifier'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ identifier: identifier.trim() })
@@ -189,7 +208,7 @@
 
         async registerProfile(fullName, username, email) {
             try {
-                const res = await fetch('/api/auth/register-profile', {
+                const res = await fetch(getApiUrl('/api/auth/register-profile'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -217,7 +236,7 @@
 
         async verifyProfile(email, username = null) {
             try {
-                const res = await fetch('/api/auth/verify-profile', {
+                const res = await fetch(getApiUrl('/api/auth/verify-profile'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -263,7 +282,8 @@
                             full_name: fullName.trim(),
                             username: username.trim(),
                             email: email.trim()
-                        }
+                        },
+                        emailRedirectTo: window.location.origin + '/auth_page/auth.html'
                     }
                 });
 
@@ -293,21 +313,18 @@
 
         async signInWithIdentifier(identifier, password) {
             const ident = identifier.trim();
-            let targetEmail = ident;
 
-            // If not email format (no @), resolve username to email
-            if (!ident.includes('@')) {
-                const resolveRes = await this.resolveIdentifier(ident);
-                if (!resolveRes.ok || !resolveRes.found || !resolveRes.email) {
-                    return {
-                        data: null,
-                        error: {
-                            message: resolveRes.message || `No account found with username '@${ident}'. Please check your spelling or sign up.`
-                        }
-                    };
-                }
-                targetEmail = resolveRes.email;
+            // Validate account existence via backend resolver (handles both username and email)
+            const resolveRes = await this.resolveIdentifier(ident);
+            if (!resolveRes.ok || !resolveRes.found || !resolveRes.email) {
+                return {
+                    data: null,
+                    error: {
+                        message: resolveRes.message || (ident.includes('@') ? `No account found with email '${ident}'. Please check your spelling or sign up.` : `No account found with username '@${ident}'. Please check your spelling or sign up.`)
+                    }
+                };
             }
+            const targetEmail = resolveRes.email;
 
             const client = await ensureClient();
             return await client.auth.signInWithPassword({
@@ -356,38 +373,37 @@
                     return res;
                 }
 
-                // If it was a password reset attempt and Supabase returned an error, return that error directly
                 if (isReset && res && res.error) {
-                    return { data: null, error: { message: res.error.message || "Invalid or expired confirmation code. Please try again." } };
+                    console.warn("[PrivCloud] Supabase verifyOtp returned error, trying backend OTP verification fallback:", res.error.message);
                 }
             } catch (e) {
                 console.warn("[PrivCloud] Supabase verifyOtp error:", e);
-                if (isReset) {
-                    return { data: null, error: { message: "Failed to verify confirmation code. Please try again." } };
-                }
             }
 
-            // 2. Dynamic OTP verification endpoint (for signup flow only)
-            if (!isReset) {
-                try {
-                    const bRes = await fetch('/api/auth/verify-otp', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email: email.trim(), code: token.trim(), type: type, username: username })
-                    });
-                    const bData = await bRes.json();
-                    if (bData.success) {
+            // 2. Dynamic OTP verification endpoint fallback
+            try {
+                const bRes = await fetch(getApiUrl('/api/auth/verify-otp'), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email.trim(), code: token.trim(), type: type, username: username })
+                });
+                const bData = await bRes.json();
+                if (bData.success) {
+                    if (isReset) {
+                        if (bData.reset_token && typeof sessionStorage !== 'undefined') {
+                            sessionStorage.setItem('privcloud_reset_token', bData.reset_token);
+                        }
+                        return { data: { user: { email: email.trim() }, reset_token: bData.reset_token }, error: null };
+                    } else {
                         await this.verifyProfile(email, username);
                         return { data: { user: { email: email.trim() } }, error: null };
-                    } else {
-                        return { data: null, error: { message: bData.message || "Invalid confirmation code. Please try again." } };
                     }
-                } catch (err) {
-                    return { data: null, error: { message: "Failed to verify OTP code." } };
+                } else {
+                    return { data: null, error: { message: bData.message || "Invalid confirmation code. Please try again." } };
                 }
+            } catch (err) {
+                return { data: null, error: { message: "Failed to verify confirmation code." } };
             }
-
-            return { data: null, error: { message: "Invalid confirmation code. Please check and try again." } };
         },
 
         async resendOtp(email, type = 'signup') {
@@ -414,7 +430,7 @@
 
             if (!isReset) {
                 try {
-                    const res = await fetch('/api/auth/resend-otp', {
+                    const res = await fetch(getApiUrl('/api/auth/resend-otp'), {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ email: email.trim(), type: type })
@@ -430,20 +446,18 @@
 
         async resetPassword(identifier) {
             const ident = identifier.trim();
-            let targetEmail = ident;
 
-            if (!ident.includes('@')) {
-                const resolveRes = await this.resolveIdentifier(ident);
-                if (!resolveRes.ok || !resolveRes.found || !resolveRes.email) {
-                    return {
-                        data: null,
-                        error: {
-                            message: resolveRes.message || `No account found with username '@${ident}'.`
-                        }
-                    };
-                }
-                targetEmail = resolveRes.email;
+            // Resolve identifier (both email and username) via backend to verify account exists
+            const resolveRes = await this.resolveIdentifier(ident);
+            if (!resolveRes.ok || !resolveRes.found || !resolveRes.email) {
+                return {
+                    data: null,
+                    error: {
+                        message: resolveRes.message || (ident.includes('@') ? `No account found with email '${ident}'.` : `No account found with username '@${ident}'.`)
+                    }
+                };
             }
+            const targetEmail = resolveRes.email;
 
             const client = await ensureClient();
             const res = await client.auth.resetPasswordForEmail(targetEmail.trim(), {
@@ -465,25 +479,45 @@
                     password: newPassword
                 });
                 if (!error && data) {
+                    if (typeof sessionStorage !== 'undefined') {
+                        sessionStorage.removeItem('privcloud_reset_token');
+                    }
                     return { data: data, error: null };
                 }
             } catch (e) {
                 console.warn("[PrivCloud] Client updateUser fallback to Admin API:", e);
             }
 
-            // 2. Admin API fallback via backend
+            // 2. Admin API fallback via backend with reset_token or Bearer token
             try {
-                const res = await fetch('/api/auth/update-password', {
+                const resetToken = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('privcloud_reset_token') : null;
+                const headers = { 'Content-Type': 'application/json' };
+                try {
+                    const session = await this.getSession();
+                    if (session && session.access_token) {
+                        headers['Authorization'] = `Bearer ${session.access_token}`;
+                    }
+                } catch (_) {}
+
+                const payload = {
+                    email: (email || '').trim(),
+                    new_password: newPassword
+                };
+                if (resetToken) {
+                    payload.reset_token = resetToken;
+                }
+
+                const res = await fetch(getApiUrl('/api/auth/update-password'), {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        email: (email || '').trim(),
-                        new_password: newPassword
-                    })
+                    headers: headers,
+                    body: JSON.stringify(payload)
                 });
                 const data = await res.json();
                 if (!res.ok || !data.success) {
                     return { error: { message: data.message || "Failed to update password." } };
+                }
+                if (typeof sessionStorage !== 'undefined') {
+                    sessionStorage.removeItem('privcloud_reset_token');
                 }
                 return { data: data, error: null };
             } catch (err) {
@@ -509,6 +543,96 @@
                 console.error("[PrivCloud] Google sign-in failed:", err);
                 return { data: null, error: { message: err.message || "Failed to initialize Google authentication." } };
             }
+        },
+
+        async reauthenticate() {
+            try {
+                const client = await ensureClient();
+                const session = await this.getSession();
+                if (!session || !session.access_token) {
+                    console.warn("[PrivCloud] No active session found for client-side reauthenticate; backend triggers automatically.");
+                    return { data: null, error: { message: "No active session for reauthentication" } };
+                }
+                const res = await client.auth.reauthenticate();
+                if (res && res.error) {
+                    console.warn("[PrivCloud] Supabase reauthenticate notice:", res.error.message);
+                } else {
+                    console.log("[PrivCloud] Reauthentication email triggered successfully via Supabase client.");
+                }
+                return res || { data: {}, error: null };
+            } catch (err) {
+                console.warn("[PrivCloud] Supabase reauthenticate exception:", err);
+                return { data: null, error: err };
+            }
+        },
+
+        async sendMagicLinkOtp(identifier, username = null) {
+            try {
+                const client = await ensureClient();
+                let targetEmail = (identifier || '').trim();
+                let targetUsername = (username || '').trim();
+
+                if (!targetEmail) return { data: null, error: { message: "Email or identifier required for OTP" } };
+
+                // If not an email, resolve username to email
+                if (!targetEmail.includes('@')) {
+                    const resolved = await this.resolveIdentifier(targetEmail);
+                    if (resolved && resolved.email) {
+                        targetEmail = resolved.email;
+                        targetUsername = targetUsername || resolved.username;
+                    }
+                }
+
+                // If username still missing, attempt to resolve from user session or email prefix
+                if (!targetUsername) {
+                    const user = await this.getUser();
+                    const meta = user ? (user.user_metadata || {}) : {};
+                    targetUsername = meta.username || targetEmail.split('@')[0];
+                }
+
+                const res = await client.auth.signInWithOtp({
+                    email: targetEmail,
+                    options: {
+                        emailRedirectTo: window.location.origin + '/purchase_page/purchase.html?payment=confirmed',
+                        data: {
+                            username: targetUsername,
+                            name: targetUsername
+                        }
+                    }
+                });
+                if (res && res.error) {
+                    console.warn("[PrivCloud] Supabase signInWithOtp notice:", res.error.message);
+                } else {
+                    console.log("[PrivCloud] Magic Link / OTP email triggered successfully for:", targetEmail, `(@${targetUsername})`);
+                }
+                return res || { data: {}, error: null };
+            } catch (err) {
+                console.warn("[PrivCloud] Supabase signInWithOtp exception:", err);
+                return { data: null, error: err };
+            }
+        },
+
+        escapeHtml(str) {
+            if (!str) return '';
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return String(str).replace(/[&<>"']/g, m => map[m]);
+        },
+
+        resolveProxyBase(endpoint = '/api/support') {
+            return getApiUrl(endpoint);
+        },
+
+        isBuyer(user) {
+            if (!user) return false;
+            const meta = user.user_metadata || {};
+            const plan = (meta.plan_tier || meta.plan || "").toLowerCase();
+            return plan === 'pro' || plan === 'basic' || Boolean(meta.is_vip || meta.is_admin);
         }
     };
 

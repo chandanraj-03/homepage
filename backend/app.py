@@ -17,7 +17,7 @@ for path in (BASE_DIR, WORKSPACE_DIR):
     if path not in sys.path:
         sys.path.insert(0, path)
 
-from backend.config import FRONTEND_DIR
+from backend.config import FRONTEND_DIR, ALLOWED_ORIGINS
 from backend.routers import pages_router, auth_router, chatbot_router, payments_router, feedback_router, support_router
 
 # Initialize FastAPI application
@@ -27,10 +27,10 @@ app = FastAPI(
     version="3.0.0"
 )
 
-# Enable CORS middleware
+# Enable CORS middleware with strictly defined allowed origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -55,25 +55,55 @@ app.include_router(feedback_router)
 # 6. Customer Support Render Proxy API (/api/support)
 app.include_router(support_router)
 
-# ----------------- Dynamic Static Asset Route -----------------
+# ----------------- Secure Static Asset Serving -----------------
+_STATIC_INDEX: dict[str, str] = {}
+
+def _init_static_index() -> None:
+    """Pre-compute index of all files in FRONTEND_DIR for O(1) lookup."""
+    global _STATIC_INDEX
+    _STATIC_INDEX = {}
+    if not os.path.isdir(FRONTEND_DIR):
+        return
+    for root, _, files in os.walk(FRONTEND_DIR):
+        for f in files:
+            full = os.path.abspath(os.path.join(root, f))
+            rel = os.path.relpath(full, FRONTEND_DIR).replace('\\', '/')
+            _STATIC_INDEX[rel] = full
+            if f not in _STATIC_INDEX:
+                _STATIC_INDEX[f] = full
+
+_init_static_index()
+
 @app.get("/{filename:path}", include_in_schema=False)
 async def serve_static_asset(filename: str):
     """
-    Serve static assets (CSS, JS, media) from FRONTEND_DIR or nested subdirectories.
-    Placed after all explicit API and page routers.
+    Serve static assets (CSS, JS, media) from FRONTEND_DIR safely with O(1) lookup
+    and path traversal protection.
     """
-    target = os.path.join(FRONTEND_DIR, filename)
-    if os.path.exists(target) and os.path.isfile(target):
-        return FileResponse(target)
+    # 1. Path traversal guard
+    clean_name = os.path.normpath(filename).replace('\\', '/').lstrip('/')
+    if '..' in clean_name.split('/'):
+        raise HTTPException(status_code=403, detail="Access denied")
 
-    # Fallback search nested subdirectories (auth_page, landing_page, etc.)
-    base_name = os.path.basename(filename)
-    if base_name:
-        for root, dirs, files in os.walk(FRONTEND_DIR):
-            if base_name in files:
-                found_target = os.path.join(root, base_name)
-                if os.path.isfile(found_target):
-                    return FileResponse(found_target)
+    target = os.path.abspath(os.path.join(FRONTEND_DIR, clean_name))
+    file_to_send = None
+
+    # Check direct path within FRONTEND_DIR
+    if os.path.commonpath([FRONTEND_DIR, target]) == FRONTEND_DIR and os.path.isfile(target):
+        file_to_send = target
+    else:
+        # Check indexed static assets with strict bounds checking
+        indexed = _STATIC_INDEX.get(clean_name) or _STATIC_INDEX.get(os.path.basename(clean_name))
+        if indexed and os.path.isfile(indexed) and os.path.commonpath([FRONTEND_DIR, os.path.realpath(indexed)]) == FRONTEND_DIR:
+            file_to_send = indexed
+
+    if file_to_send:
+        response = FileResponse(file_to_send)
+        if file_to_send.endswith(('.js', '.css', '.html')):
+            response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+            response.headers['Pragma'] = 'no-cache'
+            response.headers['Expires'] = '0'
+        return response
 
     raise HTTPException(status_code=404, detail="File not found")
 
@@ -91,4 +121,5 @@ if __name__ == '__main__':
     print(f"📚 ReDoc Specs:     http://localhost:{port}/redoc")
     print("=" * 55 + "\n")
     
-    uvicorn.run("backend.app:app", host='0.0.0.0', port=port, reload=debug_mode)
+    uvicorn.run("backend.app:app", host='0.0.0.0', port=port, reload=debug_mode, reload_dirs=[BASE_DIR, WORKSPACE_DIR])
+

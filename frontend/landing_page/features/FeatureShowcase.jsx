@@ -277,16 +277,16 @@ function FeatureShowcase() {
   const activeFeature = featuresData[activeIndex];
 
   return (
-    <div 
-      className="showcase-scroll-wrapper" 
+    <div
+      className="showcase-scroll-wrapper"
       ref={sectionRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
       <div className="showcase-pinned-stage" ref={containerRef}>
-        
+
         {/* Dynamic Multi-Color Ambient Backlight */}
-        <div 
+        <div
           className="showcase-ambient-glow primary-glow"
           style={{
             background: `radial-gradient(circle, ${activeFeature.glow} 0%, rgba(224, 242, 254, 0) 70%)`
@@ -318,8 +318,8 @@ function FeatureShowcase() {
 
           {/* CENTER COLUMN: 3D Studio Floating Device Mockup */}
           <main className="showcase-center-visual">
-            <div 
-              className="showcase-mockup-studio" 
+            <div
+              className="showcase-mockup-studio"
               ref={centerMockupRef}
               style={{
                 transform: `perspective(1200px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
@@ -329,7 +329,7 @@ function FeatureShowcase() {
             >
               {/* Studio Device Frame */}
               <div className="studio-frame-shell">
-                
+
                 {/* Browser Acrylic Top Bar */}
                 <div className="studio-topbar">
                   <div className="studio-controls">
@@ -364,7 +364,7 @@ function FeatureShowcase() {
                         className="studio-img-asset"
                         loading={idx === 0 ? "eager" : "lazy"}
                       />
-                      
+
                       {/* Floating Glass Tag on the image */}
                       <div className="studio-floating-tag" style={{ background: feature.gradient }}>
                         <span className="tag-icon">{feature.icon}</span>
@@ -372,7 +372,7 @@ function FeatureShowcase() {
                       </div>
                     </div>
                   ))}
-                  
+
                   {/* Screen Glare Layer */}
                   <div className="studio-screen-glare" />
                 </div>

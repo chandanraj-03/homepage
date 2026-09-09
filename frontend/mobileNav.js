@@ -120,24 +120,6 @@
         }
         updateActiveMobileLink();
 
-        // Support Tab Gate: Hide Support tab by default for visitors without purchase
-        function updateSupportNavVisibility(isBuyer) {
-            if (isBuyer) {
-                document.body.classList.add('buyer-verified');
-            } else {
-                document.body.classList.remove('buyer-verified');
-            }
-            document.querySelectorAll('a[href*="support.html"]').forEach(link => {
-                const parentLi = link.closest('li');
-                if (parentLi) {
-                    parentLi.style.display = isBuyer ? '' : 'none';
-                } else {
-                    link.style.display = isBuyer ? '' : 'none';
-                }
-            });
-        }
-        updateSupportNavVisibility(false);
-
         // 5. Dual-Target Supabase Authentication State Synchronization
         if (window.PrivCloudAuth) {
             const updateAuthElements = (session) => {
@@ -145,11 +127,6 @@
                     const user = session.user;
                     const meta = user.user_metadata || {};
                     let displayName = meta.full_name || meta.name || user.email?.split('@')[0] || 'User';
-
-                    // Verify buyer license status
-                    const plan = (meta.plan_tier || meta.plan || "").toLowerCase();
-                    const isBuyer = (plan === 'pro' || plan === 'basic' || meta.is_vip || meta.is_admin || (user.email && (user.email.includes('admin') || user.email.includes('pro'))));
-                    updateSupportNavVisibility(isBuyer);
 
                     const renderAuthUI = (name) => {
                         // Desktop Nav Actions
@@ -199,7 +176,7 @@
                             if (res && res.fullName) {
                                 renderAuthUI(res.fullName);
                             }
-                        }).catch(() => {});
+                        }).catch(() => { });
                     }
                 }
             };
