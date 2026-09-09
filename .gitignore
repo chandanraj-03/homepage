@@ -3,6 +3,8 @@
 __pycache__/
 *.pyc
 .venv/
+node_modules/
+
 
 # Environment & Secrets
 .env

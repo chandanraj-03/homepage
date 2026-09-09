@@ -127,6 +127,10 @@ function initNavbarAuth() {
 
                 renderNav(displayName);
 
+                if (user.email) {
+                    checkUserActiveLicense(user.email);
+                }
+
                 if (!meta.full_name && user.email && window.PrivCloudAuth.resolveIdentifier) {
                     window.PrivCloudAuth.resolveIdentifier(user.email).then(res => {
                         if (res && res.fullName) {
@@ -146,6 +150,59 @@ function initNavbarAuth() {
             });
         }
     }
+}
+
+/**
+ * Check if the logged-in user owns an active Basic or Pro license,
+ * and if so, change all "Buy" buttons to "Your Keys and Products".
+ */
+async function checkUserActiveLicense(userEmail) {
+    if (!userEmail) return;
+    try {
+        const headers = {};
+        if (window.PrivCloudAuth && window.PrivCloudAuth.getSession) {
+            const session = await window.PrivCloudAuth.getSession();
+            if (session && session.access_token) {
+                headers['Authorization'] = `Bearer ${session.access_token}`;
+            }
+        }
+        const licenseEndpoint = `/api/payment/my-license?user_email=${encodeURIComponent(userEmail)}`;
+        const licenseUrl = (window.getPrivCloudApiUrl ? window.getPrivCloudApiUrl(licenseEndpoint) : (window.location.protocol === 'file:' ? 'http://localhost:5001' + licenseEndpoint : licenseEndpoint));
+        const res = await fetch(licenseUrl, { headers });
+        const data = await res.json();
+        if (data && data.has_license) {
+            const tier = (data.tier || '').toUpperCase();
+            if (tier === 'BASIC' || tier === 'PRO') {
+                updateButtonsForLicensedUser(data);
+            }
+        }
+    } catch (err) {
+        console.warn('[PrivCloud] Error checking user license:', err);
+    }
+}
+
+function updateButtonsForLicensedUser(licenseData) {
+    const buyButtonIds = [
+        'btn-hero-pro',
+        'btn-pricing-basic',
+        'btn-pricing-pro',
+        'btn-cta-pro',
+        'btn-cta-basic'
+    ];
+
+    const targetPlan = licenseData.plan_id || (licenseData.tier === 'PRO' ? '6b2f8c1a9d4e07bf' : '4d9e1a7b0c3f8e2a');
+
+    buyButtonIds.forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+            btn.innerHTML = `<span class="btn-icon">🔑</span> Your Keys and Products`;
+            btn.onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                window.location.href = `../purchase_page/purchase.html?plan=${encodeURIComponent(targetPlan)}`;
+            };
+        }
+    });
 }
 
 /* ==========================================================================

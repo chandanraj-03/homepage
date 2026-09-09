@@ -2,12 +2,19 @@
 Authentication & Configuration Router for PrivCloud.
 Handles dynamic Supabase config, email provider allowlist checks,
 username uniqueness verification, dual-identifier resolution (email or username),
-user profile registration, and OTP verification state updates.
+user profile registration, OTP verification state updates, and secure password reset.
 """
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
-from backend.config import SUPABASE_URL, SUPABASE_KEY, is_allowed_email_domain
+from backend.config import (
+    SUPABASE_URL,
+    SUPABASE_KEY,
+    SUPPORT_EMAIL,
+    ALLOWED_EMAIL_DOMAINS,
+    PLAN_TO_TIER_MAP,
+    is_allowed_email_domain
+)
 from backend.schemas import (
     EmailValidationRequest,
     UsernameCheckRequest,
@@ -28,17 +35,25 @@ from backend.users_db import (
     verify_user_otp,
     mark_user_verified,
     generate_username_suggestions,
-    update_user_password_admin
+    update_user_password_admin,
+    validate_and_consume_reset_token,
+    verify_supabase_user_token
 )
 
 router = APIRouter(prefix="/api", tags=["Authentication & Config"])
 
 @router.get("/config", summary="Get Public Runtime Config")
 async def get_config():
-    """Dynamically serve public runtime config without exposing secrets in static files."""
+    """
+    Dynamically serve public runtime config without exposing secrets in static files.
+    Exposes Supabase keys, allowed email domains, plan mappings, and support contact (Q-2, Q-3, M-3).
+    """
     return {
         'supabaseUrl': SUPABASE_URL,
-        'supabaseKey': SUPABASE_KEY
+        'supabaseKey': SUPABASE_KEY,
+        'allowedEmailDomains': sorted(list(ALLOWED_EMAIL_DOMAINS)),
+        'plans': PLAN_TO_TIER_MAP,
+        'supportEmail': SUPPORT_EMAIL
     }
 
 @router.post("/auth/validate-email", summary="Validate Email Domain")
@@ -71,8 +86,7 @@ async def check_username(payload: UsernameCheckRequest):
     
     valid_format, msg = validate_username_format(username)
     if not valid_format:
-        # Generate suggestions based on full_name if available
-        suggestions = generate_username_suggestions(base_username=username, full_name=full_name, limit=4)
+        suggestions = await generate_username_suggestions(base_username=username, full_name=full_name, limit=4)
         return JSONResponse(
             status_code=400,
             content={
@@ -83,9 +97,9 @@ async def check_username(payload: UsernameCheckRequest):
             }
         )
 
-    available = is_username_available(username)
+    available = await is_username_available(username)
     if not available:
-        suggestions = generate_username_suggestions(base_username=username, full_name=full_name, limit=4)
+        suggestions = await generate_username_suggestions(base_username=username, full_name=full_name, limit=4)
         return JSONResponse(
             status_code=409,
             content={
@@ -116,19 +130,12 @@ async def resolve_auth_identifier(payload: IdentifierResolveRequest):
             content={'found': False, 'message': 'Identifier cannot be empty.'}
         )
 
-    user = resolve_identifier(ident)
+    user = await resolve_identifier(ident)
     if not user:
-        # If it looks like an email, we return the email itself so Supabase can attempt authentication
-        if '@' in ident:
-            return {
-                'found': True,
-                'email': ident,
-                'username': ident.split('@')[0],
-                'full_name': ident.split('@')[0]
-            }
+        msg = f"No account found with email '{ident}'." if '@' in ident else f"No account found with username '@{ident}'."
         return JSONResponse(
             status_code=404,
-            content={'found': False, 'message': f"No account found with username '@{ident}'."}
+            content={'found': False, 'message': msg}
         )
 
     return {
@@ -170,19 +177,16 @@ async def register_profile(payload: RegisterProfileRequest):
             content={'success': False, 'message': msg}
         )
 
-    success, msg, record = register_user(full_name, username, email, is_verified=False)
+    success, msg, record = await register_user(full_name, username, email, is_verified=False)
     if not success:
         return JSONResponse(
             status_code=409,
             content={'success': False, 'message': msg}
         )
 
-    # Automatically generate and dispatch fresh dynamic OTP
-    generate_user_otp(email)
-
     return {
         'success': True,
-        'message': 'Profile registered successfully. Confirmation code sent.',
+        'message': 'Profile registered successfully. Awaiting account confirmation.',
         'profile': record
     }
 
@@ -194,7 +198,7 @@ async def verify_profile(payload: VerifyProfileRequest):
     email = payload.email.strip()
     username = payload.username.strip() if payload.username else None
     
-    updated = mark_user_verified(email=email, username=username)
+    updated = await mark_user_verified(email=email, username=username)
     return {
         'success': updated,
         'message': 'Profile verification status updated.' if updated else 'Profile not found.'
@@ -212,14 +216,15 @@ async def forgot_password(payload: ForgotPasswordRequest):
             content={'success': False, 'message': 'Please enter your email or username.'}
         )
 
-    user = resolve_identifier(ident)
-    target_email = user.get('email') if user else (ident if '@' in ident else None)
-
-    if not target_email:
+    user = await resolve_identifier(ident)
+    if not user:
+        msg = f"No account found with email '{ident}'." if '@' in ident else f"No account found with username '@{ident}'."
         return JSONResponse(
             status_code=404,
-            content={'success': False, 'message': f"No account found associated with '{ident}'."}
+            content={'success': False, 'message': msg}
         )
+
+    target_email = user.get('email')
 
     return {
         'success': True,
@@ -231,21 +236,27 @@ async def forgot_password(payload: ForgotPasswordRequest):
 async def verify_otp_endpoint(payload: VerifyOtpRequest):
     """
     Verify user 6-digit confirmation code.
+    If verifying for password reset/recovery, generates a secure single-use reset token (S-2).
     """
     email = payload.email.strip()
     code = payload.code.strip()
+    otp_type = (payload.type or "signup").strip().lower()
     
-    success, message = verify_user_otp(email=email, code=code)
+    success, message, reset_token = await verify_user_otp(email=email, code=code, otp_type=otp_type)
     if not success:
         return JSONResponse(
             status_code=400,
             content={'success': False, 'message': message}
         )
         
-    return {
+    result = {
         'success': True,
-        'message': 'Code verified successfully.'
+        'message': message
     }
+    if reset_token:
+        result['reset_token'] = reset_token
+
+    return result
 
 @router.post("/auth/resend-otp", summary="Resend OTP Code")
 async def resend_otp_endpoint(payload: ResendOtpRequest):
@@ -253,7 +264,14 @@ async def resend_otp_endpoint(payload: ResendOtpRequest):
     Generate and resend OTP code for email.
     """
     email = payload.email.strip()
-    otp = generate_user_otp(email)
+    if not is_allowed_email_domain(email):
+        return JSONResponse(
+            status_code=400,
+            content={'success': False, 'message': 'Invalid email domain.'}
+        )
+
+    otp_type = (payload.type or "signup").strip().lower()
+    otp = await generate_user_otp(email, purpose=otp_type)
     
     return {
         'success': True,
@@ -261,13 +279,16 @@ async def resend_otp_endpoint(payload: ResendOtpRequest):
     }
 
 @router.post("/auth/update-password", summary="Update User Password")
-async def update_password_endpoint(payload: UpdatePasswordRequest):
+async def update_password_endpoint(payload: UpdatePasswordRequest, request: Request):
     """
     Secure backend endpoint to update a user's password using Supabase Service Role Admin API.
-    Used during password reset flow after successful OTP verification.
+    Guarded by:
+    1. Single-use reset_token issued by verify-otp, OR
+    2. Active Supabase Auth Bearer token matching the user email (S-2).
     """
-    email = payload.email.strip()
+    email = payload.email.strip().lower()
     new_password = payload.new_password.strip()
+    reset_token = (payload.reset_token or "").strip()
     
     if not email:
         return JSONResponse(
@@ -280,8 +301,28 @@ async def update_password_endpoint(payload: UpdatePasswordRequest):
             status_code=400,
             content={'success': False, 'message': 'Password must be at least 6 characters long.'}
         )
+
+    # Validate authorization: Check reset_token or Bearer token
+    auth_header = request.headers.get("Authorization", "")
+    bearer_token = auth_header.split("Bearer ")[-1].strip() if "Bearer " in auth_header else ""
+    
+    is_authorized = False
+    if reset_token:
+        is_authorized = validate_and_consume_reset_token(email, reset_token)
+    
+    if not is_authorized and bearer_token:
+        is_authorized = await verify_supabase_user_token(bearer_token, email)
+
+    if not is_authorized:
+        return JSONResponse(
+            status_code=401,
+            content={
+                'success': False,
+                'message': 'Unauthorized. A verified confirmation code or active session is required to update password.'
+            }
+        )
         
-    success, message = update_user_password_admin(email=email, new_password=new_password)
+    success, message = await update_user_password_admin(email=email, new_password=new_password)
     if not success:
         return JSONResponse(
             status_code=400,

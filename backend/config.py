@@ -13,35 +13,24 @@ if hasattr(sys.stdout, 'reconfigure'):
     except Exception:
         pass
 
+from dotenv import load_dotenv
+
 # Paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 WORKSPACE_DIR = os.path.abspath(os.path.join(BASE_DIR, '..'))
 FRONTEND_DIR = os.path.abspath(os.path.join(WORKSPACE_DIR, 'frontend'))
 
-# Load environment variables from .env
+# Load environment variables from .env using standard python-dotenv
 env_path = os.path.join(WORKSPACE_DIR, '.env')
 if os.path.exists(env_path):
-    with open(env_path, 'r', encoding='utf-8') as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith('#'):
-                continue
-            if '=' in line:
-                key, val = line.split('=', 1)
-            elif ':' in line:
-                key, val = line.split(':', 1)
-            else:
-                continue
-            k = key.strip().upper().replace(' ', '_')
-            v = val.strip().strip('"').strip("'")
-            os.environ[k] = v
+    load_dotenv(env_path, override=False)
 
-# Supabase Configuration
+# Supabase Configuration (Strictly from Environment)
 SUPABASE_URL = (
     os.environ.get('SUPABASE_URL') or 
     os.environ.get('PROJECT_URL') or 
     os.environ.get('NEXT_PUBLIC_SUPABASE_URL') or 
-    'https://qrxjyvezlotjwggtgoqe.supabase.co'
+    ''
 ).strip()
 
 SUPABASE_KEY = (
@@ -49,7 +38,7 @@ SUPABASE_KEY = (
     os.environ.get('SUPABASE_ANON_KEY') or 
     os.environ.get('PUBLISHABLE_KEY') or 
     os.environ.get('NEXT_PUBLIC_SUPABASE_ANON_KEY') or 
-    'sb_publishable_TBuxXwl_-StgMpP1deF7zw_2Z9izNgU'
+    ''
 ).strip()
 
 SUPABASE_SERVICE_ROLE_KEY = (
@@ -57,6 +46,53 @@ SUPABASE_SERVICE_ROLE_KEY = (
     os.environ.get('SERVICE_ROLE_KEY') or
     ''
 ).strip()
+
+# Prefer service role key for backend operations if configured, otherwise use standard anon key
+ACTIVE_SUPABASE_KEY = SUPABASE_SERVICE_ROLE_KEY or SUPABASE_KEY
+
+# Fail-fast notice if critical credentials are not configured
+if not SUPABASE_URL:
+    print("[PrivCloud Config] WARNING: SUPABASE_URL is not set in environment variables.")
+if not SUPABASE_KEY:
+    print("[PrivCloud Config] WARNING: SUPABASE_KEY is not set in environment variables.")
+
+# Centralized Plan to Tier Mapping
+PLAN_TO_TIER_MAP = {
+    'trial': 'TRIAL',
+    'free': 'TRIAL',
+    'free_trial': 'TRIAL',
+    'free-trial': 'TRIAL',
+    '9a8f10e7b9c2d4a6': 'TRIAL',
+    'basic': 'BASIC',
+    '4d9e1a7b0c3f8e2a': 'BASIC',
+    'pro': 'PRO',
+    '6b2f8c1a9d4e07bf': 'PRO'
+}
+
+def get_supabase_headers(prefer: str | None = None) -> dict[str, str]:
+    """Generate authenticated headers for Supabase REST and Admin API requests."""
+    h = {
+        "apikey": ACTIVE_SUPABASE_KEY,
+        "Authorization": f"Bearer {ACTIVE_SUPABASE_KEY}",
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+    }
+    if prefer:
+        h["Prefer"] = prefer
+    return h
+
+# Support & Contact Configuration
+SUPPORT_EMAIL = os.environ.get('SUPPORT_EMAIL', 'privcloud0@gmail.com').strip()
+
+# CORS Allowed Origins
+ALLOWED_ORIGINS_RAW = os.environ.get(
+    'ALLOWED_ORIGINS',
+    'http://localhost:5001,http://127.0.0.1:5001,http://localhost:3000,http://127.0.0.1:3000,http://localhost:5500,http://127.0.0.1:5500,http://localhost:8000,http://127.0.0.1:8000,https://privcloud.io'
+).strip()
+ALLOWED_ORIGINS = [o.strip() for o in ALLOWED_ORIGINS_RAW.split(',') if o.strip()]
+for origin in ('null', 'http://localhost:5500', 'http://127.0.0.1:5500', 'http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:8000', 'http://127.0.0.1:8000'):
+    if origin not in ALLOWED_ORIGINS:
+        ALLOWED_ORIGINS.append(origin)
 
 # Razorpay Configuration
 RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID', '').strip()
@@ -66,12 +102,38 @@ razorpay_client = None
 if RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET:
     try:
         import razorpay
-        razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
-        print("[PrivCloud] Razorpay client initialized on backend.")
+        import requests
+        from requests.adapters import HTTPAdapter
+        from urllib3.util.retry import Retry
+
+        client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+        if hasattr(client, 'session') and isinstance(client.session, requests.Session):
+            retry_strategy = Retry(
+                total=3,
+                backoff_factor=0.3,
+                status_forcelist=[500, 502, 503, 504],
+                raise_on_status=False
+            )
+            adapter = HTTPAdapter(max_retries=retry_strategy)
+            client.session.mount('https://', adapter)
+            client.session.mount('http://', adapter)
+        razorpay_client = client
+        print("[PrivCloud] Resilient Razorpay client initialized on backend.")
     except Exception as e:
         print(f"[PrivCloud] Razorpay client could not be initialized: {e}")
 else:
     print("[PrivCloud] Razorpay credentials missing in environment variables.")
+
+# Free Trial Duration Configuration
+TRIAL_DAYS = int(os.environ.get('TRIAL_DAYS', '14'))
+
+# Product Download URL (Supabase Windows Installer)
+PRODUCT_DOWNLOAD_URL = (
+    os.environ.get('PRODUCT_DOWNLOAD_URL') or
+    os.environ.get('PRODUCT_URL') or
+    'https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/PrivCloud_Setup.exe'
+).strip()
+
 
 # Hybrid GitHub RAG Backend Configuration
 RAG_BACKEND_URL = os.environ.get('RAG_BACKEND_URL', 'https://hybrid-github-rag-backend.onrender.com').strip().rstrip('/')

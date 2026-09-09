@@ -42,7 +42,6 @@
             <li><a href="../product_page/product.html">App</a></li>
             <li><a href="../demo_page/demo.html">Guide & Demo</a></li>
             <li><a href="../feedback_page/feedback.html">Feedback</a></li>
-            <li><a href="../support_page/support.html" style="color: #0284c7; font-weight: 700;">Support 🎧</a></li>
         </ul>
         <div class="nav-actions" id="user-badge-container">
             <a href="../auth_page/auth.html#e9b4c0f81d3ea72a" class="btn-login">Login</a>
@@ -101,15 +100,6 @@
                     <div class="mobile-nav-link-left">
                         <span class="mobile-nav-link-icon">⭐</span>
                         <span>Feedback</span>
-                    </div>
-                    <span class="mobile-nav-link-arrow">→</span>
-                </a>
-            </li>
-            <li>
-                <a href="../support_page/support.html" class="mobile-nav-link">
-                    <div class="mobile-nav-link-left">
-                        <span class="mobile-nav-link-icon">🎧</span>
-                        <span>Customer Support</span>
                     </div>
                     <span class="mobile-nav-link-arrow">→</span>
                 </a>
@@ -293,43 +283,122 @@
 
                 </div>
 
-                <!-- License Generation Success Box -->
-                <div id="license-success-box" class="license-success-box">
-                    <div style="font-size: 2.8rem; margin-bottom: 10px;">🎉</div>
-                    <h3 style="font-size: 1.5rem; font-weight: 800; color: #0f172a;" id="success-plan-title">License Key Generated!</h3>
-                    <p style="font-size: 0.92rem; color: #475569; margin-top: 4px;">
-                        Your product key is ready and linked to your account.
+                <!-- Payment Success & Fulfillment Box -->
+                <div id="license-success-box" class="license-success-box" style="display: none;">
+                    <div class="success-icon-badge">🎉</div>
+                    <span class="order-verified-pill">✅ Payment Verified & Confirmed</span>
+                    <h3 class="success-plan-title" id="success-plan-title">Order Confirmed!</h3>
+                    <p class="success-plan-desc" id="success-plan-desc">
+                        Your transaction was verified server-side. You can now download the installer and retrieve your unique product license key.
                     </p>
 
-                    <div>
-                        <div class="license-key-pill" id="display-license-key">PRIV-PRO-89F2-K49X-77A1</div>
+                    <!-- Order Reference Chips -->
+                    <div class="order-meta-chips" id="order-meta-chips">
+                        <span class="meta-chip">Order: <strong id="meta-order-id">#--</strong></span>
+                        <span class="meta-chip">Payment: <strong id="meta-payment-id">#--</strong></span>
+                        <span class="meta-chip meta-chip-tier">Tier: <strong id="meta-plan-tier">--</strong></span>
                     </div>
 
-                    <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
-                        <button onclick="triggerInstallerDownload()" class="btn-download-installer">
-                            <span>⬇️ Download PrivCloud_Setup.exe</span>
+                    <!-- The Two Primary Action Buttons -->
+                    <div class="fulfillment-actions-grid">
+                        <!-- Button 1: Download Product -->
+                        <button id="btn-download-product" class="fulfillment-btn btn-download-product" onclick="handleDownloadProduct()">
+                            <div class="btn-icon-circle">⬇️</div>
+                            <div class="btn-text-block">
+                                <span class="btn-primary-title">Download Product</span>
+                                <span class="btn-secondary-desc">PrivCloud_Setup.exe · Supabase</span>
+                            </div>
                         </button>
-                        <button id="btn-download-cert" class="btn-download-installer" style="background: var(--grad-primary);">
-                            <span>📄 Download License Certificate</span>
+
+                        <!-- Button 2: Get Product Key -->
+                        <button id="btn-get-product-key" class="fulfillment-btn btn-get-key" onclick="handleGetProductKey()">
+                            <div class="btn-icon-circle">🔑</div>
+                            <div class="btn-text-block">
+                                <span class="btn-primary-title" id="btn-key-title">Get Product Key</span>
+                                <span class="btn-secondary-desc" id="btn-key-desc">Retrieve key from database</span>
+                            </div>
                         </button>
                     </div>
 
-                    <!-- Post-Purchase Support & Feedback Actions -->
-                    <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 14px;">
-                        <a href="../feedback_page/feedback.html" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 12px; font-size: 0.88rem; font-weight: 700; background: rgba(2, 132, 199, 0.1); color: #0284c7; border: 1px solid rgba(2, 132, 199, 0.3); transition: all 0.2s;">
-                            <span>⭐ Give Feedback / Review</span>
-                        </a>
-                        <a href="../support_page/support.html" style="text-decoration: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 12px; font-size: 0.88rem; font-weight: 700; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; border: none; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25); transition: all 0.2s;">
-                            <span>🎧 Connect to VIP Customer Support</span>
-                        </a>
+                    <!-- Product Key Reveal Vault (Appears upon clicking 'Get Product Key') -->
+                    <div id="product-key-vault" class="product-key-vault" style="display: none;">
+                        <div class="vault-header">
+                            <span class="vault-title">🔐 Your Assigned Product Key</span>
+                            <span class="vault-tier-badge" id="vault-tier-badge">PRO</span>
+                        </div>
+                        <div class="vault-key-display">
+                            <span class="vault-key-code" id="display-license-key">RETRIEVING...</span>
+                            <button id="btn-copy-key" class="btn-copy-key" onclick="copyProductKey()" title="Copy to clipboard">
+                                <span id="copy-btn-icon">📋</span>
+                                <span id="copy-btn-text">Copy</span>
+                            </button>
+                        </div>
+                        <div class="vault-status-bar" id="vault-status-bar">
+                            <span>Status: <strong>Issued</strong> · Ready for desktop installation</span>
+                        </div>
+
+                        <div class="vault-download-cert-row">
+                            <button id="btn-download-cert" class="btn-download-cert">
+                                <span>📄 Download License Certificate (.txt)</span>
+                            </button>
+                        </div>
                     </div>
 
-                    <div style="margin-top: 24px; text-align: left; background: rgba(15, 23, 42, 0.04); padding: 18px; border-radius: 14px;">
+                    <!-- Status Notification Banner inside Success Card -->
+                    <div id="fulfillment-alert" class="fulfillment-alert" style="display: none;"></div>
+
+                    <!-- Direct Dev Team Live Chat Section -->
+                    <div class="dev-chat-card" id="dev-chat-card" style="margin-top: 22px; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1.5px solid #cbd5e1; border-radius: 18px; padding: 20px; text-align: left; position: relative; overflow: hidden; box-shadow: 0 4px 18px rgba(0,0,0,0.04);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; flex-wrap: wrap;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 42px; height: 42px; border-radius: 50%; background: #2563eb; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 800; box-shadow: 0 2px 8px rgba(37,99,235,0.3);" id="dev-card-avatar">
+                                    👨‍💻
+                                </div>
+                                <div>
+                                    <h4 style="margin: 0; font-size: 1.05rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 6px;" id="dev-card-title">
+                                        <span>Direct Engineering Assistance</span>
+                                    </h4>
+                                    <span style="font-size: 0.8rem; color: #10b981; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                                        <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #10b981;"></span>
+                                        Dev Team Online & Ready to Help
+                                    </span>
+                                </div>
+                            </div>
+                            <span id="dev-chat-tier-badge" style="font-size: 0.76rem; font-weight: 800; padding: 4px 10px; border-radius: 20px; background: rgba(37,99,235,0.12); color: #2563eb; letter-spacing: 0.5px;">
+                                ⭐ BASIC LICENSE
+                            </span>
+                        </div>
+                        <p style="font-size: 0.86rem; color: #475569; line-height: 1.55; margin-bottom: 16px;" id="dev-card-desc">
+                            Need help with your Windows personal cloud node, drive mounting, or license verification? Chat 1-on-1 with our engineering team right now.
+                        </p>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                            <button type="button" id="btn-start-dev-chat" class="btn-dev-chat-primary" onclick="openCustomerSupportChat()">
+                                <span>💬 Chat with Dev Team Now</span>
+                                <span>➔</span>
+                            </button>
+                            <button type="button" onclick="openFullscreenSupport()" style="display: inline-flex; align-items: center; gap: 6px; padding: 11px 16px; border-radius: 12px; font-size: 0.88rem; font-weight: 700; background: #ffffff; color: #334155; border: 1px solid #cbd5e1; cursor: pointer; transition: all 0.2s;">
+                                <span>Fullscreen Desk ↗</span>
+                            </button>
+                            <a href="../feedback_page/feedback.html" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 11px 16px; border-radius: 12px; font-size: 0.88rem; font-weight: 700; background: rgba(2, 132, 199, 0.08); color: #0284c7; border: 1px solid rgba(2, 132, 199, 0.25); transition: all 0.2s;">
+                                <span>⭐ Feedback</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Reset / Order for Another PC Option -->
+                    <div style="margin-top: 14px; text-align: center;">
+                        <button type="button" id="btn-reset-order" onclick="resetOrderSession()" style="background: none; border: none; color: #64748b; font-size: 0.82rem; font-weight: 600; cursor: pointer; text-decoration: underline; padding: 6px 12px; transition: color 0.2s;">
+                            🔄 Activate for Another Device or Select Another Plan
+                        </button>
+                    </div>
+
+                    <!-- 3-Step Setup Instructions -->
+                    <div style="margin-top: 22px; text-align: left; background: rgba(15, 23, 42, 0.04); padding: 18px; border-radius: 14px;">
                         <h4 style="font-size: 0.92rem; font-weight: 800; color: #0f172a; margin-bottom: 8px;">⚡ 3-Step Setup Instructions:</h4>
                         <ol style="font-size: 0.85rem; color: #475569; padding-left: 18px; line-height: 1.6;">
                             <li>Run <code>PrivCloud_Setup.exe</code> on your Windows 10/11 PC.</li>
-                            <li>Open <code>Settings.bat</code> from your desktop and enter your License Key.</li>
-                            <li>Select your storage drive and scan the QR code to pair your phone!</li>
+                            <li>Open <code>Settings.bat</code> from your desktop and enter your Product Key.</li>
+                            <li>Select your storage drive and start your private personal cloud!</li>
                         </ol>
                     </div>
                 </div>
@@ -405,14 +474,40 @@
                 <button onclick="redirectToAuth()" class="btn-action-checkout">
                     <span>Sign In or Register ➔</span>
                 </button>
-                <a href="../product_page/product.html" style="font-size: 0.9rem; color: #64748b; text-decoration: none; margin-top: 6px;">Return to Product Page</a>
+                <a href="../product_page/product.html" style="font-size: 0.9rem; color: #64748b; text-decoration: none; margin-top: 12px;">Return to Product Page</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- In-Page Live Dev Support Chat Modal -->
+    <div id="dev-support-chat-modal" class="dev-chat-modal-backdrop" style="display: none;">
+        <div class="dev-chat-modal-window">
+            <div class="dev-chat-modal-header">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 1.3rem;">💬</span>
+                    <div>
+                        <div style="font-size: 0.95rem; font-weight: 700; color: #ffffff;">PrivCloud Developer Support</div>
+                        <div style="font-size: 0.75rem; color: rgba(255,255,255,0.85); display: flex; align-items: center; gap: 5px;">
+                            <span style="width: 6px; height: 6px; border-radius: 50%; background: #22c55e; display: inline-block;"></span>
+                            Live Engineering Desk · WebSocket Connected
+                        </div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button type="button" onclick="openFullscreenSupport()" style="color: rgba(255,255,255,0.9); background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer;" title="Open in fullscreen">Pop out ↗</button>
+                    <button type="button" onclick="closeCustomerSupportChat()" style="background: rgba(255,255,255,0.18); border: none; color: #ffffff; width: 32px; height: 32px; border-radius: 8px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Close Chat">&times;</button>
+                </div>
+            </div>
+            <div class="dev-chat-modal-body">
+                <iframe id="dev-support-iframe" src="about:blank" style="width: 100%; height: 100%; border: none; display: block;" title="Live Support Chat"></iframe>
             </div>
         </div>
     </div>
 
     <!-- Scripts -->
-    <script src="purchase.js?v=10"></script>
-    <script src="../landing_page/chatbot/chatbot.js?v=26"></script>
+    <script src="purchase.js?v=11"></script>
+    <script src="../landing_page/chatbot/supportChat.js?v=28"></script>
+    <script src="../landing_page/chatbot/chatbot.js?v=28"></script>
 
 </body>
 

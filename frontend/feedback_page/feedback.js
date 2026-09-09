@@ -364,7 +364,9 @@
         };
 
         try {
-            const res = await fetch('/api/feedback', {
+            const fbEndpoint = '/api/feedback';
+            const fbUrl = (window.getPrivCloudApiUrl ? window.getPrivCloudApiUrl(fbEndpoint) : (window.location.protocol === 'file:' ? 'http://localhost:5001' + fbEndpoint : fbEndpoint));
+            const res = await fetch(fbUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)

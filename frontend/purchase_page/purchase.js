@@ -6,6 +6,17 @@ let currentPlan = '9a8f10e7b9c2d4a6';
 let currentUser = null;
 let trialDonationMode = 'skip'; // 'skip' or 'donate'
 let selectedDonationAmount = 99; // Default preset amount in INR
+let verifiedOrderSession = null;
+
+function resolveApiUrl(path) {
+    if (typeof window !== 'undefined' && window.getPrivCloudApiUrl) {
+        return window.getPrivCloudApiUrl(path);
+    }
+    if (typeof window !== 'undefined' && (window.location.protocol === 'file:' || (window.location.port && window.location.port !== '5001'))) {
+        return `http://localhost:5001${path.startsWith('/') ? path : '/' + path}`;
+    }
+    return path;
+}
 
 // 16-Character Secure Plan Token Mapping
 const PLAN_ALIAS_MAP = {
@@ -124,6 +135,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (checkoutBtn) {
         checkoutBtn.addEventListener('click', handleOrderSubmission);
     }
+
+    // 7. Check for restored verified payment session for current authenticated user
+    await restoreVerifiedOrderSession();
 });
 
 /**
@@ -290,6 +304,15 @@ async function handleSignOut() {
     if (window.PrivCloudAuth) {
         await window.PrivCloudAuth.signOut();
     }
+    // Cleanly purge all cached verified orders from session storage
+    try {
+        sessionStorage.removeItem('pc_verified_order');
+        Object.keys(sessionStorage).forEach(k => {
+            if (k.startsWith('pc_verified_order')) {
+                sessionStorage.removeItem(k);
+            }
+        });
+    } catch (e) {}
     window.location.href = '../index.html';
 }
 
@@ -376,11 +399,48 @@ function renderPlan(planId) {
         }
     }
 
-    // Hide previous success if switching plans
+    // Ensure product and product key remain permanently visible once generated
     const successBox = document.getElementById('license-success-box');
     const checkoutForm = document.getElementById('checkout-interactive-form');
-    if (successBox) successBox.style.display = 'none';
-    if (checkoutForm) checkoutForm.style.display = 'block';
+    const vault = document.getElementById('product-key-vault');
+    const keyDisplay = document.getElementById('display-license-key');
+    const tierBadge = document.getElementById('vault-tier-badge');
+    const successTitle = document.getElementById('success-plan-title');
+
+    if (verifiedOrderSession && (verifiedOrderSession.retrievedKey || verifiedOrderSession.orderId)) {
+        // Product & Product key have been generated: ALWAYS keep them visible regardless of selected plan!
+        if (successBox) successBox.style.display = 'block';
+        if (vault) vault.style.display = 'block';
+        if (checkoutForm) checkoutForm.style.display = 'none';
+
+        if (verifiedOrderSession.retrievedKey) {
+            if (keyDisplay) keyDisplay.textContent = verifiedOrderSession.retrievedKey;
+            if (tierBadge) tierBadge.textContent = verifiedOrderSession.tier || 'PRO';
+            const keyBtn = document.getElementById('btn-get-product-key');
+            const keyTitle = document.getElementById('btn-key-title');
+            const keyDesc = document.getElementById('btn-key-desc');
+            if (keyBtn) keyBtn.classList.add('retrieved');
+            if (keyTitle) keyTitle.textContent = 'Key Retrieved ✅';
+            if (keyDesc) keyDesc.textContent = `Assigned key: ${verifiedOrderSession.retrievedKey}`;
+        }
+
+        const purchasedPlan = verifiedOrderSession.plan || PLANS_DATA[currentPlan];
+        const isSamePlan = (purchasedPlan && (purchasedPlan.id === planId || purchasedPlan.name === plan.name));
+
+        if (successTitle) {
+            if (isSamePlan) {
+                successTitle.innerHTML = `<span>🎉 ${purchasedPlan.name} Activated!</span>`;
+            } else {
+                successTitle.innerHTML = `<span>🎉 ${purchasedPlan.name} Activated!</span><br><span style="font-size: 0.92rem; font-weight: 600; color: #64748b;">(Viewing features for: ${plan.name} · Your product key is kept active below)</span>`;
+            }
+        }
+
+        const normalizedTier = (verifiedOrderSession.tier || '').toLowerCase().includes('pro') ? 'pro' : 'basic';
+        updateDevChatCard(normalizedTier, purchasedPlan.name, verifiedOrderSession.orderId || '');
+    } else {
+        if (successBox) successBox.style.display = 'none';
+        if (checkoutForm) checkoutForm.style.display = 'block';
+    }
 }
 
 /**
@@ -396,10 +456,38 @@ async function handleOrderSubmission() {
     if (plan.isFree && trialDonationMode === 'skip') {
         submitBtn.disabled = true;
         submitBtn.innerHTML = `<span>⏳ Activating Free Trial...</span>`;
-        await new Promise(r => setTimeout(r, 600));
-        onPaymentSuccess(plan, 'FREE_TRIAL', 0);
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = originalBtnHtml;
+        try {
+            const userEmail = currentUser ? currentUser.email : '';
+            let trialOrderId = `trial_${Date.now()}`;
+            let trialPaymentId = 'FREE_TRIAL';
+
+            try {
+                const trialRes = await fetch(resolveApiUrl('/api/create-trial-order'), {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        plan_id: plan.id,
+                        user_email: userEmail
+                    })
+                });
+                if (trialRes.ok) {
+                    const trialData = await trialRes.json();
+                    if (trialData && trialData.order_id) {
+                        trialOrderId = trialData.order_id;
+                        trialPaymentId = trialData.payment_id || 'FREE_TRIAL';
+                    }
+                }
+            } catch (apiErr) {
+                console.warn("[PrivCloud] /api/create-trial-order notice:", apiErr);
+            }
+
+            onPaymentSuccess(plan, trialOrderId, trialPaymentId, 0);
+        } catch (trialErr) {
+            showPaymentNotice('error', `❌ ${trialErr.message}`);
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnHtml;
+        }
         return;
     }
 
@@ -426,7 +514,7 @@ async function handleOrderSubmission() {
             donation_amount: isDonationOrder ? chargeAmount.toString() : '0'
         };
 
-        const createOrderRes = await fetch('/api/create-order', {
+        const createOrderRes = await fetch(resolveApiUrl('/api/create-order'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -485,13 +573,23 @@ async function handleOrderSubmission() {
                 submitBtn.innerHTML = `<span>🛡️ Verifying Payment Signature...</span>`;
 
                 try {
-                    const verifyRes = await fetch('/api/verify-payment', {
+                    const userEmail = currentUser ? (currentUser.email || '').toLowerCase() : '';
+                    const meta = currentUser ? (currentUser.user_metadata || {}) : {};
+                    const userUname = meta.username || (userEmail ? userEmail.split('@')[0] : '');
+                    const planTier = plan.name.includes('Pro') ? 'PRO' : (plan.name.includes('Basic') ? 'BASIC' : 'TRIAL');
+
+                    const verifyRes = await fetch(resolveApiUrl('/api/verify-payment'), {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             razorpay_order_id: response.razorpay_order_id,
                             razorpay_payment_id: response.razorpay_payment_id,
-                            razorpay_signature: response.razorpay_signature
+                            razorpay_signature: response.razorpay_signature,
+                            user_email: userEmail,
+                            username: userUname,
+                            plan_id: plan.id,
+                            tier: planTier,
+                            amount: isDonationOrder ? chargeAmount : plan.amountNum
                         })
                     });
 
@@ -501,7 +599,7 @@ async function handleOrderSubmission() {
                         showPaymentNotice('success', isDonationOrder 
                             ? '✅ Thank you for your generous contribution!' 
                             : '✅ Payment verified successfully!');
-                        onPaymentSuccess(plan, response.razorpay_payment_id, isDonationOrder ? chargeAmount : 0);
+                        onPaymentSuccess(plan, response.razorpay_order_id, response.razorpay_payment_id, isDonationOrder ? chargeAmount : 0);
                     } else {
                         showPaymentNotice('error', `❌ Payment verification failed: ${verifyData.message || 'Signature mismatch.'}`);
                         submitBtn.disabled = false;
@@ -536,19 +634,54 @@ async function handleOrderSubmission() {
 /**
  * Handle successful payment / license activation
  */
-function onPaymentSuccess(plan, paymentReference, donationAmount = 0) {
-    const generatedKey = generateLicenseKey(plan);
+function onPaymentSuccess(plan, orderId, paymentId, donationAmount = 0) {
+    const planTier = plan.name.includes('Pro') ? 'PRO' : (plan.name.includes('Basic') ? 'BASIC' : 'TRIAL');
+    const userEmail = currentUser ? (currentUser.email || '').toLowerCase() : '';
+    const userMeta = currentUser ? (currentUser.user_metadata || {}) : {};
+    const userUname = userMeta.username || (userEmail ? userEmail.split('@')[0] : '');
+
+    // Save verified session strictly scoped to the user
+    verifiedOrderSession = {
+        userEmail: userEmail,
+        username: userUname,
+        orderId: orderId,
+        paymentId: paymentId,
+        plan: plan,
+        tier: planTier,
+        donationAmount: donationAmount,
+        retrievedKey: (verifiedOrderSession && verifiedOrderSession.orderId === orderId) ? verifiedOrderSession.retrievedKey : null
+    };
+
+    try {
+        // Clear old un-scoped key
+        sessionStorage.removeItem('pc_verified_order');
+        if (userEmail) {
+            sessionStorage.setItem(`pc_verified_order_${encodeURIComponent(userEmail)}`, JSON.stringify(verifiedOrderSession));
+        }
+    } catch (e) {
+        console.warn("[PrivCloud] SessionStorage write warning:", e);
+    }
 
     // Hide checkout form and show success box
     const checkoutForm = document.getElementById('checkout-interactive-form');
     const successBox = document.getElementById('license-success-box');
-    const keyDisplay = document.getElementById('display-license-key');
     const successTitle = document.getElementById('success-plan-title');
+    const successDesc = document.getElementById('success-plan-desc');
+    const metaOrderId = document.getElementById('meta-order-id');
+    const metaPaymentId = document.getElementById('meta-payment-id');
+    const metaPlanTier = document.getElementById('meta-plan-tier');
+    const vault = document.getElementById('product-key-vault');
+    const keyBtn = document.getElementById('btn-get-product-key');
+    const keyTitle = document.getElementById('btn-key-title');
+    const keyDesc = document.getElementById('btn-key-desc');
 
     if (checkoutForm) checkoutForm.style.display = 'none';
     if (successBox) successBox.style.display = 'block';
-    if (keyDisplay) keyDisplay.textContent = generatedKey;
-    
+
+    if (metaOrderId) metaOrderId.textContent = `#${orderId}`;
+    if (metaPaymentId) metaPaymentId.textContent = `#${paymentId}`;
+    if (metaPlanTier) metaPlanTier.textContent = planTier;
+
     if (successTitle) {
         if (donationAmount > 0) {
             successTitle.innerHTML = `🤝 Thank You for Donating ₹${donationAmount.toLocaleString('en-IN')}!<br><span style="font-size: 1.15rem; font-weight: 700; color: #0284c7;">${plan.name} Activated!</span>`;
@@ -557,29 +690,347 @@ function onPaymentSuccess(plan, paymentReference, donationAmount = 0) {
         }
     }
 
-    // Bind License Certificate Download
-    const downloadCertBtn = document.getElementById('btn-download-cert');
-    if (downloadCertBtn) {
-        downloadCertBtn.onclick = () => downloadLicenseCertificate(plan.name, generatedKey, paymentReference, donationAmount);
+    if (successDesc) {
+        successDesc.innerHTML = `Your transaction was verified server-side. Your payment receipt and license confirmation have been sent to <strong>${userEmail || 'your email'}</strong>. Your installer and assigned product license key are permanently active below.`;
     }
-}
 
-/**
- * Generate cryptographic mock license key
- */
-function generateLicenseKey(plan) {
-    const randomHex = () => Math.random().toString(36).substring(2, 6).toUpperCase();
-    if (plan.id === '9a8f10e7b9c2d4a6' || plan.id === 'trial') {
-        return `${plan.keyPrefix}-${randomHex()}-${randomHex()}`;
-    } else if (plan.id === '4d9e1a7b0c3f8e2a' || plan.id === 'basic') {
-        return `${plan.keyPrefix}-${randomHex()}-${randomHex()}-${randomHex()}`;
+    // Always display both the product installer download and its product key!
+    if (verifiedOrderSession.retrievedKey) {
+        const keyDisplay = document.getElementById('display-license-key');
+        const tierBadge = document.getElementById('vault-tier-badge');
+        if (keyDisplay) keyDisplay.textContent = verifiedOrderSession.retrievedKey;
+        if (tierBadge) tierBadge.textContent = planTier;
+        if (vault) vault.style.display = 'block';
+        if (keyBtn) keyBtn.classList.add('retrieved');
+        if (keyTitle) keyTitle.textContent = 'Key Retrieved ✅';
+        if (keyDesc) keyDesc.textContent = `Assigned key: ${verifiedOrderSession.retrievedKey}`;
+
+        const downloadCertBtn = document.getElementById('btn-download-cert');
+        if (downloadCertBtn) {
+            downloadCertBtn.onclick = () => downloadLicenseCertificate(plan.name, verifiedOrderSession.retrievedKey, paymentId, donationAmount);
+        }
     } else {
-        return `${plan.keyPrefix}-${randomHex()}-${randomHex()}-${randomHex()}-${randomHex()}`;
+        // Vault is always displayed, and we automatically retrieve/generate the product key
+        if (vault) vault.style.display = 'block';
+        const keyDisplay = document.getElementById('display-license-key');
+        if (keyDisplay) keyDisplay.textContent = 'GENERATING PRODUCT KEY...';
+        handleGetProductKey();
+    }
+
+    // Persist verified customer info for Live Dev Team Chat
+    const customerDisplayName = userMeta.full_name || userMeta.name || userUname || (userEmail ? userEmail.split('@')[0] : 'Customer');
+    const isPaidPlan = !plan.isFree && !(planTier || '').toLowerCase().includes('trial');
+    const normalizedTier = isPaidPlan 
+        ? ((planTier || '').toLowerCase().includes('pro') ? 'pro' : 'basic')
+        : 'trial';
+    try {
+        localStorage.setItem('support_user_tier', normalizedTier);
+        if (userEmail) localStorage.setItem('support_customer_email', userEmail);
+        if (customerDisplayName) localStorage.setItem('support_customer_name', customerDisplayName);
+        localStorage.setItem('support_last_order_id', orderId);
+        localStorage.setItem('support_last_payment_id', paymentId);
+    } catch (_) {}
+
+    // Update Dev Team Chat Card based on purchased tier
+    updateDevChatCard(normalizedTier, plan.name, orderId);
+}
+
+/**
+ * 1. Download Product Action — downloads the product using its Supabase URL
+ */
+async function handleDownloadProduct() {
+    const btn = document.getElementById('btn-download-product');
+    const originalOpacity = btn.style.opacity;
+    
+    try {
+        btn.disabled = true;
+        btn.style.opacity = '0.75';
+        showFulfillmentAlert('info', '⏳ Generating authorized product download link...');
+
+        let downloadUrl = 'https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/PrivCloud_Setup.exe';
+        let filename = 'PrivCloud_Setup.exe';
+        let filesize = '37 MB';
+
+        try {
+            const orderId = verifiedOrderSession ? verifiedOrderSession.orderId : '';
+            const res = await fetch(resolveApiUrl(`/api/payment/download-product?order_id=${encodeURIComponent(orderId)}`));
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.download_url) {
+                    downloadUrl = data.download_url;
+                    filename = data.filename || filename;
+                    filesize = data.filesize_approx || filesize;
+                }
+            }
+        } catch (apiErr) {
+            console.warn("[PrivCloud] /api/payment/download-product notice:", apiErr);
+        }
+
+        // Initiate browser file download
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = filename;
+        a.target = '_blank';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        showFulfillmentAlert('success', `⬇️ Download started for <strong>${filename}</strong> (${filesize}). Check your browser downloads.`);
+    } catch (err) {
+        showFulfillmentAlert('error', `❌ Download failed: ${err.message}`);
+    } finally {
+        btn.disabled = false;
+        btn.style.opacity = originalOpacity || '1';
     }
 }
 
 /**
- * Trigger download of License Certificate text file
+ * 2. Get Product Key Action — retrieve a product key from Supabase
+ */
+async function handleGetProductKey() {
+    if (!verifiedOrderSession) {
+        showFulfillmentAlert('error', '⚠️ No verified payment session found. Please complete checkout first.');
+        return;
+    }
+
+    const keyBtn = document.getElementById('btn-get-product-key');
+    const keyTitle = document.getElementById('btn-key-title');
+    const keyDesc = document.getElementById('btn-key-desc');
+    const vault = document.getElementById('product-key-vault');
+    const keyDisplay = document.getElementById('display-license-key');
+    const tierBadge = document.getElementById('vault-tier-badge');
+
+    // If key already fetched, toggle vault visibility
+    if (verifiedOrderSession.retrievedKey) {
+        if (vault) vault.style.display = 'block';
+        if (keyDisplay) keyDisplay.textContent = verifiedOrderSession.retrievedKey;
+        keyBtn.classList.add('retrieved');
+        if (keyTitle) keyTitle.textContent = 'Key Retrieved ✅';
+        if (keyDesc) keyDesc.textContent = `Assigned key: ${verifiedOrderSession.retrievedKey}`;
+        return;
+    }
+
+    keyBtn.disabled = true;
+    if (keyTitle) keyTitle.textContent = 'Retrieving Key...';
+    if (keyDesc) keyDesc.textContent = 'Connecting to database...';
+    showFulfillmentAlert('info', '⏳ Securely assigning your product key from Supabase...');
+
+    try {
+        const userEmail = currentUser ? currentUser.email : '';
+        const plan = verifiedOrderSession.plan || PLANS_DATA[currentPlan];
+        const tier = verifiedOrderSession.tier || (plan.name.includes('Pro') ? 'PRO' : (plan.name.includes('Basic') ? 'BASIC' : 'TRIAL'));
+
+        const res = await fetch(resolveApiUrl('/api/payment/get-product-key'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                order_id: verifiedOrderSession.orderId,
+                payment_id: verifiedOrderSession.paymentId,
+                user_email: userEmail,
+                plan_id: plan.id,
+                tier: tier
+            })
+        });
+
+        if (res.status === 405) {
+            throw new Error('Please restart your Python server in the terminal (press Ctrl+C, then run python backend/app.py) so it loads the new Supabase endpoints.');
+        }
+
+        const data = await res.json();
+
+        if (res.ok && data.success && data.key) {
+            verifiedOrderSession.retrievedKey = data.key;
+            try {
+                if (currentUser && currentUser.email) {
+                    sessionStorage.setItem(`pc_verified_order_${encodeURIComponent(currentUser.email.toLowerCase())}`, JSON.stringify(verifiedOrderSession));
+                }
+            } catch (storeErr) {}
+
+            if (keyDisplay) keyDisplay.textContent = data.key;
+            if (tierBadge) tierBadge.textContent = data.tier || tier;
+            if (vault) vault.style.display = 'block';
+
+            keyBtn.classList.add('retrieved');
+            if (keyTitle) keyTitle.textContent = 'Key Retrieved ✅';
+            if (keyDesc) keyDesc.textContent = `Assigned key: ${data.key}`;
+
+            showFulfillmentAlert('success', `🔑 Product Key <strong>${data.key}</strong> retrieved and locked to your account!`);
+
+            // Bind License Certificate Download with actual key
+            const downloadCertBtn = document.getElementById('btn-download-cert');
+            if (downloadCertBtn) {
+                downloadCertBtn.onclick = () => downloadLicenseCertificate(plan.name, data.key, verifiedOrderSession.paymentId, verifiedOrderSession.donationAmount);
+            }
+        } else {
+            throw new Error(data.message || 'Could not retrieve key from database.');
+        }
+    } catch (err) {
+        showFulfillmentAlert('error', `❌ ${err.message}`);
+        if (keyTitle) keyTitle.textContent = 'Retry Get Product Key';
+        if (keyDesc) keyDesc.textContent = 'Click to try again';
+    } finally {
+        keyBtn.disabled = false;
+    }
+}
+
+/**
+ * 1-Click Copy Key to Clipboard
+ */
+function copyProductKey() {
+    const keyDisplay = document.getElementById('display-license-key');
+    const copyBtn = document.getElementById('btn-copy-key');
+    const copyIcon = document.getElementById('copy-btn-icon');
+    const copyText = document.getElementById('copy-btn-text');
+
+    if (!keyDisplay || !keyDisplay.textContent || keyDisplay.textContent.includes('...')) return;
+
+    const rawKey = keyDisplay.textContent.trim();
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(rawKey).then(() => {
+            if (copyBtn) copyBtn.classList.add('copied');
+            if (copyIcon) copyIcon.textContent = '✅';
+            if (copyText) copyText.textContent = 'Copied!';
+            setTimeout(() => {
+                if (copyBtn) copyBtn.classList.remove('copied');
+                if (copyIcon) copyIcon.textContent = '📋';
+                if (copyText) copyText.textContent = 'Copy';
+            }, 2500);
+        }).catch(() => {
+            fallbackCopyText(rawKey);
+        });
+    } else {
+        fallbackCopyText(rawKey);
+    }
+}
+
+function fallbackCopyText(text) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+        document.execCommand('copy');
+        alert("Product Key copied to clipboard: " + text);
+    } catch (err) {
+        prompt("Copy your product key:", text);
+    }
+    document.body.removeChild(textArea);
+}
+
+/**
+ * Show inline fulfillment alert banner
+ */
+function showFulfillmentAlert(type, message) {
+    const alertEl = document.getElementById('fulfillment-alert');
+    if (!alertEl) return;
+    alertEl.className = `fulfillment-alert ${type}`;
+    alertEl.innerHTML = `<span>${message}</span>`;
+    alertEl.style.display = 'block';
+}
+
+/**
+ * Restore verified session if user reloads page
+ */
+/**
+ * Restore verified session if user reloads page (strictly isolated per authenticated user)
+ */
+async function restoreVerifiedOrderSession() {
+    // 1. Purge legacy unscoped session key
+    try {
+        sessionStorage.removeItem('pc_verified_order');
+    } catch (e) {}
+
+    if (!currentUser || !currentUser.email) {
+        return;
+    }
+
+    const userEmail = (currentUser.email || '').toLowerCase().trim();
+    const userStorageKey = `pc_verified_order_${encodeURIComponent(userEmail)}`;
+
+    // 2. Check user-scoped sessionStorage
+    try {
+        const saved = sessionStorage.getItem(userStorageKey);
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            if (parsed && parsed.orderId && parsed.plan && (parsed.userEmail || '').toLowerCase() === userEmail) {
+                verifiedOrderSession = parsed;
+                onPaymentSuccess(parsed.plan, parsed.orderId, parsed.paymentId, parsed.donationAmount || 0);
+                return;
+            }
+        }
+    } catch (e) {
+        console.warn("[PrivCloud] Session restore error:", e);
+    }
+
+    // 3. Fallback: Query backend for this specific user's active verified order in Supabase
+    try {
+        const headers = {};
+        if (window.PrivCloudAuth && window.PrivCloudAuth.getSession) {
+            const session = await window.PrivCloudAuth.getSession();
+            if (session && session.access_token) {
+                headers['Authorization'] = `Bearer ${session.access_token}`;
+            }
+        }
+        const res = await fetch(resolveApiUrl(`/api/payment/my-license?user_email=${encodeURIComponent(userEmail)}`), { headers });
+        if (res.ok) {
+            const data = await res.json();
+            if (data && data.success && data.has_license && data.order_id) {
+                const tier = data.tier || 'TRIAL';
+                const planId = (tier === 'PRO') ? '6b2f8c1a9d4e07bf' : ((tier === 'BASIC') ? '4d9e1a7b0c3f8e2a' : '9a8f10e7b9c2d4a6');
+                const matchedPlan = PLANS_DATA[planId] || PLANS_DATA['9a8f10e7b9c2d4a6'];
+
+                verifiedOrderSession = {
+                    userEmail: userEmail,
+                    orderId: data.order_id,
+                    paymentId: data.payment_id || 'CONFIRMED',
+                    plan: matchedPlan,
+                    tier: tier,
+                    donationAmount: 0,
+                    retrievedKey: data.key || null
+                };
+
+                try {
+                    sessionStorage.setItem(userStorageKey, JSON.stringify(verifiedOrderSession));
+                } catch (storeErr) {}
+
+                onPaymentSuccess(matchedPlan, data.order_id, data.payment_id || 'CONFIRMED', 0);
+            }
+        }
+    } catch (apiErr) {
+        console.warn("[PrivCloud] /api/payment/my-license notice:", apiErr);
+    }
+}
+
+/**
+ * Reset order session to allow user to order for another PC or pick another plan
+ */
+function resetOrderSession() {
+    if (currentUser && currentUser.email) {
+        try {
+            sessionStorage.removeItem(`pc_verified_order_${encodeURIComponent(currentUser.email.toLowerCase())}`);
+        } catch (e) {}
+    }
+    try {
+        sessionStorage.removeItem('pc_verified_order');
+    } catch (e) {}
+    verifiedOrderSession = null;
+
+    const successBox = document.getElementById('license-success-box');
+    const checkoutForm = document.getElementById('checkout-interactive-form');
+    const vault = document.getElementById('product-key-vault');
+    const alertEl = document.getElementById('fulfillment-alert');
+
+    if (successBox) successBox.style.display = 'none';
+    if (vault) vault.style.display = 'none';
+    if (alertEl) alertEl.style.display = 'none';
+    if (checkoutForm) checkoutForm.style.display = 'block';
+
+    renderPlan(currentPlan);
+}
+
+/**
+ * Download License Certificate text file
  */
 function downloadLicenseCertificate(planName, licenseKey, paymentReference, donationAmount = 0) {
     const userEmail = currentUser ? currentUser.email : 'user@privcloud.local';
@@ -591,7 +1042,7 @@ function downloadLicenseCertificate(planName, licenseKey, paymentReference, dona
 Product: ${planName}
 Issued To: ${userEmail}
 Issued At: ${new Date().toISOString()}
-License Key: ${licenseKey}
+Product Key: ${licenseKey}
 ${donationLine}Payment Reference: ${paymentReference || 'N/A'}
 
 STATUS: ACTIVE & VERIFIED
@@ -599,7 +1050,7 @@ STATUS: ACTIVE & VERIFIED
 QUICK START INSTRUCTIONS:
 1. Run PrivCloud_Setup.exe on your Windows PC.
 2. Launch Settings.bat from your desktop dashboard.
-3. Paste the License Key above into the Activation Prompt.
+3. Paste the Product Key above into the Activation Prompt.
 4. Point to your storage directory and start your private cloud!
 
 Support: support@privcloud.com
@@ -613,9 +1064,150 @@ Support: support@privcloud.com
 }
 
 /**
- * Trigger Installer Download Simulation
+ * Update Dev Team Chat Card UI after successful payment
  */
-function triggerInstallerDownload() {
-    alert("Downloading PrivCloud_Setup.exe (Windows 64-bit Installer, 125 MB)... \n\nPlease keep your License Key handy for setup!");
+function updateDevChatCard(tier, planName, orderId) {
+    const card = document.getElementById('dev-chat-card');
+    const avatar = document.getElementById('dev-card-avatar');
+    const title = document.getElementById('dev-card-title');
+    const badge = document.getElementById('dev-chat-tier-badge');
+    const desc = document.getElementById('dev-card-desc');
+    const startBtn = document.getElementById('btn-start-dev-chat');
+
+    if (!card) return;
+
+    if (tier === 'pro') {
+        card.classList.add('tier-pro');
+        if (avatar) {
+            avatar.textContent = '👑';
+            avatar.style.background = 'linear-gradient(135deg, #0f172a, #0284c7)';
+            avatar.style.boxShadow = '0 2px 10px rgba(2, 132, 199, 0.3)';
+        }
+        if (title) title.innerHTML = `<span>Direct Engineering VIP Priority Access</span>`;
+        if (badge) {
+            badge.textContent = '👑 PRO VIP PRIORITY ACTIVE';
+            badge.style.background = 'rgba(245, 158, 11, 0.12)';
+            badge.style.color = '#d97706';
+            badge.style.border = '1px solid rgba(245, 158, 11, 0.3)';
+        }
+        if (desc) {
+            desc.innerHTML = `Your <strong>Pro VIP Lifetime License</strong> entitles you to top-priority queueing directly with our senior core engineering team for personal cloud setup, 4K media streaming, and remote HTTPS tunnel configuration.`;
+        }
+        if (startBtn) {
+            startBtn.style.display = 'inline-flex';
+            startBtn.className = 'btn-dev-chat-primary';
+            startBtn.innerHTML = `<span>👑 Chat with Dev Team (VIP Queue)</span> <span>➔</span>`;
+            startBtn.onclick = () => openCustomerSupportChat();
+        }
+    } else if (tier === 'basic') {
+        card.classList.remove('tier-pro');
+        if (avatar) {
+            avatar.textContent = '👨‍💻';
+            avatar.style.background = '#0284c7';
+            avatar.style.boxShadow = '0 2px 8px rgba(2, 132, 199, 0.3)';
+        }
+        if (title) title.innerHTML = `<span>Direct Engineering Assistance</span>`;
+        if (badge) {
+            badge.textContent = '⭐ BASIC LICENSE SUPPORT';
+            badge.style.background = 'rgba(2, 132, 199, 0.12)';
+            badge.style.color = '#0284c7';
+            badge.style.border = 'none';
+        }
+        if (desc) {
+            desc.innerHTML = `Need help with your Windows personal cloud node, drive mounting, or license verification? Chat 1-on-1 with our engineering team right now.`;
+        }
+        if (startBtn) {
+            startBtn.style.display = 'inline-flex';
+            startBtn.className = 'btn-dev-chat-primary';
+            startBtn.innerHTML = `<span>💬 Chat with Dev Team Now</span> <span>➔</span>`;
+            startBtn.onclick = () => openCustomerSupportChat();
+        }
+    } else {
+        // Free Trial / Non-paying tier
+        card.classList.remove('tier-pro');
+        if (avatar) {
+            avatar.textContent = '🔒';
+            avatar.style.background = '#64748b';
+            avatar.style.boxShadow = '0 2px 8px rgba(100, 116, 139, 0.2)';
+        }
+        if (title) title.innerHTML = `<span>Live Engineering Support (Basic & Pro)</span>`;
+        if (badge) {
+            badge.textContent = '🔒 BASIC / PRO REQUIRED';
+            badge.style.background = 'rgba(100, 116, 139, 0.12)';
+            badge.style.color = '#475569';
+            badge.style.border = '1px solid rgba(100, 116, 139, 0.25)';
+        }
+        if (desc) {
+            desc.innerHTML = `Direct 1-on-1 engineer assistance is reserved exclusively for customers on the <strong>Basic Edition</strong> or <strong>Pro VIP</strong> plan. Upgrade anytime to unlock instant live engineering desk access.`;
+        }
+        if (startBtn) {
+            startBtn.style.display = 'inline-flex';
+            startBtn.className = 'btn-dev-chat-primary';
+            startBtn.innerHTML = `<span>⭐ Upgrade to Basic or Pro Plan</span> <span>➔</span>`;
+            startBtn.onclick = () => {
+                const form = document.getElementById('checkout-interactive-form');
+                const successBox = document.getElementById('license-success-box');
+                if (form) form.style.display = 'block';
+                if (successBox) successBox.style.display = 'none';
+                switchPlanTab('4d9e1a7b0c3f8e2a');
+            };
+        }
+    }
 }
+
+/**
+ * Open In-Page Customer Support Chat Modal
+ */
+function openCustomerSupportChat() {
+    const tier = localStorage.getItem('support_user_tier');
+    if (tier !== 'basic' && tier !== 'pro') {
+        alert("Live Customer Support is available exclusively to customers who have purchased the Basic or Pro plan. Please upgrade to start a live engineering chat.");
+        return;
+    }
+
+    const modal = document.getElementById('dev-support-chat-modal');
+    const iframe = document.getElementById('dev-support-iframe');
+    const orderId = verifiedOrderSession ? verifiedOrderSession.orderId : (localStorage.getItem('support_last_order_id') || '');
+    const email = currentUser ? currentUser.email : (localStorage.getItem('support_customer_email') || '');
+    const name = currentUser ? (currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || '') : (localStorage.getItem('support_customer_name') || '');
+    
+    if (iframe) {
+        iframe.src = `../support_page/customer_support.html?tier=${encodeURIComponent(tier)}&order=${encodeURIComponent(orderId)}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&t=${Date.now()}`;
+    }
+    if (modal) {
+        const win = modal.querySelector('.dev-chat-modal-window');
+        if (win) {
+            if (tier === 'pro') win.classList.add('tier-pro');
+            else win.classList.remove('tier-pro');
+        }
+        modal.style.display = 'flex';
+    }
+}
+
+function closeCustomerSupportChat() {
+    const modal = document.getElementById('dev-support-chat-modal');
+    if (modal) modal.style.display = 'none';
+}
+
+function openFullscreenSupport() {
+    const tier = localStorage.getItem('support_user_tier');
+    if (tier !== 'basic' && tier !== 'pro') {
+        alert("Live Customer Support is available exclusively to customers who have purchased the Basic or Pro plan.");
+        return;
+    }
+
+    const orderId = verifiedOrderSession ? verifiedOrderSession.orderId : (localStorage.getItem('support_last_order_id') || '');
+    const email = currentUser ? currentUser.email : (localStorage.getItem('support_customer_email') || '');
+    const name = currentUser ? (currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || '') : (localStorage.getItem('support_customer_name') || '');
+    const url = `../support_page/customer_support.html?tier=${encodeURIComponent(tier)}&order=${encodeURIComponent(orderId)}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`;
+    window.open(url, '_blank');
+}
+
+// Expose globally
+window.openCustomerSupport = openCustomerSupportChat;
+window.openSupportChatWidget = openCustomerSupportChat;
+window.openCustomerSupportChat = openCustomerSupportChat;
+window.closeCustomerSupportChat = closeCustomerSupportChat;
+window.openFullscreenSupport = openFullscreenSupport;
+
 

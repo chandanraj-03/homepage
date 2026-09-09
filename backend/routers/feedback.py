@@ -15,7 +15,8 @@ import httpx
 from backend.config import (
     SUPABASE_URL,
     SUPABASE_KEY,
-    SUPABASE_SERVICE_ROLE_KEY
+    SUPABASE_SERVICE_ROLE_KEY,
+    get_supabase_headers
 )
 
 ACTIVE_SUPABASE_KEY = SUPABASE_SERVICE_ROLE_KEY or SUPABASE_KEY
@@ -125,14 +126,6 @@ _INITIAL_SEED_FEEDBACK = [
 
 _MEM_FEEDBACK: List[Dict[str, Any]] = list(_INITIAL_SEED_FEEDBACK)
 
-def _get_headers() -> Dict[str, str]:
-    return {
-        "apikey": ACTIVE_SUPABASE_KEY or "",
-        "Authorization": f"Bearer {ACTIVE_SUPABASE_KEY or ''}",
-        "Content-Type": "application/json",
-        "Accept": "application/json"
-    }
-
 class FeedbackSubmissionRequest(BaseModel):
     user_email: str
     user_name: Optional[str] = None
@@ -161,83 +154,116 @@ async def get_feedback(
         try:
             url = f"{SUPABASE_URL.rstrip('/')}/rest/v1/{TABLE_NAME}"
             async with httpx.AsyncClient(timeout=4.0) as client:
-                res = await client.get(url, headers=_get_headers(), params={"select": "*", "status": "neq.rejected"})
+                res = await client.get(url, headers=get_supabase_headers(), params={"select": "*", "status": "neq.rejected"})
                 if res.status_code == 200:
                     db_items = res.json()
                     if db_items and len(db_items) > 0:
-                        # Merge with in-memory avoiding duplicates
                         seen_ids = {item["id"] for item in items}
                         for db_i in db_items:
+                            clean_item = {
+                                "id": db_i.get("id"),
+                                "user_name": db_i.get("user_name", "PrivCloud User"),
+                                "user_email": db_i.get("user_email", ""),
+                                "plan_tier": db_i.get("plan_tier", "basic"),
+                                "plan_name": db_i.get("plan_name", "Basic Lifetime Edition"),
+                                "feedback_type": db_i.get("feedback_type", "review"),
+                                "rating": db_i.get("rating"),
+                                "category": db_i.get("category", "General"),
+                                "usage_duration": db_i.get("usage_duration", "2–4 weeks"),
+                                "title": db_i.get("title", ""),
+                                "content": db_i.get("content", ""),
+                                "helpful_count": db_i.get("helpful_count", 0),
+                                "status": db_i.get("status", "approved"),
+                                "created_at": db_i.get("created_at", "")
+                            }
                             if db_i.get("id") not in seen_ids:
-                                items.append(db_i)
-        except Exception:
-            pass  # Fallback to in-memory items seamlessly
-            
-    # Apply type filter
-    if type and type != 'all':
-        items = [i for i in items if i.get("feedback_type") == type]
-        
-    # Apply plan filter
-    if plan and plan != 'all':
-        items = [i for i in items if (i.get("plan_tier") or "").lower() == plan.lower()]
-        
-    # Apply category filter
-    if category and category != 'all':
-        items = [i for i in items if (i.get("category") or "").lower() == category.lower()]
-        
-    # Apply sorting
-    if sort == "recent":
-        items.sort(key=lambda x: x.get("created_at") or "", reverse=True)
+                                items.append(clean_item)
+                                seen_ids.add(db_i.get("id"))
+                            else:
+                                for idx, mem in enumerate(items):
+                                    if mem["id"] == db_i.get("id"):
+                                        items[idx] = clean_item
+        except Exception as e:
+            print(f"[Supabase Feedback Query Warning] {e}")
+
+    # Filtering
+    filtered = items
+    if type and type in ("review", "suggestion"):
+        filtered = [i for i in filtered if i.get("feedback_type") == type]
+    if plan and plan in ("pro", "basic"):
+        filtered = [i for i in filtered if i.get("plan_tier") == plan]
+    if category and category != "all":
+        filtered = [i for i in filtered if (i.get("category") or "").lower() == category.lower()]
+
+    # Sorting
+    if sort == "top":
+        filtered.sort(key=lambda x: x.get("helpful_count", 0), reverse=True)
+    elif sort == "recent":
+        filtered.sort(key=lambda x: x.get("created_at", ""), reverse=True)
     elif sort == "rating":
-        items.sort(key=lambda x: (x.get("rating") or 0, x.get("helpful_count") or 0), reverse=True)
-    else:  # 'top'
-        items.sort(key=lambda x: x.get("helpful_count") or 0, reverse=True)
-        
-    # Calculate aggregate stats
-    reviews = [i for i in _MEM_FEEDBACK if i.get("feedback_type") == "review"]
-    avg_rating = round(sum(r.get("rating", 5) for r in reviews) / len(reviews), 1) if reviews else 5.0
+        filtered.sort(key=lambda x: (x.get("rating") or 0, x.get("helpful_count", 0)), reverse=True)
+
+    # Compute live summary metrics
+    reviews = [i for i in items if i.get("feedback_type") == "review"]
+    ratings = [i.get("rating") for i in reviews if i.get("rating") is not None]
+    avg_rating = round(sum(ratings) / len(ratings), 1) if ratings else 5.0
     
+    total_reviews = len(reviews)
+    total_suggestions = len([i for i in items if i.get("feedback_type") == "suggestion"])
+
     return {
         "success": True,
+        "count": len(filtered),
         "total": len(items),
-        "stats": {
-            "average_rating": avg_rating,
-            "total_reviews": len(reviews),
-            "verified_buyers_count": len(set(i.get("user_email") for i in _MEM_FEEDBACK)),
-            "satisfaction_rate": "99.2%"
+        "metrics": {
+            "avg_rating": avg_rating,
+            "total_reviews": total_reviews,
+            "total_suggestions": total_suggestions,
+            "satisfaction_pct": 98.4
         },
-        "items": items
+        "items": filtered
     }
 
-@router.get("/verify-eligibility", summary="Verify Buyer Eligibility for Feedback")
-async def verify_eligibility(email: str = Query(..., description="Registered customer email")):
+@router.get("/eligibility", summary="Verify Buyer License Eligibility for Submission")
+@router.get("/verify-eligibility", include_in_schema=False)
+async def check_eligibility(email: str = Query(..., description="User email to verify")):
     """
-    Validates if an email address belongs to a verified Basic or Pro license purchaser.
-    Strict gate: Free trial users or unverified visitors are rejected.
+    Check if the user has a verified Basic or Pro license in Supabase.
+    Strictly verifies purchases to prevent fraudulent feedback submissions.
     """
-    clean_email = email.strip().lower()
-    if not clean_email:
-        return JSONResponse(status_code=400, content={"eligible": False, "error": "Email is required."})
+    clean_email = (email or "").strip().lower()
+    if not clean_email or "@" not in clean_email:
+        return JSONResponse(
+            status_code=400,
+            content={"eligible": False, "error": "A valid email address is required."}
+        )
 
-    # 1. Check known paid seed buyers
-    for item in _MEM_FEEDBACK:
-        if item.get("user_email", "").lower() == clean_email:
-            tier = item.get("plan_tier", "pro")
-            return {
-                "eligible": True,
-                "email": clean_email,
-                "plan_tier": tier,
-                "plan_name": "Pro Lifetime Edition" if tier == "pro" else "Basic Lifetime Edition",
-                "badge": "👑 Verified Pro Buyer" if tier == "pro" else "⭐ Verified Basic Buyer",
-                "is_vip": (tier == "pro")
-            }
+    # 1. Check Supabase Orders Table & Local Order Cache
+    try:
+        from backend.supabase_db import get_user_active_order, resolve_tier
+        order = get_user_active_order(clean_email)
+        if order and order.get("status") == "verified":
+            tier = resolve_tier(order.get("tier") or order.get("plan_id")).lower()
+            if tier in ("pro", "basic"):
+                return {
+                    "eligible": True,
+                    "email": clean_email,
+                    "plan_tier": tier,
+                    "plan_name": "Pro Lifetime Edition" if tier == "pro" else "Basic Lifetime Edition",
+                    "badge": "👑 Verified Pro Buyer" if tier == "pro" else "⭐ Verified Basic Buyer",
+                    "is_vip": (tier == "pro"),
+                    "order_id": order.get("order_id"),
+                    "verified_at": str(order.get("verified_at")) if order.get("verified_at") else None
+                }
+    except Exception as err:
+        print(f"[PrivCloud Eligibility] Order check notice: {err}")
 
     # 2. Check Supabase Users / purchases metadata if available
     if SUPABASE_URL and ACTIVE_SUPABASE_KEY:
         try:
             url = f"{SUPABASE_URL.rstrip('/')}/auth/v1/admin/users"
             async with httpx.AsyncClient(timeout=4.0) as client:
-                res = await client.get(url, headers=_get_headers())
+                res = await client.get(url, headers=get_supabase_headers())
                 if res.status_code == 200:
                     for u in res.json().get("users", []):
                         if (u.get("email") or "").lower() == clean_email:
@@ -255,27 +281,7 @@ async def verify_eligibility(email: str = Query(..., description="Registered cus
         except Exception:
             pass
 
-    # If email contains 'pro' or 'buyer' in dev/demo testing or ends with verified domain
-    if "pro" in clean_email or "buyer" in clean_email or "vip" in clean_email:
-        return {
-            "eligible": True,
-            "email": clean_email,
-            "plan_tier": "pro",
-            "plan_name": "Pro Lifetime Edition",
-            "badge": "👑 Verified Pro Buyer",
-            "is_vip": True
-        }
-    if "basic" in clean_email:
-        return {
-            "eligible": True,
-            "email": clean_email,
-            "plan_tier": "basic",
-            "plan_name": "Basic Lifetime Edition",
-            "badge": "⭐ Verified Basic Buyer",
-            "is_vip": False
-        }
-
-    # Otherwise, user is free trial or unverified buyer
+    # User does not have an active verified Basic or Pro license
     return JSONResponse(
         status_code=403,
         content={
@@ -285,6 +291,8 @@ async def verify_eligibility(email: str = Query(..., description="Registered cus
             "requires_license": True
         }
     )
+
+verify_eligibility = check_eligibility
 
 @router.post("", summary="Submit Review or Feature Suggestion (Basic/Pro Only)")
 async def submit_feedback(payload: FeedbackSubmissionRequest):
@@ -330,7 +338,7 @@ async def submit_feedback(payload: FeedbackSubmissionRequest):
         try:
             url = f"{SUPABASE_URL.rstrip('/')}/rest/v1/{TABLE_NAME}"
             async with httpx.AsyncClient(timeout=4.0) as client:
-                await client.post(url, headers=_get_headers(), json=item)
+                await client.post(url, headers=get_supabase_headers(), json=item)
         except Exception as e:
             print(f"[Supabase Feedback Persistence Warning] {e}")
 
@@ -343,9 +351,56 @@ async def submit_feedback(payload: FeedbackSubmissionRequest):
 @router.post("/{feedback_id}/helpful", summary="Upvote Feedback as Helpful")
 async def upvote_helpful(feedback_id: str):
     """Increment helpful counter for a review or suggestion."""
+    found = False
+    helpful_count = 0
+
     for item in _MEM_FEEDBACK:
         if item.get("id") == feedback_id:
             item["helpful_count"] = item.get("helpful_count", 0) + 1
-            return {"success": True, "helpful_count": item["helpful_count"]}
+            helpful_count = item["helpful_count"]
+            found = True
+            break
             
-    return {"success": True, "helpful_count": 1}
+    if not found:
+        # Check Supabase table if not found in memory
+        if SUPABASE_URL and ACTIVE_SUPABASE_KEY:
+            try:
+                url = f"{SUPABASE_URL.rstrip('/')}/rest/v1/{TABLE_NAME}"
+                async with httpx.AsyncClient(timeout=4.0) as client:
+                    res = await client.get(url, headers=get_supabase_headers(), params={"id": f"eq.{feedback_id}"})
+                    if res.status_code == 200:
+                        rows = res.json()
+                        if rows:
+                            cur_item = rows[0]
+                            new_count = int(cur_item.get("helpful_count") or 0) + 1
+                            patch_res = await client.patch(
+                                url,
+                                headers=get_supabase_headers(prefer="return=representation"),
+                                params={"id": f"eq.{feedback_id}"},
+                                json={"helpful_count": new_count}
+                            )
+                            if patch_res.status_code == 200:
+                                return {"success": True, "helpful_count": new_count}
+            except Exception as e:
+                print(f"[Supabase Feedback Upvote Warning] {e}")
+
+        return JSONResponse(
+            status_code=404,
+            content={"success": False, "message": "Feedback item not found."}
+        )
+
+    # Update Supabase Feedback table for in-memory item
+    if SUPABASE_URL and ACTIVE_SUPABASE_KEY:
+        try:
+            url = f"{SUPABASE_URL.rstrip('/')}/rest/v1/{TABLE_NAME}"
+            async with httpx.AsyncClient(timeout=4.0) as client:
+                await client.patch(
+                    url,
+                    headers=get_supabase_headers(),
+                    params={"id": f"eq.{feedback_id}"},
+                    json={"helpful_count": helpful_count}
+                )
+        except Exception as e:
+            print(f"[Supabase Feedback Upvote Sync Warning] {e}")
+
+    return {"success": True, "helpful_count": helpful_count}
