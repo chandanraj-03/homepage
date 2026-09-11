@@ -14,6 +14,16 @@
     let verifiedBuyerData = null; // { eligible: true, email, plan_tier, plan_name, badge, is_vip }
     let selectedRating = 5;
 
+    function resolveApiUrl(path) {
+        if (typeof window !== 'undefined' && window.getPrivCloudApiUrl) {
+            return window.getPrivCloudApiUrl(path);
+        }
+        if (typeof window !== 'undefined' && (window.location.protocol === 'file:' || (window.location.port && window.location.port !== '5001'))) {
+            return `http://localhost:5001${path.startsWith('/') ? path : '/' + path}`;
+        }
+        return path;
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         initUI();
         fetchFeedback();
@@ -131,7 +141,7 @@
             const queryParams = new URLSearchParams({
                 sort: currentSort
             });
-            const res = await fetch(`/api/feedback?${queryParams.toString()}`);
+            const res = await fetch(resolveApiUrl(`/api/feedback?${queryParams.toString()}`));
             if (!res.ok) throw new Error('Failed to fetch community feedback');
 
             const data = await res.json();
@@ -242,7 +252,7 @@
                 countEl.textContent = current + 1;
             }
 
-            const res = await fetch(`/api/feedback/${id}/helpful`, { method: 'POST' });
+            const res = await fetch(resolveApiUrl(`/api/feedback/${id}/helpful`), { method: 'POST' });
             if (res.ok) {
                 const data = await res.json();
                 if (countEl && data.helpful_count) {
@@ -285,7 +295,7 @@
         }
 
         try {
-            const res = await fetch(`/api/feedback/verify-eligibility?email=${encodeURIComponent(userEmail)}`);
+            const res = await fetch(resolveApiUrl(`/api/feedback/verify-eligibility?email=${encodeURIComponent(userEmail)}`));
             if (res.ok) {
                 const data = await res.json();
                 if (data.eligible) {
@@ -364,8 +374,7 @@
         };
 
         try {
-            const fbEndpoint = '/api/feedback';
-            const fbUrl = (window.getPrivCloudApiUrl ? window.getPrivCloudApiUrl(fbEndpoint) : (window.location.protocol === 'file:' ? 'http://localhost:5001' + fbEndpoint : fbEndpoint));
+            const fbUrl = resolveApiUrl('/api/feedback');
             const res = await fetch(fbUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

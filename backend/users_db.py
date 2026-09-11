@@ -750,16 +750,28 @@ def dispatch_direct_payment_receipt(email: str, details: Dict[str, Any]) -> None
     Directly deliver the payment confirmation receipt email if SMTP or Resend is available.
     Supports both standardized snake_case and TitleCase keys seamlessly (M-5).
     """
-    uname = details.get("user_name") or details.get("UserName") or details.get("username") or email.split('@')[0]
-    curr = details.get("currency") or details.get("Currency") or "INR"
-    amt = details.get("amount") or details.get("Amount") or "0"
-    txid = details.get("transaction_id") or details.get("TransactionID") or "N/A"
-    oid = details.get("order_id") or details.get("OrderID") or "N/A"
-    pdate = details.get("payment_date") or details.get("PaymentDate") or "Recently"
-    pmethod = details.get("payment_method") or details.get("PaymentMethod") or "Razorpay Secure"
-    pname = details.get("product_name") or details.get("ProductName") or "PrivCloud Edition"
-    bperiod = details.get("billing_period") or details.get("BillingPeriod") or "Lifetime License"
-    qty = details.get("quantity") or details.get("Quantity") or "1 License"
+    def _val(k1: str, k2: Optional[str] = None, default: str = "N/A") -> str:
+        v = details.get(k1)
+        if (v is None or not str(v).strip()) and k2:
+            v = details.get(k2)
+        if v is not None:
+            s = str(v).strip()
+            if s:
+                return s
+        return default
+
+    clean_email = (email or details.get("user_email") or "").strip().lower()
+    email_prefix = clean_email.split('@')[0] if '@' in clean_email else "Valued Customer"
+    uname = _val("user_name", "UserName", default=_val("username", default=email_prefix))
+    amt = _val("amount", "Amount", default="₹1,499")
+    txid = _val("transaction_id", "TransactionID", default="Confirmed")
+    oid = _val("order_id", "OrderID", default="Confirmed")
+    pdate = _val("payment_date", "PaymentDate", default="Recently")
+    pmethod = _val("payment_method", "PaymentMethod", default="Razorpay (UPI / Card / NetBanking)")
+    pname = _val("product_name", "ProductName", default="PrivCloud Edition")
+    bperiod = _val("billing_period", "BillingPeriod", default="Lifetime License (1 PC)")
+    qty = _val("quantity", "Quantity", default="1 License")
+    user_email = clean_email or _val("user_email", default=email_prefix)
 
     html = f"""
     <div style="margin:0;padding:0;width:100%;background-color:#f5f7fb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#18181b;">
@@ -779,7 +791,7 @@ def dispatch_direct_payment_receipt(email: str, details: Dict[str, Any]) -> None
             </p>
             <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:16px;padding:22px 16px 24px;text-align:center;">
               <div style="font-size:11px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:#64748b;margin-bottom:10px;">Amount Paid</div>
-              <div style="font-size:34px;line-height:1.2;font-weight:800;color:#1d4ed8;">{curr} {amt}</div>
+              <div style="font-size:34px;line-height:1.2;font-weight:800;color:#1d4ed8;">{amt}</div>
               <div style="margin-top:10px;font-size:12px;color:#94a3b8;">Payment completed successfully</div>
             </div>
             <div style="margin-top:22px;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;">
@@ -799,9 +811,17 @@ def dispatch_direct_payment_receipt(email: str, details: Dict[str, Any]) -> None
               <div style="font-size:12px;line-height:1.7;color:#64748b;">
                 <strong style="color:#334155;">Plan / Product:</strong> {pname}<br>
                 <strong style="color:#334155;">Billing Period:</strong> {bperiod}<br>
-                <strong style="color:#334155;">Quantity:</strong> {qty}
+                <strong style="color:#334155;">Quantity:</strong> {qty}<br>
+                <strong style="color:#334155;">Account Email:</strong> {user_email}
               </div>
             </div>
+            <div style="margin-top:22px;padding:14px 16px;border-radius:12px;background:#ecfdf5;border:1px solid #bbf7d0;">
+              <div style="font-size:13px;font-weight:700;color:#166534;">✓ Payment confirmed</div>
+              <div style="font-size:12px;color:#15803d;margin-top:4px;">Your payment has been received successfully. Please keep this email for your records.</div>
+            </div>
+            <p style="margin:22px 0 0;text-align:center;font-size:12px;line-height:1.6;color:#94a3b8;">
+              If you don't recognize this transaction or believe there is an issue with your payment, please contact PrivCloud support.
+            </p>
           </div>
         </div>
       </div>

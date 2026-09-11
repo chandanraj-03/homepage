@@ -235,29 +235,36 @@
     gap: 12px;
 }
 
-.studio-controls {
+/* Windows-Style Title Bar Controls */
+.studio-controls-win {
     display: flex;
-    gap: 7px;
     align-items: center;
+    gap: 0;
+    margin-left: auto;
 }
 
-.control-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    display: inline-block;
+.win-control-btn {
+    width: 32px;
+    height: 26px;
+    border: none;
+    background: transparent;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+    transition: background 0.15s ease, color 0.15s ease;
+    padding: 0;
+    border-radius: 0;
 }
 
-.control-dot.close {
-    background: #ff5f56;
+.win-control-btn:hover {
+    background: rgba(15, 23, 42, 0.08);
 }
 
-.control-dot.minimize {
-    background: #ffbd2e;
-}
-
-.control-dot.expand {
-    background: #27c93f;
+.win-control-btn.win-close:hover {
+    background: #e81123;
+    color: #ffffff;
 }
 
 .studio-address-capsule {

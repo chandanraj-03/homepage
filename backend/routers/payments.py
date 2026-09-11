@@ -222,10 +222,10 @@ async def verify_payment(payload: VerifyPaymentRequest, background_tasks: Backgr
                         }
                     )
 
-        # Step 4: Persist verified order in Supabase
+        # Step 4: Resolve details and persist verified order in Supabase
         tier = resolve_tier(payload.tier or payload.plan_id)
-        user_email = payload.user_email or ""
-        amount = int(payload.amount or 0)
+        user_email = (payload.user_email or "").strip().lower()
+        raw_amount = int(payload.amount or 0)
         notes = {}
 
         if razorpay_client:
@@ -233,13 +233,28 @@ async def verify_payment(payload: VerifyPaymentRequest, background_tasks: Backgr
                 order_info = razorpay_client.order.fetch(razorpay_order_id)
                 notes = order_info.get("notes", {})
                 if not user_email:
-                    user_email = notes.get("user_email", "")
+                    user_email = (notes.get("user_email") or "").strip().lower()
                 if not tier:
                     tier = resolve_tier(notes.get("plan_id"))
-                if not amount:
-                    amount = int(order_info.get("amount", 0))
+                order_amount = int(order_info.get("amount", 0))
+                if order_amount > 0:
+                    raw_amount = order_amount
             except Exception as fetch_err:
                 print(f"[Razorpay] Note fetch notice: {fetch_err}")
+
+        # Accurately determine rupee amount
+        if raw_amount >= 10000:
+            amount_rupees = raw_amount / 100
+        elif raw_amount > 0:
+            amount_rupees = raw_amount
+        else:
+            canonical_tier = (tier or "BASIC").upper()
+            if canonical_tier == "PRO":
+                amount_rupees = 2999
+            elif canonical_tier == "BASIC":
+                amount_rupees = 1499
+            else:
+                amount_rupees = 0
 
         save_verified_order(
             order_id=razorpay_order_id,
@@ -247,7 +262,7 @@ async def verify_payment(payload: VerifyPaymentRequest, background_tasks: Backgr
             user_email=user_email,
             plan_id=payload.plan_id or notes.get("plan_id", ""),
             tier=tier,
-            amount=amount,
+            amount=int(amount_rupees),
             notes=notes
         )
 
@@ -260,28 +275,32 @@ async def verify_payment(payload: VerifyPaymentRequest, background_tasks: Backgr
                     trigger_supabase_reauthentication
                 )
 
-                user_record = get_user_by_email(user_email)
+                user_record = await get_user_by_email(user_email)
                 resolved_username = (
-                    payload.username or 
-                    (user_record and user_record.get("username")) or 
-                    notes.get("username", "") or 
-                    user_email.split("@")[0]
+                    (payload.username or "").strip() or 
+                    (user_record.get("username", "") if user_record else "").strip() or 
+                    (notes.get("username", "") if notes else "").strip() or 
+                    user_email.split("@")[0] or 
+                    "PrivCloud User"
                 )
-                full_name = (user_record and user_record.get("full_name")) or resolved_username
+                raw_name = (user_record.get("full_name", "") if user_record else "").strip()
+                full_name = raw_name or resolved_username
                 current_date_str = datetime.now().strftime("%d %b %Y, %I:%M %p")
-                product_name = f"{tier.title()} Edition" if tier else "Lifetime License"
-                billing_period = "Lifetime License" if tier != "TRIAL" else "14-Day Evaluation"
-                amount_formatted = f"{amount:,}" if amount else "0"
+                normalized_tier = (tier or "BASIC").upper()
+                product_name = f"{normalized_tier.title()} Edition" if normalized_tier != "TRIAL" else "Free Trial Edition"
+                billing_period = "Lifetime License (1 PC)" if normalized_tier != "TRIAL" else "14-Day Evaluation"
+                amount_formatted = f"₹{int(amount_rupees):,}" if amount_rupees > 0 else "₹0 (Free Trial)"
 
                 payment_details = {
-                    "UserName": full_name or resolved_username,
+                    "UserName": full_name,
                     "username": resolved_username,
-                    "tier": tier,
-                    "plan_tier": tier,
+                    "user_name": full_name,
+                    "tier": normalized_tier,
+                    "plan_tier": normalized_tier,
                     "Currency": "INR",
                     "currency": "INR",
-                    "Amount": f"{amount_formatted}",
-                    "amount": f"{amount_formatted}",
+                    "Amount": amount_formatted,
+                    "amount": amount_formatted,
                     "TransactionID": razorpay_payment_id,
                     "transaction_id": razorpay_payment_id,
                     "OrderID": razorpay_order_id,
@@ -295,7 +314,8 @@ async def verify_payment(payload: VerifyPaymentRequest, background_tasks: Backgr
                     "BillingPeriod": billing_period,
                     "billing_period": billing_period,
                     "Quantity": "1 License",
-                    "quantity": "1 License"
+                    "quantity": "1 License",
+                    "user_email": user_email
                 }
 
                 # Execute in background thread so the HTTP response returns instantly (in <50ms) to the user!

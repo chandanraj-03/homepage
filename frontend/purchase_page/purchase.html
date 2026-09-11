@@ -347,20 +347,20 @@
                     <!-- Status Notification Banner inside Success Card -->
                     <div id="fulfillment-alert" class="fulfillment-alert" style="display: none;"></div>
 
-                    <!-- Direct Dev Team Live Chat Section -->
+                    <!-- PrivCloud AI Assistant & Community Support Card -->
                     <div class="dev-chat-card" id="dev-chat-card" style="margin-top: 22px; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1.5px solid #cbd5e1; border-radius: 18px; padding: 20px; text-align: left; position: relative; overflow: hidden; box-shadow: 0 4px 18px rgba(0,0,0,0.04);">
                         <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; flex-wrap: wrap;">
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <div style="width: 42px; height: 42px; border-radius: 50%; background: #2563eb; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 800; box-shadow: 0 2px 8px rgba(37,99,235,0.3);" id="dev-card-avatar">
-                                    👨‍💻
+                                    🤖
                                 </div>
                                 <div>
                                     <h4 style="margin: 0; font-size: 1.05rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 6px;" id="dev-card-title">
-                                        <span>Direct Engineering Assistance</span>
+                                        <span>PrivCloud Assistant & Support</span>
                                     </h4>
                                     <span style="font-size: 0.8rem; color: #10b981; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
                                         <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #10b981;"></span>
-                                        Dev Team Online & Ready to Help
+                                        24/7 AI Assistance & Support
                                     </span>
                                 </div>
                             </div>
@@ -369,27 +369,20 @@
                             </span>
                         </div>
                         <p style="font-size: 0.86rem; color: #475569; line-height: 1.55; margin-bottom: 16px;" id="dev-card-desc">
-                            Need help with your Windows personal cloud node, drive mounting, or license verification? Chat 1-on-1 with our engineering team right now.
+                            Need help with your Windows personal cloud node, drive mounting, or license verification? Use our 24/7 AI Assistant or email our engineering team.
                         </p>
                         <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-                            <button type="button" id="btn-start-dev-chat" class="btn-dev-chat-primary" onclick="openCustomerSupportChat()">
-                                <span>💬 Chat with Dev Team Now</span>
+                            <button type="button" id="btn-start-dev-chat" class="btn-dev-chat-primary" onclick="if(window.PrivCloudChatbot) window.PrivCloudChatbot.openAiChat();">
+                                <span>🤖 Open AI Assistant</span>
                                 <span>➔</span>
                             </button>
-                            <button type="button" onclick="openFullscreenSupport()" style="display: inline-flex; align-items: center; gap: 6px; padding: 11px 16px; border-radius: 12px; font-size: 0.88rem; font-weight: 700; background: #ffffff; color: #334155; border: 1px solid #cbd5e1; cursor: pointer; transition: all 0.2s;">
-                                <span>Fullscreen Desk ↗</span>
-                            </button>
+                            <a href="mailto:privcloud0@gmail.com" style="display: inline-flex; align-items: center; gap: 6px; padding: 11px 16px; border-radius: 12px; font-size: 0.88rem; font-weight: 700; background: #ffffff; color: #334155; border: 1px solid #cbd5e1; text-decoration: none; cursor: pointer; transition: all 0.2s;">
+                                <span>✉️ Email Support</span>
+                            </a>
                             <a href="../feedback_page/feedback.html" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 11px 16px; border-radius: 12px; font-size: 0.88rem; font-weight: 700; background: rgba(2, 132, 199, 0.08); color: #0284c7; border: 1px solid rgba(2, 132, 199, 0.25); transition: all 0.2s;">
                                 <span>⭐ Feedback</span>
                             </a>
                         </div>
-                    </div>
-
-                    <!-- Reset / Order for Another PC Option -->
-                    <div style="margin-top: 14px; text-align: center;">
-                        <button type="button" id="btn-reset-order" onclick="resetOrderSession()" style="background: none; border: none; color: #64748b; font-size: 0.82rem; font-weight: 600; cursor: pointer; text-decoration: underline; padding: 6px 12px; transition: color 0.2s;">
-                            🔄 Activate for Another Device or Select Another Plan
-                        </button>
                     </div>
 
                     <!-- 3-Step Setup Instructions -->
@@ -479,34 +472,8 @@
         </div>
     </div>
 
-    <!-- In-Page Live Dev Support Chat Modal -->
-    <div id="dev-support-chat-modal" class="dev-chat-modal-backdrop" style="display: none;">
-        <div class="dev-chat-modal-window">
-            <div class="dev-chat-modal-header">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <span style="font-size: 1.3rem;">💬</span>
-                    <div>
-                        <div style="font-size: 0.95rem; font-weight: 700; color: #ffffff;">PrivCloud Developer Support</div>
-                        <div style="font-size: 0.75rem; color: rgba(255,255,255,0.85); display: flex; align-items: center; gap: 5px;">
-                            <span style="width: 6px; height: 6px; border-radius: 50%; background: #22c55e; display: inline-block;"></span>
-                            Live Engineering Desk · WebSocket Connected
-                        </div>
-                    </div>
-                </div>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <button type="button" onclick="openFullscreenSupport()" style="color: rgba(255,255,255,0.9); background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer;" title="Open in fullscreen">Pop out ↗</button>
-                    <button type="button" onclick="closeCustomerSupportChat()" style="background: rgba(255,255,255,0.18); border: none; color: #ffffff; width: 32px; height: 32px; border-radius: 8px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Close Chat">&times;</button>
-                </div>
-            </div>
-            <div class="dev-chat-modal-body">
-                <iframe id="dev-support-iframe" src="about:blank" style="width: 100%; height: 100%; border: none; display: block;" title="Live Support Chat"></iframe>
-            </div>
-        </div>
-    </div>
-
     <!-- Scripts -->
-    <script src="purchase.js?v=11"></script>
-    <script src="../landing_page/chatbot/supportChat.js?v=28"></script>
+    <script src="purchase.js?v=12"></script>
     <script src="../landing_page/chatbot/chatbot.js?v=28"></script>
 
 </body>

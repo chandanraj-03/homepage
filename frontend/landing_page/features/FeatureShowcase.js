@@ -328,11 +328,6 @@
             },
               h('div', { className: 'studio-frame-shell' },
                 h('div', { className: 'studio-topbar' },
-                  h('div', { className: 'studio-controls' },
-                    h('span', { className: 'control-dot close' }),
-                    h('span', { className: 'control-dot minimize' }),
-                    h('span', { className: 'control-dot expand' })
-                  ),
                   h('div', { className: 'studio-address-capsule' },
                     h('img', {
                       src: `${SUPABASE_ASSETS_URL}/logo.png`,
@@ -345,6 +340,24 @@
                   h('div', { className: 'studio-status-pill' },
                     h('span', { className: 'status-live-beacon' }),
                     h('span', { className: 'status-label' }, 'Engine Active')
+                  ),
+                  h('div', { className: 'studio-controls-win' },
+                    h('button', { className: 'win-control-btn win-minimize', 'aria-label': 'Minimize' },
+                      h('svg', { width: '10', height: '10', viewBox: '0 0 10 10' },
+                        h('line', { x1: '1', y1: '5', x2: '9', y2: '5', stroke: 'currentColor', strokeWidth: '1.2' })
+                      )
+                    ),
+                    h('button', { className: 'win-control-btn win-maximize', 'aria-label': 'Maximize' },
+                      h('svg', { width: '10', height: '10', viewBox: '0 0 10 10' },
+                        h('rect', { x: '1', y: '1', width: '8', height: '8', fill: 'none', stroke: 'currentColor', strokeWidth: '1.2' })
+                      )
+                    ),
+                    h('button', { className: 'win-control-btn win-close', 'aria-label': 'Close' },
+                      h('svg', { width: '10', height: '10', viewBox: '0 0 10 10' },
+                        h('line', { x1: '1', y1: '1', x2: '9', y2: '9', stroke: 'currentColor', strokeWidth: '1.2' }),
+                        h('line', { x1: '9', y1: '1', x2: '1', y2: '9', stroke: 'currentColor', strokeWidth: '1.2' })
+                      )
+                    )
                   )
                 ),
                 h('div', { className: 'studio-image-screen' },

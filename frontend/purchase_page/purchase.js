@@ -427,12 +427,54 @@ function renderPlan(planId) {
         const purchasedPlan = verifiedOrderSession.plan || PLANS_DATA[currentPlan];
         const isSamePlan = (purchasedPlan && (purchasedPlan.id === planId || purchasedPlan.name === plan.name));
 
+        // Check if user has Basic and is viewing Pro tab → show Upgrade to Pro button
+        const purchasedTier = (verifiedOrderSession.tier || '').toUpperCase();
+        const viewingProPlan = (planId === '6b2f8c1a9d4e07bf');
+        const isBasicUser = (purchasedTier === 'BASIC');
+
+        // Remove any existing upgrade button first
+        const existingUpgradeBtn = document.getElementById('btn-upgrade-to-pro');
+        if (existingUpgradeBtn) existingUpgradeBtn.remove();
+
         if (successTitle) {
             if (isSamePlan) {
                 successTitle.innerHTML = `<span>🎉 ${purchasedPlan.name} Activated!</span>`;
             } else {
                 successTitle.innerHTML = `<span>🎉 ${purchasedPlan.name} Activated!</span><br><span style="font-size: 0.92rem; font-weight: 600; color: #64748b;">(Viewing features for: ${plan.name} · Your product key is kept active below)</span>`;
             }
+        }
+
+        // Insert Upgrade to Pro button for Basic users viewing Pro plan
+        if (isBasicUser && viewingProPlan && successTitle) {
+            const upgradeBtn = document.createElement('div');
+            upgradeBtn.id = 'btn-upgrade-to-pro';
+            upgradeBtn.style.cssText = 'margin-top: 16px; text-align: center;';
+            upgradeBtn.innerHTML = `
+                <button type="button" style="
+                    background: linear-gradient(135deg, #0284c7 0%, #0072ff 100%);
+                    color: #ffffff;
+                    font-weight: 800;
+                    font-size: 0.95rem;
+                    padding: 14px 28px;
+                    border: none;
+                    border-radius: 14px;
+                    cursor: pointer;
+                    box-shadow: 0 6px 24px rgba(2, 132, 199, 0.35);
+                    transition: all 0.25s ease;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                    letter-spacing: -0.2px;
+                " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 30px rgba(2,132,199,0.45)'"
+                   onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 6px 24px rgba(2,132,199,0.35)'"
+                   onclick="resetOrderSession(); currentPlan='6b2f8c1a9d4e07bf'; renderPlan('6b2f8c1a9d4e07bf'); const u=new URL(window.location); u.searchParams.set('plan','6b2f8c1a9d4e07bf'); window.history.replaceState({},'',u);">
+                    👑 Upgrade to Pro Edition — ₹2,999
+                </button>
+                <p style="margin: 8px 0 0; font-size: 0.78rem; color: #64748b; line-height: 1.4;">
+                    Unlock Unlimited Storage, Custom Subdomain, Client Dropboxes & VIP Priority Support
+                </p>
+            `;
+            successTitle.parentElement.insertBefore(upgradeBtn, successTitle.nextSibling);
         }
 
         const normalizedTier = (verifiedOrderSession.tier || '').toLowerCase().includes('pro') ? 'pro' : 'basic';
@@ -1096,31 +1138,39 @@ function updateDevChatCard(tier, planName, orderId) {
         if (startBtn) {
             startBtn.style.display = 'inline-flex';
             startBtn.className = 'btn-dev-chat-primary';
-            startBtn.innerHTML = `<span>👑 Chat with Dev Team (VIP Queue)</span> <span>➔</span>`;
-            startBtn.onclick = () => openCustomerSupportChat();
+            startBtn.innerHTML = `<span>🤖 Open AI Assistant</span> <span>➔</span>`;
+            startBtn.onclick = () => {
+                if (window.PrivCloudChatbot && window.PrivCloudChatbot.openAiChat) {
+                    window.PrivCloudChatbot.openAiChat();
+                }
+            };
         }
     } else if (tier === 'basic') {
         card.classList.remove('tier-pro');
         if (avatar) {
-            avatar.textContent = '👨‍💻';
+            avatar.textContent = '🤖';
             avatar.style.background = '#0284c7';
             avatar.style.boxShadow = '0 2px 8px rgba(2, 132, 199, 0.3)';
         }
-        if (title) title.innerHTML = `<span>Direct Engineering Assistance</span>`;
+        if (title) title.innerHTML = `<span>PrivCloud Assistant & Support</span>`;
         if (badge) {
-            badge.textContent = '⭐ BASIC LICENSE SUPPORT';
+            badge.textContent = '⭐ BASIC LICENSE ACTIVE';
             badge.style.background = 'rgba(2, 132, 199, 0.12)';
             badge.style.color = '#0284c7';
             badge.style.border = 'none';
         }
         if (desc) {
-            desc.innerHTML = `Need help with your Windows personal cloud node, drive mounting, or license verification? Chat 1-on-1 with our engineering team right now.`;
+            desc.innerHTML = `Need help with your Windows personal cloud node, drive mounting, or license verification? Use our 24/7 AI Assistant or contact our engineering team.`;
         }
         if (startBtn) {
             startBtn.style.display = 'inline-flex';
             startBtn.className = 'btn-dev-chat-primary';
-            startBtn.innerHTML = `<span>💬 Chat with Dev Team Now</span> <span>➔</span>`;
-            startBtn.onclick = () => openCustomerSupportChat();
+            startBtn.innerHTML = `<span>🤖 Open AI Assistant</span> <span>➔</span>`;
+            startBtn.onclick = () => {
+                if (window.PrivCloudChatbot && window.PrivCloudChatbot.openAiChat) {
+                    window.PrivCloudChatbot.openAiChat();
+                }
+            };
         }
     } else {
         // Free Trial / Non-paying tier
@@ -1130,7 +1180,7 @@ function updateDevChatCard(tier, planName, orderId) {
             avatar.style.background = '#64748b';
             avatar.style.boxShadow = '0 2px 8px rgba(100, 116, 139, 0.2)';
         }
-        if (title) title.innerHTML = `<span>Live Engineering Support (Basic & Pro)</span>`;
+        if (title) title.innerHTML = `<span>PrivCloud Support (Basic & Pro)</span>`;
         if (badge) {
             badge.textContent = '🔒 BASIC / PRO REQUIRED';
             badge.style.background = 'rgba(100, 116, 139, 0.12)';
@@ -1138,7 +1188,7 @@ function updateDevChatCard(tier, planName, orderId) {
             badge.style.border = '1px solid rgba(100, 116, 139, 0.25)';
         }
         if (desc) {
-            desc.innerHTML = `Direct 1-on-1 engineer assistance is reserved exclusively for customers on the <strong>Basic Edition</strong> or <strong>Pro VIP</strong> plan. Upgrade anytime to unlock instant live engineering desk access.`;
+            desc.innerHTML = `Direct assistance is reserved exclusively for customers on the <strong>Basic Edition</strong> or <strong>Pro VIP</strong> plan. Upgrade anytime to unlock personal cloud features.`;
         }
         if (startBtn) {
             startBtn.style.display = 'inline-flex';
@@ -1156,31 +1206,11 @@ function updateDevChatCard(tier, planName, orderId) {
 }
 
 /**
- * Open In-Page Customer Support Chat Modal
+ * Open AI Assistant Widget
  */
 function openCustomerSupportChat() {
-    const tier = localStorage.getItem('support_user_tier');
-    if (tier !== 'basic' && tier !== 'pro') {
-        alert("Live Customer Support is available exclusively to customers who have purchased the Basic or Pro plan. Please upgrade to start a live engineering chat.");
-        return;
-    }
-
-    const modal = document.getElementById('dev-support-chat-modal');
-    const iframe = document.getElementById('dev-support-iframe');
-    const orderId = verifiedOrderSession ? verifiedOrderSession.orderId : (localStorage.getItem('support_last_order_id') || '');
-    const email = currentUser ? currentUser.email : (localStorage.getItem('support_customer_email') || '');
-    const name = currentUser ? (currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || '') : (localStorage.getItem('support_customer_name') || '');
-    
-    if (iframe) {
-        iframe.src = `../support_page/customer_support.html?tier=${encodeURIComponent(tier)}&order=${encodeURIComponent(orderId)}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&t=${Date.now()}`;
-    }
-    if (modal) {
-        const win = modal.querySelector('.dev-chat-modal-window');
-        if (win) {
-            if (tier === 'pro') win.classList.add('tier-pro');
-            else win.classList.remove('tier-pro');
-        }
-        modal.style.display = 'flex';
+    if (window.PrivCloudChatbot && window.PrivCloudChatbot.openAiChat) {
+        window.PrivCloudChatbot.openAiChat();
     }
 }
 
@@ -1190,17 +1220,11 @@ function closeCustomerSupportChat() {
 }
 
 function openFullscreenSupport() {
-    const tier = localStorage.getItem('support_user_tier');
-    if (tier !== 'basic' && tier !== 'pro') {
-        alert("Live Customer Support is available exclusively to customers who have purchased the Basic or Pro plan.");
-        return;
+    if (window.PrivCloudChatbot && window.PrivCloudChatbot.openAiChat) {
+        window.PrivCloudChatbot.openAiChat();
+    } else {
+        window.location.href = "mailto:privcloud0@gmail.com";
     }
-
-    const orderId = verifiedOrderSession ? verifiedOrderSession.orderId : (localStorage.getItem('support_last_order_id') || '');
-    const email = currentUser ? currentUser.email : (localStorage.getItem('support_customer_email') || '');
-    const name = currentUser ? (currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || '') : (localStorage.getItem('support_customer_name') || '');
-    const url = `../support_page/customer_support.html?tier=${encodeURIComponent(tier)}&order=${encodeURIComponent(orderId)}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`;
-    window.open(url, '_blank');
 }
 
 // Expose globally

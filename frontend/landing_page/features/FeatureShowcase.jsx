@@ -330,14 +330,8 @@ function FeatureShowcase() {
               {/* Studio Device Frame */}
               <div className="studio-frame-shell">
 
-                {/* Browser Acrylic Top Bar */}
+                {/* Browser Windows Top Bar */}
                 <div className="studio-topbar">
-                  <div className="studio-controls">
-                    <span className="control-dot close" />
-                    <span className="control-dot minimize" />
-                    <span className="control-dot expand" />
-                  </div>
-
                   <div className="studio-address-capsule">
                     <img src={`${SUPABASE_ASSETS_URL}/logo.png`} alt="PrivCloud" style={{ width: '15px', height: '15px', objectFit: 'contain', borderRadius: '3px' }} />
                     <span className="capsule-host">privcloud.local</span>
@@ -347,6 +341,18 @@ function FeatureShowcase() {
                   <div className="studio-status-pill">
                     <span className="status-live-beacon" />
                     <span className="status-label">Engine Active</span>
+                  </div>
+
+                  <div className="studio-controls-win">
+                    <button className="win-control-btn win-minimize" aria-label="Minimize">
+                      <svg width="10" height="10" viewBox="0 0 10 10"><line x1="1" y1="5" x2="9" y2="5" stroke="currentColor" strokeWidth="1.2"/></svg>
+                    </button>
+                    <button className="win-control-btn win-maximize" aria-label="Maximize">
+                      <svg width="10" height="10" viewBox="0 0 10 10"><rect x="1" y="1" width="8" height="8" fill="none" stroke="currentColor" strokeWidth="1.2"/></svg>
+                    </button>
+                    <button className="win-control-btn win-close" aria-label="Close">
+                      <svg width="10" height="10" viewBox="0 0 10 10"><line x1="1" y1="1" x2="9" y2="9" stroke="currentColor" strokeWidth="1.2"/><line x1="9" y1="1" x2="1" y2="9" stroke="currentColor" strokeWidth="1.2"/></svg>
+                    </button>
                   </div>
                 </div>
 
