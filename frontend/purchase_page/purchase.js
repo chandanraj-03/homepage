@@ -1141,7 +1141,7 @@ function updateDevChatCard(tier, planName, orderId) {
             avatar.style.background = 'linear-gradient(135deg, #0f172a, #0284c7)';
             avatar.style.boxShadow = '0 2px 10px rgba(2, 132, 199, 0.3)';
         }
-        if (title) title.innerHTML = `<span>Direct Engineering VIP Priority Access</span>`;
+        if (title) title.innerHTML = `<span>VIP Customer Support Desk</span>`;
         if (badge) {
             badge.textContent = '👑 PRO VIP PRIORITY ACTIVE';
             badge.style.background = 'rgba(245, 158, 11, 0.12)';
@@ -1154,21 +1154,17 @@ function updateDevChatCard(tier, planName, orderId) {
         if (startBtn) {
             startBtn.style.display = 'inline-flex';
             startBtn.className = 'btn-dev-chat-primary';
-            startBtn.innerHTML = `<span>🤖 Open AI Assistant</span> <span>➔</span>`;
-            startBtn.onclick = () => {
-                if (window.PrivCloudChatbot && window.PrivCloudChatbot.openAiChat) {
-                    window.PrivCloudChatbot.openAiChat();
-                }
-            };
+            startBtn.innerHTML = `<span>👑 Open VIP Support Desk</span> <span>➔</span>`;
+            startBtn.onclick = () => openCustomerSupportChat();
         }
     } else if (tier === 'basic') {
         card.classList.remove('tier-pro');
         if (avatar) {
-            avatar.textContent = '🤖';
+            avatar.textContent = '🎧';
             avatar.style.background = '#0284c7';
             avatar.style.boxShadow = '0 2px 8px rgba(2, 132, 199, 0.3)';
         }
-        if (title) title.innerHTML = `<span>PrivCloud Assistant & Support</span>`;
+        if (title) title.innerHTML = `<span>Customer Support Desk</span>`;
         if (badge) {
             badge.textContent = '⭐ BASIC LICENSE ACTIVE';
             badge.style.background = 'rgba(2, 132, 199, 0.12)';
@@ -1176,17 +1172,13 @@ function updateDevChatCard(tier, planName, orderId) {
             badge.style.border = 'none';
         }
         if (desc) {
-            desc.innerHTML = `Need help with your Windows personal cloud node, drive mounting, or license verification? Use our 24/7 AI Assistant or contact our engineering team.`;
+            desc.innerHTML = `Need help with your Windows personal cloud node, drive mounting, or license verification? Connect directly with our live Customer Support desk.`;
         }
         if (startBtn) {
             startBtn.style.display = 'inline-flex';
             startBtn.className = 'btn-dev-chat-primary';
-            startBtn.innerHTML = `<span>🤖 Open AI Assistant</span> <span>➔</span>`;
-            startBtn.onclick = () => {
-                if (window.PrivCloudChatbot && window.PrivCloudChatbot.openAiChat) {
-                    window.PrivCloudChatbot.openAiChat();
-                }
-            };
+            startBtn.innerHTML = `<span>💬 Open Customer Support</span> <span>➔</span>`;
+            startBtn.onclick = () => openCustomerSupportChat();
         }
     } else {
         // Free Trial / Non-paying tier
@@ -1196,7 +1188,7 @@ function updateDevChatCard(tier, planName, orderId) {
             avatar.style.background = '#64748b';
             avatar.style.boxShadow = '0 2px 8px rgba(100, 116, 139, 0.2)';
         }
-        if (title) title.innerHTML = `<span>PrivCloud Support (Basic & Pro)</span>`;
+        if (title) title.innerHTML = `<span>Customer Support (Basic & Pro)</span>`;
         if (badge) {
             badge.textContent = '🔒 BASIC / PRO REQUIRED';
             badge.style.background = 'rgba(100, 116, 139, 0.12)';
@@ -1222,25 +1214,57 @@ function updateDevChatCard(tier, planName, orderId) {
 }
 
 /**
- * Open AI Assistant Widget
+ * Open In-Page Customer Support Chat Modal
  */
 function openCustomerSupportChat() {
-    if (window.PrivCloudChatbot && window.PrivCloudChatbot.openAiChat) {
-        window.PrivCloudChatbot.openAiChat();
+    const tier = (verifiedOrderSession && verifiedOrderSession.tier) 
+        ? verifiedOrderSession.tier.toLowerCase() 
+        : (localStorage.getItem('support_user_tier') || (currentPlan === '6b2f8c1a9d4e07bf' ? 'pro' : 'basic'));
+    const orderId = verifiedOrderSession ? verifiedOrderSession.orderId : (localStorage.getItem('support_last_order_id') || '');
+    const email = currentUser ? currentUser.email : (localStorage.getItem('support_customer_email') || '');
+    const name = currentUser ? (currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || '') : (localStorage.getItem('support_customer_name') || '');
+    
+    // Save to localStorage for persistence across pages
+    localStorage.setItem('support_user_tier', tier);
+    if (orderId) localStorage.setItem('support_last_order_id', orderId);
+    if (email) localStorage.setItem('support_customer_email', email);
+    if (name) localStorage.setItem('support_customer_name', name);
+
+    const supportUrl = `../support_page/customer_support.html?tier=${encodeURIComponent(tier)}&order=${encodeURIComponent(orderId)}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}&t=${Date.now()}`;
+    
+    const modal = document.getElementById('dev-support-chat-modal');
+    const iframe = document.getElementById('dev-support-iframe');
+    if (modal && iframe) {
+        iframe.src = supportUrl;
+        const win = modal.querySelector('.dev-chat-modal-window');
+        if (win) {
+            if (tier === 'pro') win.classList.add('tier-pro');
+            else win.classList.remove('tier-pro');
+        }
+        modal.style.display = 'flex';
+    } else {
+        window.open(supportUrl, '_blank');
     }
 }
 
 function closeCustomerSupportChat() {
     const modal = document.getElementById('dev-support-chat-modal');
-    if (modal) modal.style.display = 'none';
+    if (modal) {
+        modal.style.display = 'none';
+        const iframe = document.getElementById('dev-support-iframe');
+        if (iframe) iframe.src = 'about:blank';
+    }
 }
 
 function openFullscreenSupport() {
-    if (window.PrivCloudChatbot && window.PrivCloudChatbot.openAiChat) {
-        window.PrivCloudChatbot.openAiChat();
-    } else {
-        window.location.href = "mailto:privcloud0@gmail.com";
-    }
+    const tier = (verifiedOrderSession && verifiedOrderSession.tier) 
+        ? verifiedOrderSession.tier.toLowerCase() 
+        : (localStorage.getItem('support_user_tier') || (currentPlan === '6b2f8c1a9d4e07bf' ? 'pro' : 'basic'));
+    const orderId = verifiedOrderSession ? verifiedOrderSession.orderId : (localStorage.getItem('support_last_order_id') || '');
+    const email = currentUser ? currentUser.email : (localStorage.getItem('support_customer_email') || '');
+    const name = currentUser ? (currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || '') : (localStorage.getItem('support_customer_name') || '');
+    const url = `../support_page/customer_support.html?tier=${encodeURIComponent(tier)}&order=${encodeURIComponent(orderId)}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`;
+    window.open(url, '_blank');
 }
 
 // Expose globally

@@ -348,33 +348,33 @@
                     <!-- Status Notification Banner inside Success Card -->
                     <div id="fulfillment-alert" class="fulfillment-alert" style="display: none;"></div>
 
-                    <!-- PrivCloud AI Assistant & Community Support Card -->
+                    <!-- PrivCloud Customer Support Desk Card -->
                     <div class="dev-chat-card" id="dev-chat-card" style="margin-top: 22px; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1.5px solid #cbd5e1; border-radius: 18px; padding: 20px; text-align: left; position: relative; overflow: hidden; box-shadow: 0 4px 18px rgba(0,0,0,0.04);">
                         <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; flex-wrap: wrap;">
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 42px; height: 42px; border-radius: 50%; background: #2563eb; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 800; box-shadow: 0 2px 8px rgba(37,99,235,0.3);" id="dev-card-avatar">
-                                    🤖
+                                <div style="width: 42px; height: 42px; border-radius: 50%; background: #0284c7; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 800; box-shadow: 0 2px 8px rgba(2,132,199,0.3);" id="dev-card-avatar">
+                                    🎧
                                 </div>
                                 <div>
                                     <h4 style="margin: 0; font-size: 1.05rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 6px;" id="dev-card-title">
-                                        <span>PrivCloud Assistant & Support</span>
+                                        <span>Customer Support Desk</span>
                                     </h4>
                                     <span style="font-size: 0.8rem; color: #10b981; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
                                         <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #10b981;"></span>
-                                        24/7 AI Assistance & Support
+                                        Live Support Desk Online
                                     </span>
                                 </div>
                             </div>
-                            <span id="dev-chat-tier-badge" style="font-size: 0.76rem; font-weight: 800; padding: 4px 10px; border-radius: 20px; background: rgba(37,99,235,0.12); color: #2563eb; letter-spacing: 0.5px;">
-                                ⭐ BASIC LICENSE
+                            <span id="dev-chat-tier-badge" style="font-size: 0.76rem; font-weight: 800; padding: 4px 10px; border-radius: 20px; background: rgba(2,132,199,0.12); color: #0284c7; letter-spacing: 0.5px;">
+                                ⭐ BASIC LICENSE ACTIVE
                             </span>
                         </div>
                         <p style="font-size: 0.86rem; color: #475569; line-height: 1.55; margin-bottom: 16px;" id="dev-card-desc">
-                            Need help with your Windows personal cloud node, drive mounting, or license verification? Use our 24/7 AI Assistant or email our engineering team.
+                            Need help with your Windows personal cloud node, drive mounting, or license verification? Connect directly with our live Customer Support desk.
                         </p>
                         <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-                            <button type="button" id="btn-start-dev-chat" class="btn-dev-chat-primary" onclick="if(window.PrivCloudChatbot) window.PrivCloudChatbot.openAiChat();">
-                                <span>🤖 Open AI Assistant</span>
+                            <button type="button" id="btn-start-dev-chat" class="btn-dev-chat-primary" onclick="openCustomerSupportChat();">
+                                <span>💬 Open Customer Support</span>
                                 <span>➔</span>
                             </button>
                             <a href="mailto:privcloud0@gmail.com" style="display: inline-flex; align-items: center; gap: 6px; padding: 11px 16px; border-radius: 12px; font-size: 0.88rem; font-weight: 700; background: #ffffff; color: #334155; border: 1px solid #cbd5e1; text-decoration: none; cursor: pointer; transition: all 0.2s;">
@@ -457,6 +457,31 @@
         </div>
 
     </main>
+
+    <!-- In-Page Live Customer Support Chat Modal -->
+    <div id="dev-support-chat-modal" class="dev-chat-modal-backdrop" style="display: none;">
+        <div class="dev-chat-modal-window">
+            <div class="dev-chat-modal-header">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 1.3rem;">💬</span>
+                    <div>
+                        <div style="font-size: 0.95rem; font-weight: 700; color: #ffffff;">PrivCloud Customer Support Desk</div>
+                        <div style="font-size: 0.75rem; color: rgba(255,255,255,0.85); display: flex; align-items: center; gap: 5px;">
+                            <span style="width: 6px; height: 6px; border-radius: 50%; background: #22c55e; display: inline-block;"></span>
+                            Live Support Desk · Online
+                        </div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button type="button" onclick="openFullscreenSupport()" style="color: rgba(255,255,255,0.9); background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer;" title="Open in fullscreen">Pop out ↗</button>
+                    <button type="button" onclick="closeCustomerSupportChat()" style="background: rgba(255,255,255,0.18); border: none; color: #ffffff; width: 32px; height: 32px; border-radius: 8px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Close Chat">&times;</button>
+                </div>
+            </div>
+            <div class="dev-chat-modal-body">
+                <iframe id="dev-support-iframe" src="about:blank" style="width: 100%; height: 100%; border: none; display: block;" title="Customer Support Chat"></iframe>
+            </div>
+        </div>
+    </div>
 
     <!-- Auth Guard Overlay (Shown if unauthenticated) -->
     <div id="auth-guard-overlay" class="auth-guard-overlay">
