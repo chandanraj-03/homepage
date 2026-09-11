@@ -1,0 +1,40 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/", "destination": "/frontend/index.html" },
+    { "source": "/index.html", "destination": "/frontend/index.html" },
+    { "source": "/login", "destination": "/frontend/auth_page/auth.html" },
+    { "source": "/register", "destination": "/frontend/auth_page/auth.html" },
+    { "source": "/auth", "destination": "/frontend/auth_page/auth.html" },
+    { "source": "/product", "destination": "/frontend/product_page/product.html" },
+    { "source": "/purchase", "destination": "/frontend/purchase_page/purchase.html" },
+    { "source": "/checkout", "destination": "/frontend/purchase_page/purchase.html" },
+    { "source": "/demo", "destination": "/frontend/demo_page/demo.html" },
+    { "source": "/about", "destination": "/frontend/demo_page/demo.html" },
+    { "source": "/feedback", "destination": "/frontend/feedback_page/feedback.html" },
+    { "source": "/support", "destination": "/frontend/support_page/customer_support.html" },
+    { "source": "/config.js", "destination": "/frontend/config.js" },
+    { "source": "/mobileNav.css", "destination": "/frontend/mobileNav.css" },
+    { "source": "/mobileNav.js", "destination": "/frontend/mobileNav.js" },
+    { "source": "/supabaseClient.js", "destination": "/frontend/supabaseClient.js" },
+    { "source": "/landing_page/:path*", "destination": "/frontend/landing_page/:path*" },
+    { "source": "/auth_page/:path*", "destination": "/frontend/auth_page/:path*" },
+    { "source": "/product_page/:path*", "destination": "/frontend/product_page/:path*" },
+    { "source": "/purchase_page/:path*", "destination": "/frontend/purchase_page/:path*" },
+    { "source": "/demo_page/:path*", "destination": "/frontend/demo_page/:path*" },
+    { "source": "/feedback_page/:path*", "destination": "/frontend/feedback_page/:path*" },
+    { "source": "/support_page/:path*", "destination": "/frontend/support_page/:path*" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        { "key": "X-XSS-Protection", "value": "1; mode=block" }
+      ]
+    }
+  ]
+}

@@ -27,14 +27,24 @@ app = FastAPI(
     version="3.0.0"
 )
 
-# Enable CORS middleware with strictly defined allowed origins
+# Enable CORS middleware with strictly defined allowed origins and automatic Vercel domain support
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
+    allow_origin_regex=r"^https:\/\/([a-zA-Z0-9_\-]+\.)*vercel\.app$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.get("/api/health", summary="Backend Health Check", tags=["System"])
+async def health_check():
+    """Health check endpoint for Render, container orchestrators, and uptime monitors."""
+    return {
+        "status": "healthy",
+        "service": "PrivCloud Backend",
+        "version": "3.0.0"
+    }
 
 # ----------------- Connect Modular Routers -----------------
 # 1. Page Routes (/, /auth, /product, /purchase, /login, /register, /feedback, /support, etc.)

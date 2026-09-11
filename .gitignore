@@ -15,8 +15,9 @@ password.txt
 supabasepassword.txt
 
 # Generated / Dynamic configs & SQL
-frontend/config.js
-config.js
+frontend/config.local.js
+config.local.js
+*.local.js
 supabase_schema.sql
 supabase.schema.sql
 *.sql

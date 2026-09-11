@@ -13,15 +13,27 @@
     let SUPABASE_URL = runtimeConfig.supabaseUrl || DEFAULT_SUPABASE_URL;
     let SUPABASE_KEY = runtimeConfig.supabaseKey || DEFAULT_SUPABASE_KEY;
 
-    // Smart API URL Resolver (handles file:///, localhost:5500, localhost:3000, etc.)
+    // Smart API URL Resolver (handles live Render backend, Vercel rewrites, localhost:5500, localhost:3000, file:///, etc.)
     function getApiUrl(endpoint) {
         if (typeof window === 'undefined') return endpoint;
         const clean = endpoint.startsWith('/') ? endpoint : '/' + endpoint;
+
+        // 1. Explicitly configured backend URL (via window.PRIVCLOUD_CONFIG or localStorage)
+        const customBackend = (window.PRIVCLOUD_CONFIG && window.PRIVCLOUD_CONFIG.backendUrl) || 
+                              (window.PRIVCLOUD_BACKEND_URL) || 
+                              (window.localStorage ? localStorage.getItem('PRIVCLOUD_BACKEND_URL') : null);
+        if (customBackend && typeof customBackend === 'string' && customBackend.trim()) {
+            return `${customBackend.trim().replace(/\/+$/, '')}${clean}`;
+        }
+
+        // 2. Local standalone dev servers (Live Server, Vite dev port 3000/5500, or raw file://)
         const hostname = window.location.hostname;
         const isLocal = hostname === 'localhost' || hostname === '127.0.0.1' || window.location.protocol === 'file:';
         if (window.location.protocol === 'file:' || (window.location.port && window.location.port !== '5001' && isLocal)) {
             return `http://127.0.0.1:5001${clean}`;
         }
+
+        // 3. Default relative route (for Vercel rewrites or direct FastAPI static hosting)
         return clean;
     }
     if (typeof window !== 'undefined') {

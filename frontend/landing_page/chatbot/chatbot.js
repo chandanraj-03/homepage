@@ -505,7 +505,10 @@
 
         // 2. Fallback to Local Proxy Route (/api/chat)
         try {
-            const proxyResponse = await fetch(PROXY_API_URL, {
+            const proxyEndpoint = (typeof window !== 'undefined' && window.getPrivCloudApiUrl)
+                ? window.getPrivCloudApiUrl(PROXY_API_URL)
+                : PROXY_API_URL;
+            const proxyResponse = await fetch(proxyEndpoint, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

@@ -1,0 +1,53 @@
+services:
+  # ===========================================================================
+  # PrivCloud FastAPI Production Backend Web Service
+  # ===========================================================================
+  - type: web
+    name: privcloud-backend
+    runtime: python
+    plan: free
+    region: oregon
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn backend.app:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: PORT
+        value: 5001
+
+      # Supabase Database & Auth Configuration
+      # (sync: false ensures sensitive credentials are set securely in Render dashboard)
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+
+      # Razorpay Payment Gateway Credentials
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+
+      # Hybrid GitHub RAG Backend (External Render Service)
+      - key: RAG_BACKEND_URL
+        value: https://hybrid-github-rag-backend.onrender.com
+
+      # Windows Product Installer URL
+      - key: PRODUCT_DOWNLOAD_URL
+        value: https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/PrivCloud_Setup.exe
+
+      # Support Contact
+      - key: SUPPORT_EMAIL
+        value: privcloud0@gmail.com
+
+      # Free Trial Duration (Days)
+      - key: TRIAL_DAYS
+        value: "14"
+
+      # CORS Allowed Origins
+      # Automatically supports all *.vercel.app preview and production domains
+      - key: ALLOWED_ORIGINS
+        value: "https://*.vercel.app,http://localhost:3000,http://localhost:5001,http://127.0.0.1:5001"
