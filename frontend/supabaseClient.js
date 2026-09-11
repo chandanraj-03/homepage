@@ -5,10 +5,14 @@
  */
 
 (function () {
-    // Supabase runtime configuration (Strictly resolved from .env via /api/config or window.PRIVCLOUD_CONFIG)
+    // Default public client configuration (safe for browser; protected by PostgreSQL Row Level Security)
+    const PUBLIC_SUPABASE_URL = "https://qrxjyvezlotjwggtgoqe.supabase.co";
+    const PUBLIC_SUPABASE_ANON_KEY = "sb_publishable_TBuxXwl_-StgMpP1deF7zw_2Z9izNgU";
+
+    // Supabase runtime configuration (resolved from window.PRIVCLOUD_CONFIG, /api/config, or public defaults)
     const runtimeConfig = (typeof window !== 'undefined' && window.PRIVCLOUD_CONFIG) ? window.PRIVCLOUD_CONFIG : {};
-    let SUPABASE_URL = runtimeConfig.supabaseUrl || "";
-    let SUPABASE_KEY = runtimeConfig.supabaseKey || "";
+    let SUPABASE_URL = runtimeConfig.supabaseUrl || PUBLIC_SUPABASE_URL;
+    let SUPABASE_KEY = runtimeConfig.supabaseKey || PUBLIC_SUPABASE_ANON_KEY;
 
     // Smart API URL Resolver (handles live Render backend, Vercel rewrites, localhost:5500, localhost:3000, file:///, etc.)
     function getApiUrl(endpoint) {
@@ -203,11 +207,23 @@
         },
 
         async resolveIdentifier(identifier) {
+            const ident = (identifier || '').trim();
+            if (ident.includes('@')) {
+                return {
+                    ok: true,
+                    status: 200,
+                    found: true,
+                    email: ident,
+                    username: ident.split('@')[0],
+                    fullName: null,
+                    message: "Email identifier"
+                };
+            }
             try {
                 const res = await fetch(getApiUrl('/api/auth/resolve-identifier'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ identifier: identifier.trim() })
+                    body: JSON.stringify({ identifier: ident })
                 });
                 const data = await res.json();
                 return {
@@ -220,10 +236,33 @@
                     message: data.message
                 };
             } catch (err) {
+                // Direct Supabase fallback if backend is offline/sleeping
+                try {
+                    const client = await ensureClient();
+                    const cleanUser = ident.replace(/^@/, '').toLowerCase();
+                    const { data } = await client
+                        .from('profiles')
+                        .select('email, username, full_name')
+                        .ilike('username', cleanUser)
+                        .limit(1);
+                    if (data && data.length > 0 && data[0].email) {
+                        return {
+                            ok: true,
+                            status: 200,
+                            found: true,
+                            email: data[0].email,
+                            username: data[0].username,
+                            fullName: data[0].full_name,
+                            message: "Found"
+                        };
+                    }
+                } catch (dbErr) {
+                    console.warn("[PrivCloud] Direct profile lookup fallback failed:", dbErr);
+                }
                 return {
                     ok: false,
                     found: false,
-                    message: "Unable to resolve login identifier."
+                    message: `No account found with username '@${ident.replace(/^@/, '')}'. Please try logging in with your email address.`
                 };
             }
         },
@@ -342,22 +381,29 @@
 
         async signInWithIdentifier(identifier, password) {
             const ident = identifier.trim();
+            const client = await ensureClient();
 
-            // Validate account existence via backend resolver (handles both username and email)
+            // 1. Direct login if email was provided (instant, zero unnecessary network hop)
+            if (ident.includes('@')) {
+                return await client.auth.signInWithPassword({
+                    email: ident,
+                    password: password
+                });
+            }
+
+            // 2. Resolve username to email
             const resolveRes = await this.resolveIdentifier(ident);
             if (!resolveRes.ok || !resolveRes.found || !resolveRes.email) {
                 return {
                     data: null,
                     error: {
-                        message: resolveRes.message || (ident.includes('@') ? `No account found with email '${ident}'. Please check your spelling or sign up.` : `No account found with username '@${ident}'. Please check your spelling or sign up.`)
+                        message: resolveRes.message || `No account found with username '@${ident.replace(/^@/, '')}'. Please check your spelling or use your email address.`
                     }
                 };
             }
-            const targetEmail = resolveRes.email;
 
-            const client = await ensureClient();
             return await client.auth.signInWithPassword({
-                email: targetEmail.trim(),
+                email: resolveRes.email.trim(),
                 password: password
             });
         },
