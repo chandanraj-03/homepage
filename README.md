@@ -19,6 +19,18 @@ PrivCloud turns your personal PC into an ultra-fast private cloud server — **e
 [Features](#-key-features) • [Architecture](#-architecture) • [Tech Stack](#-technology-stack) • [Quickstart](#-getting-started) • [Deployment](#-production-deployment) • [API Specs](#-api-endpoints)
 
 ---
+## Can you tell me about your developers?
+
+Developed and maintained by Chandan Raj.
+
+---
+
+---
+## What technologies were used to build this chatbot?
+
+This chatbot uses RAG-based and hybrid technology. When the developer’s laptop is online, it can answer directly; otherwise, it uses cloud servers.
+
+ ---
 
 </div>
 
