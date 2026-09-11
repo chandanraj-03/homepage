@@ -12,6 +12,11 @@ function resolveApiUrl(path) {
     if (typeof window !== 'undefined' && window.getPrivCloudApiUrl) {
         return window.getPrivCloudApiUrl(path);
     }
+    const cfg = (typeof window !== 'undefined' && window.PRIVCLOUD_CONFIG) ? window.PRIVCLOUD_CONFIG : {};
+    if (cfg.backendUrl) {
+        const clean = path.startsWith('/') ? path : '/' + path;
+        return `${cfg.backendUrl.replace(/\/+$/, '')}${clean}`;
+    }
     if (typeof window !== 'undefined' && (window.location.protocol === 'file:' || (window.location.port && window.location.port !== '5001'))) {
         return `http://localhost:5001${path.startsWith('/') ? path : '/' + path}`;
     }
@@ -567,10 +572,16 @@ async function handleOrderSubmission() {
             })
         });
 
-        const orderData = await createOrderRes.json();
+        let orderData = null;
+        try {
+            orderData = await createOrderRes.json();
+        } catch (parseErr) {
+            console.error("[PrivCloud] create-order non-JSON response:", parseErr);
+            throw new Error(`The payment service responded with status ${createOrderRes.status}. If the server was sleeping, please wait a moment and try again.`);
+        }
 
-        if (!createOrderRes.ok || !orderData.order_id) {
-            throw new Error(orderData.error || 'Failed to initialize payment order with Razorpay.');
+        if (!createOrderRes.ok || !orderData || !orderData.order_id) {
+            throw new Error((orderData && (orderData.error || orderData.detail)) || 'Failed to initialize payment order with Razorpay.');
         }
 
         // Step 2: Open Razorpay Standard Checkout Modal
@@ -635,9 +646,14 @@ async function handleOrderSubmission() {
                         })
                     });
 
-                    const verifyData = await verifyRes.json();
+                    let verifyData = null;
+                    try {
+                        verifyData = await verifyRes.json();
+                    } catch (parseErr) {
+                        console.error("[PrivCloud] verify-payment non-JSON response:", parseErr);
+                    }
 
-                    if (verifyRes.ok && verifyData.success) {
+                    if (verifyRes.ok && verifyData && verifyData.success) {
                         showPaymentNotice('success', isDonationOrder 
                             ? '✅ Thank you for your generous contribution!' 
                             : '✅ Payment verified successfully!');

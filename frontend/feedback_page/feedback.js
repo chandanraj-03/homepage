@@ -18,6 +18,11 @@
         if (typeof window !== 'undefined' && window.getPrivCloudApiUrl) {
             return window.getPrivCloudApiUrl(path);
         }
+        const cfg = (typeof window !== 'undefined' && window.PRIVCLOUD_CONFIG) ? window.PRIVCLOUD_CONFIG : {};
+        if (cfg.backendUrl) {
+            const clean = path.startsWith('/') ? path : '/' + path;
+            return `${cfg.backendUrl.replace(/\/+$/, '')}${clean}`;
+        }
         if (typeof window !== 'undefined' && (window.location.protocol === 'file:' || (window.location.port && window.location.port !== '5001'))) {
             return `http://localhost:5001${path.startsWith('/') ? path : '/' + path}`;
         }

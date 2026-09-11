@@ -9,7 +9,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Supabase Auth Script -->
+    <!-- Runtime Config & Supabase Auth Script -->
+    <script src="../config.js?v=1"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../supabaseClient.js?v=126"></script>
 
@@ -712,6 +713,13 @@ const API_URL = "https://support-chat-api.onrender.com";
 const WS_URL = API_URL.replace("https://", "wss://").replace("http://", "ws://");
 
 function resolveProxyBase() {
+    if (typeof window !== 'undefined' && window.getPrivCloudApiUrl) {
+        return window.getPrivCloudApiUrl('/api/support');
+    }
+    const cfg = (typeof window !== 'undefined' && window.PRIVCLOUD_CONFIG) ? window.PRIVCLOUD_CONFIG : {};
+    if (cfg.backendUrl) {
+        return `${cfg.backendUrl.replace(/\/+$/, '')}/api/support`;
+    }
     if (typeof window === 'undefined') return '/api/support';
     const port = window.location.port;
     const hostname = window.location.hostname;

@@ -12,6 +12,13 @@
     const DIRECT_API_BASE = "https://support-chat-api.onrender.com";
     
     function resolveProxyBase() {
+        if (typeof window !== 'undefined' && window.getPrivCloudApiUrl) {
+            return window.getPrivCloudApiUrl('/api/support');
+        }
+        const cfg = (typeof window !== 'undefined' && window.PRIVCLOUD_CONFIG) ? window.PRIVCLOUD_CONFIG : {};
+        if (cfg.backendUrl) {
+            return `${cfg.backendUrl.replace(/\/+$/, '')}/api/support`;
+        }
         if (typeof window === 'undefined') return '/api/support';
         const port = window.location.port;
         const hostname = window.location.hostname;
