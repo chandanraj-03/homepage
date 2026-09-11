@@ -241,7 +241,7 @@
                     const client = await ensureClient();
                     const cleanUser = ident.replace(/^@/, '').toLowerCase();
                     const { data } = await client
-                        .from('profiles')
+                        .from('Users')
                         .select('email, username, full_name')
                         .ilike('username', cleanUser)
                         .limit(1);
