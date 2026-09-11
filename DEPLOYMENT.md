@@ -101,9 +101,7 @@ You have two simple ways to connect your Vercel frontend to the live Render back
 In [`frontend/config.js`](./frontend/config.js), paste your live Render URL:
 ```javascript
 window.PRIVCLOUD_CONFIG = window.PRIVCLOUD_CONFIG || {
-    backendUrl: "https://privcloud-backend.onrender.com",
-    supabaseUrl: "https://qrxjyvezlotjwggtgoqe.supabase.co",
-    supabaseKey: "sb_publishable_TBuxXwl_-StgMpP1deF7zw_2Z9izNgU"
+    backendUrl: "https://privcloud-backend.onrender.com"
 };
 ```
 Commit and push. Vercel will redeploy instantly.

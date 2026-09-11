@@ -5,13 +5,10 @@
  */
 
 (function () {
-    // Default Supabase configuration
-    const DEFAULT_SUPABASE_URL = "https://qrxjyvezlotjwggtgoqe.supabase.co";
-    const DEFAULT_SUPABASE_KEY = "sb_publishable_TBuxXwl_-StgMpP1deF7zw_2Z9izNgU";
-
+    // Supabase runtime configuration (Strictly resolved from .env via /api/config or window.PRIVCLOUD_CONFIG)
     const runtimeConfig = (typeof window !== 'undefined' && window.PRIVCLOUD_CONFIG) ? window.PRIVCLOUD_CONFIG : {};
-    let SUPABASE_URL = runtimeConfig.supabaseUrl || DEFAULT_SUPABASE_URL;
-    let SUPABASE_KEY = runtimeConfig.supabaseKey || DEFAULT_SUPABASE_KEY;
+    let SUPABASE_URL = runtimeConfig.supabaseUrl || "";
+    let SUPABASE_KEY = runtimeConfig.supabaseKey || "";
 
     // Smart API URL Resolver (handles live Render backend, Vercel rewrites, localhost:5500, localhost:3000, file:///, etc.)
     function getApiUrl(endpoint) {
@@ -181,12 +178,25 @@
                     suggestions: data.suggestions || []
                 };
             } catch (err) {
+                // If backend is waking up or offline, validate format locally so the user is never blocked
+                const cleanUser = (username || '').trim();
+                const isValidFormat = /^[a-zA-Z0-9_]{3,30}$/.test(cleanUser);
+                if (isValidFormat) {
+                    return {
+                        ok: true,
+                        status: 200,
+                        available: true,
+                        valid: true,
+                        message: "✓ Username format valid",
+                        suggestions: []
+                    };
+                }
                 return {
                     ok: false,
-                    status: 500,
+                    status: 400,
                     available: false,
                     valid: false,
-                    message: "Unable to verify username availability right now.",
+                    message: "Username must be 3-30 characters (letters, numbers, underscores).",
                     suggestions: []
                 };
             }
@@ -274,13 +284,20 @@
         },
 
         async signUpWithProfile({ fullName, username, email, password }) {
-            // 1. Reserve/register profile in backend
-            const regRes = await this.registerProfile(fullName, username, email);
-            if (!regRes.ok || !regRes.success) {
-                return {
-                    data: null,
-                    error: { message: regRes.message || "Failed to register profile." }
-                };
+            // 1. Reserve/register profile in backend (non-blocking if backend is offline)
+            try {
+                const regRes = await this.registerProfile(fullName, username, email);
+                if (regRes && !regRes.ok && !regRes.success) {
+                    // Only block if backend explicitly returned a real validation error (like domain blocked or username taken)
+                    if (regRes.status && regRes.status !== 500 && regRes.status !== 404 && regRes.message !== "Could not register profile with backend.") {
+                        return {
+                            data: null,
+                            error: { message: regRes.message || "Failed to register profile." }
+                        };
+                    }
+                }
+            } catch (regErr) {
+                console.warn("[PrivCloud] Backend profile pre-registration notice, proceeding to Supabase Auth:", regErr);
             }
 
             // 2. Register user in Supabase Auth with metadata
