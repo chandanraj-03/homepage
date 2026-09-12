@@ -39,9 +39,15 @@ services:
       - key: PRODUCT_DOWNLOAD_URL
         value: https://qrxjyvezlotjwggtgoqe.supabase.co/storage/v1/object/public/assets/PrivCloud_Setup.exe
 
-      # Support Contact
+      # Support Contact & Chatbot Microservices
       - key: SUPPORT_EMAIL
         value: privcloud0@gmail.com
+      - key: SUPPORT_API_BASE
+        value: https://support-chat-api.onrender.com
+
+      # Email Dispatch Configuration (Optional)
+      - key: RESEND_API_KEY
+        sync: false
 
       # Free Trial Duration (Days)
       - key: TRIAL_DAYS

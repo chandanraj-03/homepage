@@ -41,8 +41,8 @@ The repository includes a ready-to-use Render Blueprint file: [`render.yaml`](./
 ### Step 1: Open Render Blueprints
 1. Log in to your [Render Dashboard](https://dashboard.render.com).
 2. Click **New +** in the top right and select **Blueprint**.
-3. Connect your GitHub account and select your repository (`chandanraj-03/homepage`).
-4. Select the branch you want to deploy (e.g., `fix/windows-ui-upgrade-email-fixes` or `main`).
+3. Connect your GitHub account and select your repository (`chandanraj-03/Product-Showcase-Licensing-Portal`).
+4. Select the branch you want to deploy (`final` or `main`).
 
 ### Step 2: Configure Environment Variables
 Render will detect `render.yaml` and ask you to populate any environment variables marked `sync: false`:
@@ -78,7 +78,7 @@ The repository includes pre-configured Vercel configuration files:
 ### Step 1: Import Repository to Vercel
 1. Log in to your [Vercel Dashboard](https://vercel.com).
 2. Click **Add New...** -> **Project**.
-3. Import your GitHub repository (`chandanraj-03/homepage`).
+3. Import your GitHub repository (`chandanraj-03/Product-Showcase-Licensing-Portal`).
 
 ### Step 2: Configure Project Settings
 1. **Framework Preset**: Select **Other**.

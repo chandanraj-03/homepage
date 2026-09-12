@@ -67,9 +67,12 @@ async def serve_feedback():
         return FileResponse(feedback_path)
     raise HTTPException(status_code=404, detail="feedback.html not found")
 
-@router.get("/support", summary="Redirect Legacy Support Page")
-@router.get("/support.html", summary="Redirect Legacy Support Page")
+@router.get("/support", summary="Serve Dedicated Customer Support Desk")
+@router.get("/support.html", summary="Serve Dedicated Customer Support Desk")
 async def serve_support():
-    """Redirect legacy support route to checkout/support modal."""
+    """Serve dedicated customer support desk page."""
+    support_path = os.path.join(FRONTEND_DIR, 'support_page', 'customer_support.html')
+    if os.path.isfile(support_path):
+        return FileResponse(support_path)
     return RedirectResponse(url="/purchase", status_code=302)
 
