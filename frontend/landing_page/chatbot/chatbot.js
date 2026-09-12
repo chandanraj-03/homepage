@@ -46,6 +46,7 @@
             <button class="privcloud-chatbot-fab" id="privcloud-chat-toggle" aria-label="Toggle PrivCloud AI Chatbot" title="PrivCloud AI Assistant">
                 <div class="fab-icon fab-icon-ai">
                     <img src="${SUPABASE_ASSETS_URL}/bot.png" alt="PrivCloud Bot" class="fab-bot-img">
+                    <span class="fab-avatar-status status-render" id="fab-status-dot" title="Render backend active (Cloud)"></span>
                 </div>
                 <div class="fab-icon fab-icon-close">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -66,15 +67,11 @@
                     <div class="privcloud-chat-header-left">
                         <div class="chat-avatar-ring">
                             <img src="${SUPABASE_ASSETS_URL}/bot.png" alt="PrivCloud Bot" class="header-bot-img">
-                            <span class="chat-avatar-status status-render" id="header-status-dot" title="Active Backend Indicator"></span>
+                            <span class="chat-avatar-status status-render" id="header-status-dot" title="Render backend active (Cloud)"></span>
                         </div>
                         <div class="chat-title-group">
                             <div class="chat-title-row">
                                 <span class="chat-title">PrivCloud AI</span>
-                                <span class="chat-source-badge badge-render" id="header-source-badge" title="Active Backend Indicator">
-                                    <span class="source-pulse-dot dot-yellow"></span>
-                                    <span class="source-badge-text">🟡 Render</span>
-                                </span>
                             </div>
                             <span class="chat-subtitle" id="chat-header-subtitle">Product Assistant</span>
                         </div>
@@ -443,21 +440,19 @@
 
     function updateChatHeaderStatus(source, label) {
         const headerDot = document.getElementById("header-status-dot");
-        const headerBadge = document.getElementById("header-source-badge");
+        const fabDot = document.getElementById("fab-status-dot");
 
         const isLocal = source === 'local';
+        const tooltip = isLocal ? "Local model active (laptop (qwen/tinylama))" : "Render backend active (Groq/OpenRouter/Gemini)";
 
         if (headerDot) {
             headerDot.className = `chat-avatar-status ${isLocal ? 'status-local' : 'status-render'}`;
-            headerDot.title = isLocal ? "Local model active (laptop (qwen/tinylama))" : "Render backend active (Cloud)";
+            headerDot.title = tooltip;
         }
 
-        if (headerBadge) {
-            headerBadge.className = `chat-source-badge ${isLocal ? 'badge-local' : 'badge-render'}`;
-            headerBadge.innerHTML = isLocal
-                ? `<span class="source-pulse-dot dot-green"></span><span class="source-badge-text">🟢 Local</span>`
-                : `<span class="source-pulse-dot dot-yellow"></span><span class="source-badge-text">🟡 Render</span>`;
-            headerBadge.title = label || (isLocal ? 'Local (laptop (qwen/tinylama))' : 'Render (Groq/OpenRouter/Gemini)');
+        if (fabDot) {
+            fabDot.className = `fab-avatar-status ${isLocal ? 'status-local' : 'status-render'}`;
+            fabDot.title = tooltip;
         }
     }
 
@@ -732,21 +727,11 @@
                 row.className = "chat-msg-row bot-row";
 
                 const formattedHtml = formatMarkdown(msg.content);
-                const isLocal = msg.source === "local";
-                const indicator = msg.indicator || (isLocal ? "🟢" : "🟡");
-                const label = msg.sourceLabel || (isLocal ? "Local (laptop (qwen/tinylama))" : "Render (Groq/OpenRouter/Gemini)");
-                const badgeClass = isLocal ? "source-pill-local" : "source-pill-render";
-                const dotClass = isLocal ? "dot-green" : "dot-yellow";
 
                 row.innerHTML = `
                     <div class="chat-bubble bot-bubble">
                         ${formattedHtml}
                         <div class="bot-actions-row">
-                            <div class="bot-source-indicator ${badgeClass}" title="${escapeHtml(label)}">
-                                <span class="source-pulse-dot ${dotClass}"></span>
-                                <span class="source-indicator-emoji">${indicator}</span>
-                                <span class="source-indicator-label">${escapeHtml(label)}</span>
-                            </div>
                             <button class="btn-msg-action btn-copy-msg" data-text="${escapeHtml(msg.content)}" title="Copy Answer">
                                 📋 Copy
                             </button>
