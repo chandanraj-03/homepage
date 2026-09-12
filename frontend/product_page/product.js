@@ -153,8 +153,7 @@ function initNavbarAuth() {
 }
 
 /**
- * Check if the logged-in user owns an active Basic or Pro license,
- * and if so, change all "Buy" buttons to "Your Keys and Products".
+ * State-driven dynamic pricing cards updater based on backend subscription/license status
  */
 async function checkUserActiveLicense(userEmail) {
     if (!userEmail) return;
@@ -170,40 +169,294 @@ async function checkUserActiveLicense(userEmail) {
         const licenseUrl = (window.getPrivCloudApiUrl ? window.getPrivCloudApiUrl(licenseEndpoint) : (window.location.protocol === 'file:' ? 'http://localhost:5001' + licenseEndpoint : licenseEndpoint));
         const res = await fetch(licenseUrl, { headers });
         const data = await res.json();
-        if (data && data.has_license) {
-            const tier = (data.tier || '').toUpperCase();
-            if (tier === 'BASIC' || tier === 'PRO') {
-                updateButtonsForLicensedUser(data);
+
+        // Also check sessionStorage fallback for active session
+        let cachedKey = null;
+        try {
+            const saved = sessionStorage.getItem(`pc_verified_order_${encodeURIComponent(userEmail.toLowerCase())}`);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                if (parsed && parsed.retrievedKey) cachedKey = parsed.retrievedKey;
             }
+        } catch (e) {}
+
+        if (data && data.has_license) {
+            const tier = (data.tier || 'TRIAL').toUpperCase();
+            const key = data.key || cachedKey || (tier === 'PRO' ? 'PRIV-PRO-ACTIVE-VIP' : (tier === 'BASIC' ? 'PRIV-BAS-ACTIVE' : 'PC30-TRIAL-ACTIVE'));
+            applyLicenseStateToPricingCards({
+                tier: tier,
+                key: key,
+                orderId: data.order_id || '',
+                planId: data.plan_id || '',
+                email: userEmail
+            });
+        } else {
+            applyLicenseStateToPricingCards({ tier: 'NONE' });
         }
     } catch (err) {
         console.warn('[PrivCloud] Error checking user license:', err);
     }
 }
 
-function updateButtonsForLicensedUser(licenseData) {
+function applyLicenseStateToPricingCards(state) {
+    const tier = state.tier || 'NONE';
+    const key = state.key || '';
+    const email = state.email || 'Your Account';
+
+    const costTrial = document.getElementById('pricing-cost-trial');
+    const costBasic = document.getElementById('pricing-cost-basic');
+    const costPro = document.getElementById('pricing-cost-pro');
+
+    const actionTrial = document.getElementById('pricing-action-trial');
+    const actionBasic = document.getElementById('pricing-action-basic');
+    const actionPro = document.getElementById('pricing-action-pro');
+
+    const cardTrial = document.getElementById('pricing-card-trial');
+    const cardBasic = document.getElementById('pricing-card-basic');
+    const cardPro = document.getElementById('pricing-card-pro');
+
+    function createKeyBoxHtml(label, keyVal, subText) {
+        return `
+            <div class="pricing-key-display-box">
+                <div class="key-box-content-left">
+                    <span class="key-box-label">${label}</span>
+                    <span class="key-box-code">${escapeCardHtml(keyVal)}</span>
+                </div>
+                <button type="button" class="key-box-copy" onclick="copyCardKey('${escapeCardHtml(keyVal)}', this)">📋 Copy</button>
+            </div>
+            <div class="pricing-account-info">
+                <span>Account: <strong>${escapeCardHtml(email)}</strong></span>
+                <span class="license-status-tag">${subText}</span>
+            </div>
+        `;
+    }
+
+    if (tier === 'PRO') {
+        // --- 1. USER OWNS PRO ---
+        // Pro Tab/Card: Replace price with Product Key & VIP details, no purchase button
+        if (costPro) {
+            costPro.innerHTML = `
+                <div class="pricing-active-license-badge tier-pro">
+                    <span class="active-pulse-dot"></span>
+                    <span>👑 Active Pro Lifetime VIP</span>
+                </div>
+                ${createKeyBoxHtml('Pro Product Key', key, '✓ Verified Lifetime VIP · Unlimited Storage')}
+            `;
+        }
+        if (actionPro) {
+            actionPro.innerHTML = `
+                <a href="../purchase_page/purchase.html?plan=6b2f8c1a9d4e07bf" class="pricing-action-btn btn-active-license">
+                    <span>⬇️ Download Product & Manage Key</span>
+                </a>
+            `;
+        }
+
+        // Basic Tab/Card: Replace price with Key & active-plan info (covered by Pro), no purchase button
+        if (costBasic) {
+            costBasic.innerHTML = `
+                <div class="pricing-active-license-badge tier-covered">
+                    <span>✓ Covered by Pro VIP Subscription</span>
+                </div>
+                ${createKeyBoxHtml('Master Pro Key', key, '✓ Pro tier includes and exceeds all Basic features')}
+            `;
+        }
+        if (actionBasic) {
+            actionBasic.innerHTML = `
+                <a href="../purchase_page/purchase.html?plan=6b2f8c1a9d4e07bf" class="pricing-action-btn btn-active-license">
+                    <span>👑 Pro VIP Active (Download App)</span>
+                </a>
+            `;
+        }
+
+        // Trial Tab/Card: Covered by Pro
+        if (costTrial) {
+            costTrial.innerHTML = `
+                <div class="pricing-active-license-badge tier-covered">
+                    <span>✓ Covered by Pro VIP Subscription</span>
+                </div>
+                <div class="pricing-account-info" style="margin-top: 8px;">
+                    <span>Your Pro license provides full unlimited access without trial limits.</span>
+                </div>
+            `;
+        }
+        if (actionTrial) {
+            actionTrial.innerHTML = `
+                <a href="../purchase_page/purchase.html?plan=6b2f8c1a9d4e07bf" class="pricing-action-btn btn-active-license">
+                    <span>⬇️ Download Product Installer</span>
+                </a>
+            `;
+        }
+
+        // Global CTA Buttons
+        updateHeroCtaButtons('👑 Pro Active · Download PrivCloud', '../purchase_page/purchase.html?plan=6b2f8c1a9d4e07bf');
+
+    } else if (tier === 'BASIC') {
+        // --- 2. USER OWNS BASIC ---
+        // Basic Tab/Card: Replace price with Product Key & license details, no purchase button
+        if (costBasic) {
+            costBasic.innerHTML = `
+                <div class="pricing-active-license-badge tier-basic">
+                    <span class="active-pulse-dot"></span>
+                    <span>⭐ Active Basic Lifetime License</span>
+                </div>
+                ${createKeyBoxHtml('Basic Product Key', key, '✓ Verified Lifetime License · 500 GB Storage')}
+            `;
+        }
+        if (actionBasic) {
+            actionBasic.innerHTML = `
+                <a href="../purchase_page/purchase.html?plan=4d9e1a7b0c3f8e2a" class="pricing-action-btn btn-active-license">
+                    <span>⬇️ Download Product & Manage Key</span>
+                </a>
+            `;
+        }
+
+        // Pro Tab/Card: Continue showing Pro price + "Upgrade to Pro" button
+        if (costPro) {
+            costPro.innerHTML = `
+                <div class="pricing-strike-group">
+                    <span class="pricing-original-strike">₹1,990</span>
+                    <span class="pricing-amount">₹199</span>
+                </div>
+                <span class="pricing-tenure">One-Time Lifetime VIP</span>
+            `;
+        }
+        if (actionPro) {
+            actionPro.innerHTML = `
+                <a href="../purchase_page/purchase.html?plan=6b2f8c1a9d4e07bf" class="pricing-action-btn btn-upgrade-pro">
+                    <span>👑 Upgrade to Pro — ₹199 (90% OFF)</span>
+                </a>
+            `;
+        }
+
+        // Trial Tab/Card: Covered by Basic
+        if (costTrial) {
+            costTrial.innerHTML = `
+                <div class="pricing-active-license-badge tier-covered">
+                    <span>✓ Covered by Basic Lifetime License</span>
+                </div>
+                <div class="pricing-account-info" style="margin-top: 8px;">
+                    <span>Your Basic license provides permanent access without trial limits.</span>
+                </div>
+            `;
+        }
+        if (actionTrial) {
+            actionTrial.innerHTML = `
+                <a href="../purchase_page/purchase.html?plan=4d9e1a7b0c3f8e2a" class="pricing-action-btn btn-active-license">
+                    <span>⬇️ Download Product Installer</span>
+                </a>
+            `;
+        }
+
+        // Global CTA Buttons
+        updateHeroCtaButtons('⭐ Basic Active · Upgrade to Pro', '../purchase_page/purchase.html?plan=6b2f8c1a9d4e07bf');
+
+    } else if (tier === 'TRIAL') {
+        // --- 3. TRIAL USER ---
+        // Trial Tab/Card: Show active trial information instead of price, no purchase button
+        if (costTrial) {
+            costTrial.innerHTML = `
+                <div class="pricing-active-license-badge tier-trial">
+                    <span class="active-pulse-dot"></span>
+                    <span>🎁 Active 14-Day Free Evaluation</span>
+                </div>
+                ${createKeyBoxHtml('Trial Evaluation Key', key, '✓ 14-Day Evaluation Active · 1 PC')}
+            `;
+        }
+        if (actionTrial) {
+            actionTrial.innerHTML = `
+                <a href="../purchase_page/purchase.html?plan=9a8f10e7b9c2d4a6" class="pricing-action-btn btn-active-license">
+                    <span>⬇️ Download Product & Manage Trial</span>
+                </a>
+            `;
+        }
+
+        // Basic Tab/Card: Show price + Upgrade to Basic button
+        if (costBasic) {
+            costBasic.innerHTML = `
+                <div class="pricing-strike-group">
+                    <span class="pricing-original-strike">₹245</span>
+                    <span class="pricing-amount">₹49</span>
+                </div>
+                <span class="pricing-tenure">One-Time Lifetime License</span>
+            `;
+        }
+        if (actionBasic) {
+            actionBasic.innerHTML = `
+                <a href="../purchase_page/purchase.html?plan=4d9e1a7b0c3f8e2a" class="pricing-action-btn btn-upgrade-basic">
+                    <span>⭐ Upgrade to Basic — ₹49 (80% OFF)</span>
+                </a>
+            `;
+        }
+
+        // Pro Tab/Card: Show price + Upgrade to Pro button
+        if (costPro) {
+            costPro.innerHTML = `
+                <div class="pricing-strike-group">
+                    <span class="pricing-original-strike">₹1,990</span>
+                    <span class="pricing-amount">₹199</span>
+                </div>
+                <span class="pricing-tenure">One-Time Lifetime VIP</span>
+            `;
+        }
+        if (actionPro) {
+            actionPro.innerHTML = `
+                <a href="../purchase_page/purchase.html?plan=6b2f8c1a9d4e07bf" class="pricing-action-btn btn-upgrade-pro">
+                    <span>👑 Upgrade to Pro — ₹199 (90% OFF)</span>
+                </a>
+            `;
+        }
+
+        // Global CTA Buttons
+        updateHeroCtaButtons('🎁 Trial Active · Upgrade Plan', '../purchase_page/purchase.html?plan=6b2f8c1a9d4e07bf');
+    }
+}
+
+function updateHeroCtaButtons(label, targetUrl) {
     const buyButtonIds = [
         'btn-hero-pro',
-        'btn-pricing-basic',
-        'btn-pricing-pro',
         'btn-cta-pro',
         'btn-cta-basic'
     ];
-
-    const targetPlan = licenseData.plan_id || (licenseData.tier === 'PRO' ? '6b2f8c1a9d4e07bf' : '4d9e1a7b0c3f8e2a');
-
     buyButtonIds.forEach(id => {
         const btn = document.getElementById(id);
         if (btn) {
-            btn.innerHTML = `<span class="btn-icon">🔑</span> Your Keys and Products`;
+            btn.innerHTML = `<span class="btn-icon">⚡</span> ${label}`;
             btn.onclick = (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                window.location.href = `../purchase_page/purchase.html?plan=${encodeURIComponent(targetPlan)}`;
+                window.location.href = targetUrl;
             };
         }
     });
 }
+
+function escapeCardHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/[&<>"']/g, m => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    }[m]));
+}
+
+window.copyCardKey = function(keyVal, btn) {
+    if (!keyVal) return;
+    navigator.clipboard.writeText(keyVal).then(() => {
+        if (btn) {
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '✓ Copied!';
+            btn.classList.add('copied');
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.classList.remove('copied');
+            }, 2500);
+        }
+    }).catch(err => {
+        console.warn('Clipboard write failed:', err);
+    });
+};
 
 /* ==========================================================================
    5. Post-Auth Welcome Toast Notification
