@@ -3,7 +3,7 @@
      Purpose : Provide the complete customer-facing product content for the
                website. Each section maps directly to a website section or
                component the UI team can build: Hero, Features, Pricing,
-               Comparison, Use Cases, Personas, FAQ, CTA, etc.
+               Comparison, Use Cases, Personas, FAQ, CTA, and etc
      Audience: End-consumer customers. Non-technical language throughout.
      ═══════════════════════════════════════════════════════════════════════ -->
 
