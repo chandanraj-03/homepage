@@ -18,7 +18,7 @@ function resolveApiUrl(path) {
         return `${cfg.backendUrl.replace(/\/+$/, '')}${clean}`;
     }
     if (typeof window !== 'undefined' && (window.location.protocol === 'file:' || (window.location.port && window.location.port !== '5001'))) {
-        return `http://localhost:5001${path.startsWith('/') ? path : '/' + path}`;
+        return `http://127.0.0.1:5001${path.startsWith('/') ? path : '/' + path}`;
     }
     return path;
 }
@@ -1091,7 +1091,7 @@ function resetOrderSession() {
  * Download License Certificate text file
  */
 function downloadLicenseCertificate(planName, licenseKey, paymentReference, donationAmount = 0) {
-    const userEmail = currentUser ? currentUser.email : 'user@privcloud.local';
+    const userEmail = (currentUser && currentUser.email) ? currentUser.email : (document.getElementById('input-user-email')?.value || 'Valued Customer');
     const donationLine = donationAmount > 0 ? `Optional Community Contribution: ₹${donationAmount.toLocaleString('en-IN')}\n` : '';
     const content = `========================================================
              PRIVCLOUD LICENSE CERTIFICATE
@@ -1111,7 +1111,7 @@ QUICK START INSTRUCTIONS:
 3. Paste the Product Key above into the Activation Prompt.
 4. Point to your storage directory and start your private cloud!
 
-Support: support@privcloud.com
+Support: privcloud0@gmail.com
 ========================================================`;
 
     const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });

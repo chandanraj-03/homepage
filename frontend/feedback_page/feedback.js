@@ -24,7 +24,7 @@
             return `${cfg.backendUrl.replace(/\/+$/, '')}${clean}`;
         }
         if (typeof window !== 'undefined' && (window.location.protocol === 'file:' || (window.location.port && window.location.port !== '5001'))) {
-            return `http://localhost:5001${path.startsWith('/') ? path : '/' + path}`;
+            return `http://127.0.0.1:5001${path.startsWith('/') ? path : '/' + path}`;
         }
         return path;
     }
@@ -357,8 +357,12 @@
         const submitBtn = document.getElementById('btn-submit-feedback');
         const originalText = submitBtn.innerHTML;
 
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<span>Verifying & Publishing...</span>';
+        if (!verifiedBuyerData || !verifiedBuyerData.email) {
+            showToast('Please log in with your verified Basic or Pro account to submit feedback.', 'error');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<span>Publish to Community</span>';
+            return;
+        }
 
         const type = document.getElementById('form-feedback-type').value;
         const duration = document.getElementById('form-usage-duration').value;
@@ -367,9 +371,9 @@
         const content = document.getElementById('form-content').value;
 
         const payload = {
-            user_email: verifiedBuyerData ? verifiedBuyerData.email : 'buyer@privcloud.local',
-            user_name: verifiedBuyerData ? verifiedBuyerData.userName : 'Verified Buyer',
-            plan_tier: verifiedBuyerData ? verifiedBuyerData.plan_tier : 'pro',
+            user_email: verifiedBuyerData.email,
+            user_name: verifiedBuyerData.userName || 'Verified Buyer',
+            plan_tier: verifiedBuyerData.plan_tier || 'pro',
             feedback_type: type,
             rating: type === 'review' ? selectedRating : null,
             category: category,

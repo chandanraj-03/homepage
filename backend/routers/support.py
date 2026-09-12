@@ -7,11 +7,13 @@ to guarantee 100% CORS compatibility and seamless message delivery.
 from typing import Optional, Dict, Any
 from pydantic import BaseModel, Field
 from fastapi import APIRouter, HTTPException, Query, Header, UploadFile, File, Form
+import os
 import httpx
 
 from backend.routers.feedback import verify_eligibility
 
-SUPPORT_API_BASE = "https://support-chat-api.onrender.com"
+SUPPORT_API_BASE = os.environ.get("SUPPORT_API_BASE", "https://support-chat-api.onrender.com").strip().rstrip('/')
+
 
 router = APIRouter(prefix="/api/support", tags=["Customer Support Proxy"])
 

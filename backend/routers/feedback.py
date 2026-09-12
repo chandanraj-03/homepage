@@ -24,107 +24,8 @@ TABLE_NAME = "Feedback"
 
 router = APIRouter(prefix="/api/feedback", tags=["Feedback & Suggestions"])
 
-# In-memory store for high-availability resilience
-_INITIAL_SEED_FEEDBACK = [
-    {
-        "id": "fb_seed_001",
-        "user_name": "Arjun Mehta",
-        "user_email": "arjun.m@techdev.in",
-        "plan_tier": "pro",
-        "plan_name": "Pro Lifetime Edition",
-        "feedback_type": "review",
-        "rating": 5,
-        "category": "Remote Tunnel",
-        "usage_duration": "1+ months",
-        "title": "Replaced Google Drive & Dropbox completely on my Home Lab",
-        "content": "Been running PrivCloud Pro on my Windows 11 mini-PC for over 5 weeks now. The zero-config encrypted tunnel lets me pull gigabyte CAD designs and video footage from coffee shops with zero lag. The local encryption speed is remarkable.",
-        "helpful_count": 28,
-        "status": "approved",
-        "created_at": "2026-08-15T10:30:00Z"
-    },
-    {
-        "id": "fb_seed_002",
-        "user_name": "Marcus Vance",
-        "user_email": "m.vance@studio44.co",
-        "plan_tier": "pro",
-        "plan_name": "Pro Lifetime Edition",
-        "feedback_type": "review",
-        "rating": 5,
-        "category": "Media Suite",
-        "usage_duration": "3+ weeks",
-        "title": "The integrated 4K video player and RAW viewer is exceptional",
-        "content": "As a photographer, having instant streaming without waiting for full downloads changed my workflow. Setup took under 4 minutes with the Windows installer. Pro VIP support also helped me configure my custom port forwarding within 15 minutes.",
-        "helpful_count": 19,
-        "status": "approved",
-        "created_at": "2026-08-20T14:15:00Z"
-    },
-    {
-        "id": "fb_seed_003",
-        "user_name": "Elena Rostova",
-        "user_email": "elena.rost@privnet.org",
-        "plan_tier": "basic",
-        "plan_name": "Basic Lifetime Edition",
-        "feedback_type": "review",
-        "rating": 5,
-        "category": "Security",
-        "usage_duration": "2–4 weeks",
-        "title": "True data sovereignty without monthly subscriptions",
-        "content": "Bought the Basic license 3 weeks ago. Having AES-256 local encrypted storage running exclusively on my hardware gives unmatched peace of mind. Highly recommend it to anyone tired of recurring cloud subscription fees.",
-        "helpful_count": 14,
-        "status": "approved",
-        "created_at": "2026-08-24T09:45:00Z"
-    },
-    {
-        "id": "fb_seed_004",
-        "user_name": "David K.",
-        "user_email": "david.k@cloudlabs.io",
-        "plan_tier": "pro",
-        "plan_name": "Pro Lifetime Edition",
-        "feedback_type": "suggestion",
-        "rating": None,
-        "category": "Storage & Sync",
-        "usage_duration": "1+ months",
-        "title": "Selective File Sync & Virtual Drive Mounting for Windows Explorer",
-        "content": "It would be amazing to mount PrivCloud as a virtual Windows drive (e.g. drive P:) so large video projects can be streamed on-demand without syncing the entire folder locally.",
-        "helpful_count": 42,
-        "status": "planned",
-        "created_at": "2026-08-18T16:20:00Z"
-    },
-    {
-        "id": "fb_seed_005",
-        "user_name": "Priya Sharma",
-        "user_email": "priya.s@infosec.net",
-        "plan_tier": "basic",
-        "plan_name": "Basic Lifetime Edition",
-        "feedback_type": "suggestion",
-        "rating": None,
-        "category": "Security",
-        "usage_duration": "2–4 weeks",
-        "title": "Hardware FIDO2 / YubiKey WebAuthn Support for Login",
-        "content": "PrivCloud already has strong local security, but adding physical security key support for the browser login screen would make this the most secure self-hosted personal cloud on the market.",
-        "helpful_count": 31,
-        "status": "in_progress",
-        "created_at": "2026-08-22T11:10:00Z"
-    },
-    {
-        "id": "fb_seed_006",
-        "user_name": "Liam Thorne",
-        "user_email": "liam@soundwave.uk",
-        "plan_tier": "pro",
-        "plan_name": "Pro Lifetime Edition",
-        "feedback_type": "suggestion",
-        "rating": None,
-        "category": "Media Suite",
-        "usage_duration": "3+ weeks",
-        "title": "FLAC / Lossless Audio Player with Gapless Playback",
-        "content": "The audio player works great for MP3s and podcasts. Adding native FLAC album artwork and gapless playback would make it the ultimate high-resolution personal music server.",
-        "helpful_count": 25,
-        "status": "under_review",
-        "created_at": "2026-08-26T18:05:00Z"
-    }
-]
-
-_MEM_FEEDBACK: List[Dict[str, Any]] = list(_INITIAL_SEED_FEEDBACK)
+# In-memory cache for high-availability resilience
+_MEM_FEEDBACK: List[Dict[str, Any]] = []
 
 class FeedbackSubmissionRequest(BaseModel):
     user_email: str
@@ -146,10 +47,11 @@ async def get_feedback(
 ):
     """
     Public feed of verified buyer reviews and feature suggestions with filters and sorting.
+    Strictly populated from the Supabase database.
     """
-    items = list(_MEM_FEEDBACK)
+    items = []
     
-    # Try fetching from Supabase table if available
+    # Fetch directly from Supabase Feedback table
     if SUPABASE_URL and ACTIVE_SUPABASE_KEY:
         try:
             url = f"{SUPABASE_URL.rstrip('/')}/rest/v1/{TABLE_NAME}"
@@ -158,7 +60,6 @@ async def get_feedback(
                 if res.status_code == 200:
                     db_items = res.json()
                     if db_items and len(db_items) > 0:
-                        seen_ids = {item["id"] for item in items}
                         for db_i in db_items:
                             clean_item = {
                                 "id": db_i.get("id"),
@@ -176,15 +77,15 @@ async def get_feedback(
                                 "status": db_i.get("status", "approved"),
                                 "created_at": db_i.get("created_at", "")
                             }
-                            if db_i.get("id") not in seen_ids:
-                                items.append(clean_item)
-                                seen_ids.add(db_i.get("id"))
-                            else:
-                                for idx, mem in enumerate(items):
-                                    if mem["id"] == db_i.get("id"):
-                                        items[idx] = clean_item
+                            items.append(clean_item)
+                        _MEM_FEEDBACK.clear()
+                        _MEM_FEEDBACK.extend(items)
         except Exception as e:
             print(f"[Supabase Feedback Query Warning] {e}")
+
+    # Fallback to in-memory session cache only if network failed
+    if not items and _MEM_FEEDBACK:
+        items = list(_MEM_FEEDBACK)
 
     # Filtering
     filtered = items

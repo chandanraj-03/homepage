@@ -104,13 +104,13 @@
         } catch (e) {}
 
         if (!email || !email.includes('@') || email.endsWith('.local')) {
-            email = email && email.includes('@') ? `${email.split('@')[0]}@privcloud.com` : "customer@privcloud.com";
+            email = null;
         }
 
         state.customerEmail = email;
-        state.customerName = name || (email && !email.includes('customer@privcloud') ? email.split('@')[0] : "Customer");
+        state.customerName = name || (email ? email.split('@')[0] : "Visitor");
         state.planTier = plan;
-        state.isVip = isVip || (plan === 'pro') || email.includes('pro') || email.includes('admin');
+        state.isVip = isVip || (plan === 'pro') || (email && (email.includes('pro') || email.includes('admin')));
 
         // Restore active session ID
         try {
