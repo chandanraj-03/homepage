@@ -319,6 +319,21 @@
             return `${namePrefix} can help you explore everything about **PrivCloud**:\n\n- 🔒 **Zero-Knowledge & Zero-Telemetry Privacy**\n- ⚡ **Gigabit LAN Speed & Remote HTTPS Tunnel**\n- 🎬 **In-Browser 4K Video, Audio & Document Suite**\n- 📤 **Smart Sharing & Client File Dropboxes**\n- 💰 **One-Time Lifetime Pricing (Basic & Pro)**\n- 🎛️ **Desktop Control Panel & Quota Guard**\n\nFeel free to ask any question!`;
         }
 
+        // Key Features
+        if (/^(what are (?:the )?key features|key features|what are features|features|tell me features|main features|list features)$/i.test(clean)) {
+            return `**PrivCloud Key Features**\n\n- 🔒 **100% Zero-Telemetry & Zero-Knowledge** — Your files stay strictly on your personal Windows machine; no third-party data tracking or cloud snooping.\n- ⚡ **Gigabit LAN Speed** — Ultra-fast local network file transfers and 4K media streaming using full network bandwidth.\n- 🌐 **Encrypted Remote HTTPS Tunnel** — Secure anywhere-access without complicated router port forwarding or exposed public IPs.\n- 🎬 **In-Browser 4K Media Suite** — Stream 4K video with hardware acceleration, lossless audio, PDF preview, and client upload dropboxes.\n- 💰 **One-Time Lifetime Ownership** — Zero monthly or annual subscriptions. Pay once and own your cloud forever.\n- 🎛️ **Native Windows Control Panel** — Lightweight \`PrivCloud_Setup.exe\` with real-time storage metrics and Quota Guard.\n\nWould you like to know more about our **pricing**, **installation**, or **security**?`;
+        }
+
+        // Pricing & Plans
+        if (/^(pricing|plans|price|how much|what does it cost|cost|subscription|lifetime price|how much does it cost)$/i.test(clean)) {
+            return `**PrivCloud Lifetime Pricing (No Subscriptions!)**\n\n- 🎁 **14-Day Free Trial**: 1 virtual drive, 100 GB storage limit, and basic media streaming.\n- ⭐ **Basic Edition (₹1,499 / ~$19 Lifetime)**: 2 virtual drives, 2 TB storage quota, 1080p streaming, and full local network sharing.\n- 👑 **Pro Edition (₹2,999 / ~$39 Lifetime)**: Unlimited virtual drives, unlimited storage quota, 4K streaming, encrypted remote HTTPS tunnel, and priority updates.\n\nAll licenses are **perpetual lifetime licenses** with zero recurring fees!`;
+        }
+
+        // Installation & Setup
+        if (/^(how to install|install|download|setup|how to setup|installation|windows requirements)$/i.test(clean)) {
+            return `**PrivCloud Installation & Setup**\n\n1. Download the native Windows installer (\`PrivCloud_Setup.exe\`) from your purchase confirmation or the portal.\n2. Run the installer and launch the PrivCloud desktop control panel.\n3. Enter your product key (or activate the 14-day free trial) and assign your storage folder.\n4. Access your private cloud from any browser at \`localhost\` or across your LAN!\n\nNeed assistance? Contact support at [privcloud0@gmail.com](mailto:privcloud0@gmail.com).`;
+        }
+
         // Goodbyes
         if (/^(bye|goodbye|see you|cya|take care|have a good day|good night)$/i.test(clean)) {
             const nameSuffix = state.userName ? `, **${state.userName}**` : "";
@@ -335,33 +350,29 @@
     }
 
     function sanitizeBotResponse(rawText) {
-        const contactFallback = "Ask questions or queries related to the PrivCloud product so I can help you best. You can also explore our key features, pricing, and documentation.\n\nFor more information, [contact PrivCloud](mailto:privcloud0@gmail.com).";
+        const defaultHelp = `**PrivCloud Core Highlights**\n\n- 🔒 **100% Zero-Telemetry & Zero-Knowledge**: Your personal files stay strictly on your own hardware; no cloud snooping or external collection.\n- ⚡ **Gigabit LAN Speeds & Remote HTTPS Tunnel**: Blazing-fast local network file transfers plus encrypted remote access without router port forwarding.\n- 🎬 **In-Browser 4K Media & File Suite**: Stream 4K video, lossless audio, preview documents/PDFs, and share password-protected client dropboxes.\n- 💰 **One-Time Lifetime Licensing**: Free 14-day trial, Basic Edition (₹1,499 / $19), and Pro Edition (₹2,999 / $39) with unlimited storage & drives.\n\nFor more information or inquiries, [contact PrivCloud](mailto:privcloud0@gmail.com).`;
 
-        if (!rawText) {
-            return contactFallback;
+        if (!rawText || typeof rawText !== 'string' || !rawText.trim()) {
+            return defaultHelp;
         }
 
-        const lower = rawText.toLowerCase();
+        const lower = rawText.toLowerCase().trim();
 
-        // Check for common RAG 'not found in documentation' responses
+        // Check for common RAG 'not found in documentation' or canned refusal responses
         if (
+            lower.includes("don't have enough details") ||
+            lower.includes("not enough details") ||
             lower.includes("couldn't find that information") ||
             lower.includes("could not find that information") ||
             lower.includes("not found in the repository") ||
             lower.includes("not found in the documentation") ||
             lower.includes("does not contain information") ||
-            lower.includes("i don't have information about that in the repository")
-        ) {
-            return contactFallback;
-        }
-
-        // Check for empty, generic refusal or missing answer
-        if (
+            lower.includes("i don't have information") ||
             lower.includes("i don't know") || 
             lower.includes("no information available") ||
             lower === "n/a"
         ) {
-            return contactFallback;
+            return defaultHelp;
         }
 
         return rawText;
@@ -432,7 +443,8 @@
             const data = await queryRagBackend(text, historyPayload);
             removeTypingIndicator();
 
-            let finalAnswer = sanitizeBotResponse(data.answer);
+            const rawAnswer = (data && (data.answer || data.response || data.reply || data.text || data.message)) || (typeof data === 'string' ? data : '');
+            let finalAnswer = sanitizeBotResponse(rawAnswer);
 
             const botMsg = {
                 id: "msg_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7),
@@ -452,7 +464,7 @@
             const botMsg = {
                 id: "msg_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7),
                 role: "assistant",
-                content: "Ask questions or queries related to the PrivCloud product so I can help you best. You can also explore our key features, pricing, and documentation.\n\nFor more information, [contact PrivCloud](mailto:privcloud0@gmail.com).",
+                content: sanitizeBotResponse(""),
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             };
 
@@ -475,10 +487,45 @@
 
         let lastError = null;
 
-        // 1. Try Direct Render Backend
+        // 1. Prioritize Resilient Backend Proxy Route (/api/chat)
+        try {
+            let proxyEndpoint = (typeof window !== 'undefined' && window.getPrivCloudApiUrl)
+                ? window.getPrivCloudApiUrl(PROXY_API_URL)
+                : PROXY_API_URL;
+
+            if (typeof window !== 'undefined' && window.location.protocol === 'file:') {
+                proxyEndpoint = `http://127.0.0.1:5001${PROXY_API_URL}`;
+            }
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 20000);
+
+            const proxyResponse = await fetch(proxyEndpoint, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify(payload),
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+
+            if (proxyResponse.ok) {
+                const proxyData = await proxyResponse.json();
+                if (proxyData && (proxyData.answer || proxyData.response || proxyData.message || proxyData.reply)) {
+                    return proxyData;
+                }
+            }
+        } catch (proxyErr) {
+            console.warn("[PrivCloud Chatbot] Proxy fetch unavailable, falling back to direct endpoint:", proxyErr.message);
+            lastError = proxyErr;
+        }
+
+        // 2. Fallback to Direct Render Backend
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 35000);
+            const timeoutId = setTimeout(() => controller.abort(), 25000);
 
             const response = await fetch(DIRECT_API_URL, {
                 method: "POST",
@@ -499,34 +546,8 @@
                 throw new Error(errMsg);
             }
         } catch (err) {
-            console.warn("[PrivCloud Chatbot] Direct fetch failed, attempting local proxy:", err.message);
-            lastError = err;
-        }
-
-        // 2. Fallback to Local Proxy Route (/api/chat)
-        try {
-            const proxyEndpoint = (typeof window !== 'undefined' && window.getPrivCloudApiUrl)
-                ? window.getPrivCloudApiUrl(PROXY_API_URL)
-                : PROXY_API_URL;
-            const proxyResponse = await fetch(proxyEndpoint, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Accept": "application/json"
-                },
-                body: JSON.stringify(payload)
-            });
-
-            if (proxyResponse.ok) {
-                return await proxyResponse.json();
-            } else {
-                const errorData = await proxyResponse.json().catch(() => ({}));
-                const errMsg = errorData.detail || errorData.error || `Proxy error HTTP ${proxyResponse.status}`;
-                throw new Error(errMsg);
-            }
-        } catch (proxyErr) {
-            console.error("[PrivCloud Chatbot] Proxy fetch also failed:", proxyErr);
-            throw lastError || proxyErr;
+            console.error("[PrivCloud Chatbot] Direct fetch also failed:", err);
+            throw lastError || err;
         }
     }
 

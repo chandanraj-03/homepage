@@ -152,12 +152,24 @@
             const data = await res.json();
             feedbackItems = data.items || [];
 
-            // Update stats if present
-            if (data.stats) {
-                const statRating = document.getElementById('stat-average-rating');
-                const statReviews = document.getElementById('stat-total-reviews');
-                if (statRating) statRating.textContent = data.stats.average_rating;
-                if (statReviews) statReviews.textContent = `${data.stats.total_reviews}+`;
+            // Update stats dynamically from database metrics
+            const m = data.metrics || data.stats || {};
+            const statRating = document.getElementById('stat-average-rating');
+            const statReviews = document.getElementById('stat-total-reviews');
+            const statSat = document.getElementById('stat-satisfaction-rate');
+            const statSugg = document.getElementById('stat-active-suggestions');
+
+            if (statRating) {
+                statRating.textContent = (m.avg_rating != null && m.total_reviews > 0) ? m.avg_rating : '5.0';
+            }
+            if (statReviews) {
+                statReviews.textContent = `${m.total_reviews || 0}`;
+            }
+            if (statSat) {
+                statSat.textContent = `${m.satisfaction_pct != null ? m.satisfaction_pct : 100}%`;
+            }
+            if (statSugg) {
+                statSugg.textContent = `${m.total_suggestions || 0} Active`;
             }
 
             renderItems();

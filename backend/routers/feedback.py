@@ -104,23 +104,32 @@ async def get_feedback(
     elif sort == "rating":
         filtered.sort(key=lambda x: (x.get("rating") or 0, x.get("helpful_count", 0)), reverse=True)
 
-    # Compute live summary metrics
+    # Compute live summary metrics from database items
     reviews = [i for i in items if i.get("feedback_type") == "review"]
     ratings = [i.get("rating") for i in reviews if i.get("rating") is not None]
     avg_rating = round(sum(ratings) / len(ratings), 1) if ratings else 5.0
     
     total_reviews = len(reviews)
     total_suggestions = len([i for i in items if i.get("feedback_type") == "suggestion"])
+    satisfaction_pct = round((len([r for r in ratings if r >= 4]) / len(ratings)) * 100, 1) if ratings else 100.0
+
+    metrics_data = {
+        "avg_rating": avg_rating,
+        "total_reviews": total_reviews,
+        "total_suggestions": total_suggestions,
+        "satisfaction_pct": satisfaction_pct
+    }
 
     return {
         "success": True,
         "count": len(filtered),
         "total": len(items),
-        "metrics": {
-            "avg_rating": avg_rating,
+        "metrics": metrics_data,
+        "stats": {
+            "average_rating": avg_rating,
             "total_reviews": total_reviews,
             "total_suggestions": total_suggestions,
-            "satisfaction_pct": 98.4
+            "satisfaction_pct": satisfaction_pct
         },
         "items": filtered
     }
