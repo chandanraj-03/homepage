@@ -66,13 +66,17 @@
                     <div class="privcloud-chat-header-left">
                         <div class="chat-avatar-ring">
                             <img src="${SUPABASE_ASSETS_URL}/bot.png" alt="PrivCloud Bot" class="header-bot-img">
-                            <span class="chat-avatar-status" id="header-status-dot"></span>
+                            <span class="chat-avatar-status status-render" id="header-status-dot" title="Active Backend Indicator"></span>
                         </div>
                         <div class="chat-title-group">
                             <div class="chat-title-row">
                                 <span class="chat-title">PrivCloud AI</span>
+                                <span class="chat-source-badge badge-render" id="header-source-badge" title="Active Backend Indicator">
+                                    <span class="source-pulse-dot dot-yellow"></span>
+                                    <span class="source-badge-text">🟡 Render</span>
+                                </span>
                             </div>
-                            <span class="chat-subtitle">Product Assistant</span>
+                            <span class="chat-subtitle" id="chat-header-subtitle">Product Assistant</span>
                         </div>
                     </div>
                     <div class="privcloud-chat-header-actions">
@@ -382,6 +386,85 @@
     // Core Messaging Logic & Pretrained RAG Integration
     // =========================================================================
 
+    function extractSourceInfo(data) {
+        if (!data || typeof data !== 'object') {
+            return {
+                source: 'render',
+                indicator: '🟡',
+                label: 'Render (Cloud)'
+            };
+        }
+
+        // 1. Check for explicit backend response annotations
+        if (data.source && data.source_indicator && data.source_label) {
+            return {
+                source: data.source,
+                indicator: data.source_indicator,
+                label: data.source_label
+            };
+        }
+
+        const provider = String(data.provider || '').toLowerCase().trim();
+        const model = String(data.model || '').toLowerCase().trim();
+        const isFailover = Boolean(data.failover);
+
+        // 2. Check for local laptop model (qwen/tinylama)
+        const isLocal = (
+            (provider === 'local' || provider === 'laptop' || provider.includes('local')) ||
+            (!isFailover && (model.includes('qwen') || model.includes('tinylama') || model.includes('local')))
+        ) && !isFailover;
+
+        if (isLocal) {
+            return {
+                source: 'local',
+                indicator: '🟢',
+                label: 'Local (laptop (qwen/tinylama))'
+            };
+        }
+
+        // 3. Render cloud model (Groq / OpenRouter / Gemini)
+        let cloudName = 'Groq/OpenRouter/Gemini';
+        if (provider.includes('groq') || model.includes('gpt-oss') || model.includes('llama')) {
+            cloudName = 'Groq';
+        } else if (provider.includes('openrouter') || model.includes('deepseek')) {
+            cloudName = 'OpenRouter';
+        } else if (provider.includes('gemini')) {
+            cloudName = 'Gemini';
+        } else if (provider) {
+            cloudName = provider.charAt(0).toUpperCase() + provider.slice(1);
+        }
+
+        return {
+            source: 'render',
+            indicator: '🟡',
+            label: `Render (${cloudName})`
+        };
+    }
+
+    function updateChatHeaderStatus(source, label) {
+        const headerDot = document.getElementById("header-status-dot");
+        const headerBadge = document.getElementById("header-source-badge");
+
+        const isLocal = source === 'local';
+
+        if (headerDot) {
+            headerDot.className = `chat-avatar-status ${isLocal ? 'status-local' : 'status-render'}`;
+            headerDot.title = isLocal ? "Local model active (laptop (qwen/tinylama))" : "Render backend active (Cloud)";
+        }
+
+        if (headerBadge) {
+            headerBadge.className = `chat-source-badge ${isLocal ? 'badge-local' : 'badge-render'}`;
+            headerBadge.innerHTML = isLocal
+                ? `<span class="source-pulse-dot dot-green"></span><span class="source-badge-text">🟢 Local</span>`
+                : `<span class="source-pulse-dot dot-yellow"></span><span class="source-badge-text">🟡 Render</span>`;
+            headerBadge.title = label || (isLocal ? 'Local (laptop (qwen/tinylama))' : 'Render (Groq/OpenRouter/Gemini)');
+        }
+    }
+
+    // =========================================================================
+    // Core Messaging Logic & Pretrained RAG Integration
+    // =========================================================================
+
     async function handleUserSend(customText) {
         if (state.isLoading) return;
 
@@ -411,14 +494,24 @@
         // 1. Check for quick conversational intents (hi, bye, name, etc.)
         const quickAnswer = getQuickConversationalResponse(text);
         if (quickAnswer) {
+            const sourceInfo = {
+                source: "local",
+                indicator: "🟢",
+                label: "Local (laptop (qwen/tinylama))"
+            };
+
             const botMsg = {
                 id: "msg_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7),
                 role: "assistant",
                 content: quickAnswer,
+                source: sourceInfo.source,
+                indicator: sourceInfo.indicator,
+                sourceLabel: sourceInfo.label,
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             };
             state.messages.push(botMsg);
             saveStoredHistory();
+            updateChatHeaderStatus(sourceInfo.source, sourceInfo.label);
             renderMessages();
             scrollToBottom();
             return;
@@ -445,31 +538,46 @@
 
             const rawAnswer = (data && (data.answer || data.response || data.reply || data.text || data.message)) || (typeof data === 'string' ? data : '');
             let finalAnswer = sanitizeBotResponse(rawAnswer);
+            const sourceInfo = extractSourceInfo(data);
 
             const botMsg = {
                 id: "msg_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7),
                 role: "assistant",
                 content: finalAnswer,
+                source: sourceInfo.source,
+                indicator: sourceInfo.indicator,
+                sourceLabel: sourceInfo.label,
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             };
 
             state.messages.push(botMsg);
             saveStoredHistory();
+            updateChatHeaderStatus(sourceInfo.source, sourceInfo.label);
             renderMessages();
 
         } catch (error) {
             removeTypingIndicator();
             console.error("[PrivCloud Chatbot] Query error:", error);
 
+            const sourceInfo = {
+                source: "render",
+                indicator: "🟡",
+                label: "Render (Fallback)"
+            };
+
             const botMsg = {
                 id: "msg_" + Date.now() + "_" + Math.random().toString(36).substring(2, 7),
                 role: "assistant",
                 content: sanitizeBotResponse(""),
+                source: sourceInfo.source,
+                indicator: sourceInfo.indicator,
+                sourceLabel: sourceInfo.label,
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             };
 
             state.messages.push(botMsg);
             saveStoredHistory();
+            updateChatHeaderStatus(sourceInfo.source, sourceInfo.label);
             renderMessages();
         } finally {
             state.isLoading = false;
@@ -558,6 +666,22 @@
         if (footerStatusText) {
             footerStatusText.innerHTML = 'For more information <a href="mailto:privcloud0@gmail.com" class="chat-footer-contact-link">contact PrivCloud</a>';
         }
+
+        try {
+            const healthUrl = (typeof window !== 'undefined' && window.getPrivCloudApiUrl)
+                ? window.getPrivCloudApiUrl(PROXY_HEALTH_URL)
+                : (window.location.protocol === 'file:' ? `http://127.0.0.1:5001${PROXY_HEALTH_URL}` : PROXY_HEALTH_URL);
+
+            const res = await fetch(healthUrl, { method: "GET", headers: { "Accept": "application/json" } });
+            if (res.ok) {
+                const data = await res.json();
+                const source = data.source || 'render';
+                const label = data.source_label || (source === 'local' ? 'Local (laptop (qwen/tinylama))' : 'Render (Online)');
+                updateChatHeaderStatus(source, label);
+            }
+        } catch (e) {
+            updateChatHeaderStatus('render', 'Render (Cloud)');
+        }
     }
 
     function setOfflineUI() {
@@ -567,6 +691,7 @@
         if (footerStatusText) {
             footerStatusText.innerHTML = 'For more information <a href="mailto:privcloud0@gmail.com" class="chat-footer-contact-link">contact PrivCloud</a>';
         }
+        updateChatHeaderStatus('render', 'Render (Cloud)');
     }
 
     // =========================================================================
@@ -607,11 +732,21 @@
                 row.className = "chat-msg-row bot-row";
 
                 const formattedHtml = formatMarkdown(msg.content);
+                const isLocal = msg.source === "local";
+                const indicator = msg.indicator || (isLocal ? "🟢" : "🟡");
+                const label = msg.sourceLabel || (isLocal ? "Local (laptop (qwen/tinylama))" : "Render (Groq/OpenRouter/Gemini)");
+                const badgeClass = isLocal ? "source-pill-local" : "source-pill-render";
+                const dotClass = isLocal ? "dot-green" : "dot-yellow";
 
                 row.innerHTML = `
                     <div class="chat-bubble bot-bubble">
                         ${formattedHtml}
                         <div class="bot-actions-row">
+                            <div class="bot-source-indicator ${badgeClass}" title="${escapeHtml(label)}">
+                                <span class="source-pulse-dot ${dotClass}"></span>
+                                <span class="source-indicator-emoji">${indicator}</span>
+                                <span class="source-indicator-label">${escapeHtml(label)}</span>
+                            </div>
                             <button class="btn-msg-action btn-copy-msg" data-text="${escapeHtml(msg.content)}" title="Copy Answer">
                                 📋 Copy
                             </button>

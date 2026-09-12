@@ -88,8 +88,47 @@ def _get_static_fallback(query: str) -> str:
         f"- For personalized support, email our team at **{SUPPORT_EMAIL}**."
     )
 
-async def _generate_fallback_answer(message: str, history: list) -> str:
-    """Query Groq or OpenRouter with the comprehensive PrivCloud knowledge base."""
+def _annotate_source_metadata(res_data: dict) -> dict:
+    """
+    Classify the generation origin into:
+    - 🟢 Local (laptop (qwen/tinylama))
+    - 🟡 Render (Cloud - Groq/OpenRouter/Gemini)
+    """
+    provider = str(res_data.get("provider") or "").lower().strip()
+    model = str(res_data.get("model") or "").lower().strip()
+    is_failover = bool(res_data.get("failover"))
+
+    # Local is when provider is explicitly local/laptop or model is qwen/tinylama without cloud failover
+    is_local = (
+        (provider in ("local", "laptop", "ollama") or "local" in provider) or
+        (not is_failover and any(k in model for k in ("qwen", "tinylama", "local")))
+    ) and not is_failover
+
+    if is_local:
+        return {
+            "source": "local",
+            "source_indicator": "🟢",
+            "source_label": "Local (laptop (qwen/tinylama))"
+        }
+    else:
+        cloud_label = "Groq/OpenRouter/Gemini"
+        if "groq" in provider or any(m in model for m in ("gpt-oss", "llama", "groq")):
+            cloud_label = "Groq"
+        elif "openrouter" in provider or any(m in model for m in ("deepseek", "openrouter")):
+            cloud_label = "OpenRouter"
+        elif "gemini" in provider or "gemini" in model:
+            cloud_label = "Gemini"
+        elif provider:
+            cloud_label = provider.capitalize()
+
+        return {
+            "source": "render",
+            "source_indicator": "🟡",
+            "source_label": f"Render ({cloud_label})"
+        }
+
+async def _generate_fallback_answer(message: str, history: list) -> tuple[str, str, str]:
+    """Query Groq or OpenRouter with the comprehensive PrivCloud knowledge base. Returns (answer, provider, model)."""
     messages = [{"role": "system", "content": PRIVCLOUD_SYSTEM_PROMPT}]
     if history:
         for turn in history[-6:]:
@@ -119,7 +158,7 @@ async def _generate_fallback_answer(message: str, history: list) -> str:
                 if res.status_code == 200:
                     ans = res.json()["choices"][0]["message"]["content"].strip()
                     if ans:
-                        return ans
+                        return ans, "groq", GROQ_MODEL or "openai/gpt-oss-120b"
         except Exception as e:
             logger.warning(f"[Chatbot Fallback] Groq failed ({e}), trying OpenRouter...")
 
@@ -143,17 +182,18 @@ async def _generate_fallback_answer(message: str, history: list) -> str:
                 if res.status_code == 200:
                     ans = res.json()["choices"][0]["message"]["content"].strip()
                     if ans:
-                        return ans
+                        return ans, "openrouter", OPENROUTER_MODEL or "deepseek/deepseek-chat"
         except Exception as e:
             logger.warning(f"[Chatbot Fallback] OpenRouter failed ({e}), using static KB...")
 
     # 3. Static deterministic fallback
-    return _get_static_fallback(message)
+    return _get_static_fallback(message), "render", "privcloud-kb"
 
 @router.post("/chat", summary="Chatbot Proxy")
 async def chat_proxy(payload: ChatRequest):
     """
-    Proxy endpoint to Hybrid GitHub RAG Chatbot backend with resilient multi-tier LLM fallback.
+    Proxy endpoint to Hybrid GitHub RAG Chatbot backend with resilient multi-tier LLM fallback
+    and dynamic source indicator metadata (🟢 Local / 🟡 Render).
     """
     message = payload.message.strip()
     if not message:
@@ -193,6 +233,8 @@ async def chat_proxy(payload: ChatRequest):
                 ]
 
                 if answer_text and not any(r in lower_ans for r in canned_refusals):
+                    meta = _annotate_source_metadata(res_data)
+                    res_data.update(meta)
                     res_data['answer'] = answer_text
                     return JSONResponse(status_code=200, content=res_data)
 
@@ -202,18 +244,29 @@ async def chat_proxy(payload: ChatRequest):
 
     # Attempt 2: Resilient LLM Fallback (Groq / OpenRouter / Static)
     try:
-        fallback_ans = await _generate_fallback_answer(message, payload.history or [])
+        fallback_ans, used_provider, used_model = await _generate_fallback_answer(message, payload.history or [])
+        meta = _annotate_source_metadata({
+            'provider': used_provider,
+            'model': used_model,
+            'failover': True
+        })
         return JSONResponse(status_code=200, content={
             'answer': fallback_ans,
-            'provider': 'privcloud-resilient-ai',
-            'fallback': True
+            'provider': used_provider,
+            'model': used_model,
+            'fallback': True,
+            **meta
         })
     except Exception as err:
         logger.error(f"[Chatbot] Error generating fallback answer: {err}")
         return JSONResponse(status_code=200, content={
             'answer': _get_static_fallback(message),
-            'provider': 'privcloud-static-kb',
-            'fallback': True
+            'provider': 'render',
+            'model': 'privcloud-kb',
+            'fallback': True,
+            'source': 'render',
+            'source_indicator': '🟡',
+            'source_label': 'Render (PrivCloud KB)'
         })
 
 @router.get("/chatbot/health", summary="Chatbot Health Check")
@@ -235,12 +288,18 @@ async def chatbot_health():
             return {
                 'backend_url': RAG_BACKEND_URL,
                 'status': 'online',
-                'details': res_data
+                'details': res_data,
+                'source': 'render',
+                'source_indicator': '🟡',
+                'source_label': 'Render (Online)'
             }
     except Exception as e:
         return {
             'backend_url': RAG_BACKEND_URL,
             'status': 'offline',
             'error': str(e),
+            'source': 'render',
+            'source_indicator': '🟡',
+            'source_label': 'Render (Fallback Ready)',
             'fallback_available': bool(GROQ_API_KEY or OPENROUTER_API_KEY)
         }
