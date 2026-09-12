@@ -14,7 +14,7 @@
 
     <!-- Stylesheets -->
     <link rel="stylesheet" href="../mobileNav.css?v=1">
-    <link rel="stylesheet" href="purchase.css?v=120">
+    <link rel="stylesheet" href="purchase.css?v=122">
     <link rel="stylesheet" href="../landing_page/chatbot/chatbot.css?v=27">
 
     <!-- Razorpay Standard Checkout JS -->
@@ -119,26 +119,57 @@
     <!-- Main Purchase Container -->
     <main class="container">
         
+        <!-- Limited-Time Launch Urgency Banner -->
+        <div class="promo-launch-banner">
+            <div class="promo-banner-badge">🔥 LIMITED-TIME SPECIAL OFFER</div>
+            <div class="promo-banner-text">
+                Save up to <strong>90% OFF</strong> Lifetime Licenses! One-time payment, zero recurring fees, forever private cloud access.
+            </div>
+            <div class="promo-banner-guarantee">
+                <span class="pulse-dot"></span> Instant Activation at Checkout
+            </div>
+        </div>
+
         <!-- Header -->
         <header class="purchase-header">
             <span class="purchase-badge">🔒 Secure Activation Vault</span>
-            <h1 class="purchase-title">Complete Your PrivCloud Order</h1>
-            <p class="purchase-subtitle">Choose your plan, activate your license token, and download your turn-key personal cloud installer.</p>
+            <h1 class="purchase-title">Choose Your PrivCloud License</h1>
+            <p class="purchase-subtitle">Own your personal cloud hardware node with a lifetime license. No monthly subscriptions, no third-party telemetry, 100% private.</p>
         </header>
 
         <!-- Plan Switcher Tabs -->
         <div class="plan-tabs-row">
             <button class="plan-tab-btn active" data-plan="9a8f10e7b9c2d4a6">
-                <span>🚀 Free Trial</span>
-                <span class="plan-tab-price">₹0</span>
+                <div class="tab-title-row">
+                    <span>🚀 Free Trial</span>
+                    <span class="tab-pill-badge trial">14 Days</span>
+                </div>
+                <div class="tab-pricing-row">
+                    <span class="plan-tab-price">₹0</span>
+                    <span class="tab-period-sub">Free Eval</span>
+                </div>
             </button>
             <button class="plan-tab-btn" data-plan="4d9e1a7b0c3f8e2a">
-                <span>⭐ Basic Edition</span>
-                <span class="plan-tab-price">₹1,499</span>
+                <div class="tab-title-row">
+                    <span>⭐ Basic Edition</span>
+                    <span class="tab-pill-badge discount">80% OFF</span>
+                </div>
+                <div class="tab-pricing-row">
+                    <span class="tab-original-price">₹245</span>
+                    <span class="plan-tab-price">₹49</span>
+                    <span class="tab-period-sub">Lifetime</span>
+                </div>
             </button>
             <button class="plan-tab-btn" data-plan="6b2f8c1a9d4e07bf">
-                <span>👑 Pro Edition</span>
-                <span class="plan-tab-price">₹2,999</span>
+                <div class="tab-title-row">
+                    <span>👑 Pro Edition</span>
+                    <span class="tab-pill-badge vip-discount">90% OFF</span>
+                </div>
+                <div class="tab-pricing-row">
+                    <span class="tab-original-price">₹1,990</span>
+                    <span class="plan-tab-price">₹199</span>
+                    <span class="tab-period-sub">Lifetime VIP</span>
+                </div>
             </button>
         </div>
 
@@ -409,8 +440,12 @@
                         <strong style="color: #0f172a;" id="invoice-plan-name">Free Trial Edition</strong>
                     </li>
                     <li>
-                        <span>Plan License</span>
+                        <span>Regular License</span>
                         <span id="invoice-subtotal">₹0</span>
+                    </li>
+                    <li id="invoice-discount-row" style="display: none;">
+                        <span>Launch Promotional Savings</span>
+                        <span id="invoice-discount" style="color: #10b981; font-weight: 800;">-₹0</span>
                     </li>
                     <li id="invoice-donation-row" style="display: none;">
                         <span>Optional Donation</span>
@@ -499,7 +534,7 @@
     </div>
 
     <!-- Scripts -->
-    <script src="purchase.js?v=12"></script>
+    <script src="purchase.js?v=14"></script>
     <script src="../landing_page/chatbot/chatbot.js?v=28"></script>
 
 </body>

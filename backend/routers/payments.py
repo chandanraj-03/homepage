@@ -228,6 +228,8 @@ async def verify_payment(payload: VerifyPaymentRequest, background_tasks: Backgr
         raw_amount = int(payload.amount or 0)
         notes = {}
 
+        # Accurately determine rupee amount
+        order_amount_paise = 0
         if razorpay_client:
             try:
                 order_info = razorpay_client.order.fetch(razorpay_order_id)
@@ -236,23 +238,20 @@ async def verify_payment(payload: VerifyPaymentRequest, background_tasks: Backgr
                     user_email = (notes.get("user_email") or "").strip().lower()
                 if not tier:
                     tier = resolve_tier(notes.get("plan_id"))
-                order_amount = int(order_info.get("amount", 0))
-                if order_amount > 0:
-                    raw_amount = order_amount
+                order_amount_paise = int(order_info.get("amount", 0))
             except Exception as fetch_err:
                 print(f"[Razorpay] Note fetch notice: {fetch_err}")
 
-        # Accurately determine rupee amount
-        if raw_amount >= 10000:
-            amount_rupees = raw_amount / 100
+        if order_amount_paise > 0:
+            amount_rupees = order_amount_paise / 100
         elif raw_amount > 0:
-            amount_rupees = raw_amount
+            amount_rupees = (raw_amount / 100) if raw_amount >= 500 else raw_amount
         else:
             canonical_tier = (tier or "BASIC").upper()
             if canonical_tier == "PRO":
-                amount_rupees = 2999
+                amount_rupees = 199
             elif canonical_tier == "BASIC":
-                amount_rupees = 1499
+                amount_rupees = 49
             else:
                 amount_rupees = 0
 
@@ -345,11 +344,11 @@ async def verify_payment(payload: VerifyPaymentRequest, background_tasks: Backgr
             }
         )
 
-@router.post("/create-trial-order", summary="Activate Free Trial Order")
+@router.post("/create-trial-order", summary="Activate Order")
 async def create_trial_order(payload: Dict[str, Any]):
     """
-    Activate a Free Trial order, recording it as verified so a TRIAL key can be retrieved from Supabase.
-    Enforces idempotency to prevent multiple trial order generation for the same email.
+    Activate an order, recording it as verified so a key can be retrieved from Supabase.
+    Supports TRIAL, BASIC, and PRO tiers.
     """
     user_email = (payload.get("user_email") or payload.get("email") or "").strip().lower()
     if not user_email or "@" not in user_email:
@@ -358,7 +357,11 @@ async def create_trial_order(payload: Dict[str, Any]):
             content={"success": False, "message": "A valid user_email is required."}
         )
 
-    plan_id = payload.get("plan_id") or "9a8f10e7b9c2d4a6"
+    target_tier = (payload.get("tier") or "TRIAL").upper()
+    if target_tier not in ("PRO", "BASIC", "TRIAL"):
+        target_tier = "TRIAL"
+
+    plan_id = payload.get("plan_id") or ("6b2f8c1a9d4e07bf" if target_tier == "PRO" else ("4d9e1a7b0c3f8e2a" if target_tier == "BASIC" else "9a8f10e7b9c2d4a6"))
 
     # Idempotency check: Return existing active order if already present
     existing_order = get_user_active_order(user_email)
@@ -367,29 +370,29 @@ async def create_trial_order(payload: Dict[str, Any]):
             "success": True,
             "order_id": existing_order.get("order_id"),
             "payment_id": existing_order.get("payment_id", "FREE_TRIAL"),
-            "tier": existing_order.get("tier", "TRIAL"),
+            "tier": existing_order.get("tier", target_tier),
             "message": "Existing order retrieved."
         }
 
-    trial_order_id = f"trial_{uuid.uuid4().hex[:12]}"
-    trial_payment_id = "FREE_TRIAL"
+    trial_order_id = f"ord_{target_tier.lower()}_{uuid.uuid4().hex[:10]}"
+    trial_payment_id = f"pay_{target_tier.lower()}_{uuid.uuid4().hex[:8]}"
 
     save_verified_order(
         order_id=trial_order_id,
         payment_id=trial_payment_id,
         user_email=user_email,
         plan_id=plan_id,
-        tier="TRIAL",
-        amount=0,
-        notes={"source": "free_trial_activation"}
+        tier=target_tier,
+        amount=199 if target_tier == "PRO" else (49 if target_tier == "BASIC" else 0),
+        notes={"source": "activation", "tier": target_tier}
     )
 
     return {
         "success": True,
         "order_id": trial_order_id,
         "payment_id": trial_payment_id,
-        "tier": "TRIAL",
-        "message": "Free trial order activated successfully."
+        "tier": target_tier,
+        "message": f"{target_tier.title()} order activated successfully."
     }
 
 @router.post("/payment/get-product-key", summary="Retrieve Assigned Product Key from Supabase")
@@ -546,6 +549,23 @@ async def get_my_license(user_email: str, request: Request):
             'has_license': False
         }
 
+    key = order.get("key")
+    if not key and order.get("status") == "verified":
+        try:
+            from backend.supabase_db import assign_product_key, resolve_tier
+            resolved_tier = resolve_tier(order.get("tier") or order.get("plan_id") or "BASIC")
+            success, result = assign_product_key(
+                tier=resolved_tier,
+                user_email=clean_email,
+                order_id=order.get("order_id"),
+                payment_id=order.get("payment_id") or "CONFIRMED"
+            )
+            if success and result.get("key"):
+                key = result.get("key")
+                order["key"] = key
+        except Exception as e:
+            logger.warning(f"[PrivCloud] Notice auto-resolving key for {clean_email}: {e}")
+
     return {
         'success': True,
         'has_license': True,
@@ -553,7 +573,7 @@ async def get_my_license(user_email: str, request: Request):
         'payment_id': order.get("payment_id"),
         'tier': order.get("tier"),
         'plan_id': order.get("plan_id"),
-        'key': order.get("key"),
+        'key': key,
         'assigned_at': str(order.get("assigned_at")) if order.get("assigned_at") else None
     }
 

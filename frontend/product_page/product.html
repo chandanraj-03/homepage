@@ -527,13 +527,13 @@
                             <tr class="highlight-row">
                                 <td><strong>PrivCloud Basic</strong></td>
                                 <td><strong>₹0 / mo</strong></td>
-                                <td class="col-cost-winner"><strong>₹1,499 (One-Time)</strong></td>
+                                <td class="col-cost-winner"><strong>₹49 (One-Time · 80% OFF)</strong></td>
                                 <td><strong>500 GB (Own Drive)</strong></td>
                             </tr>
                             <tr class="highlight-row pro-row">
                                 <td><strong>PrivCloud Pro</strong></td>
                                 <td><strong>₹0 / mo</strong></td>
-                                <td class="col-cost-winner"><strong>₹2,999 (One-Time VIP)</strong></td>
+                                <td class="col-cost-winner"><strong>₹199 (One-Time VIP · 90% OFF)</strong></td>
                                 <td><strong>👑 Unlimited (Own Drive)</strong></td>
                             </tr>
                         </tbody>
@@ -631,12 +631,12 @@
                 <div class="pricing-cards-container">
                     
                     <!-- 1. Free Trial Edition -->
-                    <div class="pricing-box">
+                    <div class="pricing-box" id="pricing-card-trial">
                         <div class="pricing-header-block">
                             <h3 class="pricing-tier-name">🎁 Free Trial</h3>
                             <p class="pricing-tagline">14-Day evaluation to experience complete cloud freedom.</p>
                             
-                            <div class="pricing-cost-row">
+                            <div class="pricing-cost-row" id="pricing-cost-trial">
                                 <span class="pricing-amount">₹0</span>
                                 <span class="pricing-tenure">14-Day Evaluation (1 PC)</span>
                             </div>
@@ -653,19 +653,27 @@
                             <li><span class="bullet-check">✓</span> <strong>No Credit Card Required</strong></li>
                         </ul>
 
-                        <button onclick="handlePlanSelection('9a8f10e7b9c2d4a6')" class="pricing-action-btn btn-hero-secondary" type="button">
-                            Start Free Trial
-                        </button>
+                        <div class="pricing-action-wrapper" id="pricing-action-trial">
+                            <button id="btn-pricing-trial" onclick="handlePlanSelection('9a8f10e7b9c2d4a6')" class="pricing-action-btn btn-hero-secondary" type="button">
+                                Start Free Trial
+                            </button>
+                        </div>
                     </div>
 
                     <!-- 2. Basic Lifetime Edition -->
-                    <div class="pricing-box">
+                    <div class="pricing-box" id="pricing-card-basic">
                         <div class="pricing-header-block">
-                            <h3 class="pricing-tier-name">⭐ Basic Edition</h3>
+                            <div class="pricing-top-pill-row">
+                                <h3 class="pricing-tier-name">⭐ Basic Edition</h3>
+                                <span class="discount-pill-tag">80% OFF</span>
+                            </div>
                             <p class="pricing-tagline">Essential personal cloud for individuals and home setups.</p>
                             
-                            <div class="pricing-cost-row">
-                                <span class="pricing-amount">₹1,499</span>
+                            <div class="pricing-cost-row" id="pricing-cost-basic">
+                                <div class="pricing-strike-group">
+                                    <span class="pricing-original-strike">₹245</span>
+                                    <span class="pricing-amount">₹49</span>
+                                </div>
                                 <span class="pricing-tenure">One-Time Lifetime License</span>
                             </div>
                         </div>
@@ -682,20 +690,28 @@
                             <li><span class="bullet-check">✓</span> 10-Character License Key</li>
                         </ul>
 
-                        <button id="btn-pricing-basic" onclick="handlePlanSelection('4d9e1a7b0c3f8e2a')" class="pricing-action-btn btn-hero-secondary" type="button">
-                            Buy Basic — Lifetime
-                        </button>
+                        <div class="pricing-action-wrapper" id="pricing-action-basic">
+                            <button id="btn-pricing-basic" onclick="handlePlanSelection('4d9e1a7b0c3f8e2a')" class="pricing-action-btn btn-hero-secondary" type="button">
+                                Buy Basic — ₹49 (80% OFF)
+                            </button>
+                        </div>
                     </div>
 
                     <!-- 3. Pro Lifetime VIP Edition (Featured) -->
-                    <div class="pricing-box pro-featured">
+                    <div class="pricing-box pro-featured" id="pricing-card-pro">
                         <span class="pricing-ribbon">👑 Best Value / Recommended</span>
                         <div class="pricing-header-block">
-                            <h3 class="pricing-tier-name">👑 Pro Edition</h3>
+                            <div class="pricing-top-pill-row">
+                                <h3 class="pricing-tier-name">👑 Pro Edition</h3>
+                                <span class="discount-pill-tag vip">90% OFF</span>
+                            </div>
                             <p class="pricing-tagline">The ultimate cloud experience for creators, pros & agencies.</p>
                             
-                            <div class="pricing-cost-row">
-                                <span class="pricing-amount">₹2,999</span>
+                            <div class="pricing-cost-row" id="pricing-cost-pro">
+                                <div class="pricing-strike-group">
+                                    <span class="pricing-original-strike">₹1,990</span>
+                                    <span class="pricing-amount">₹199</span>
+                                </div>
                                 <span class="pricing-tenure">One-Time Lifetime VIP</span>
                             </div>
                         </div>
@@ -713,9 +729,11 @@
                             <li><span class="bullet-check">✓</span> 16-Character Pro License Key</li>
                         </ul>
 
-                        <button id="btn-pricing-pro" onclick="handlePlanSelection('6b2f8c1a9d4e07bf')" class="pricing-action-btn btn-register" type="button">
-                            Buy Pro — Best Value Lifetime
-                        </button>
+                        <div class="pricing-action-wrapper" id="pricing-action-pro">
+                            <button id="btn-pricing-pro" onclick="handlePlanSelection('6b2f8c1a9d4e07bf')" class="pricing-action-btn btn-register" type="button">
+                                Buy Pro — ₹199 (90% OFF)
+                            </button>
+                        </div>
                     </div>
 
                 </div>
@@ -735,8 +753,8 @@
                             <tr>
                                 <td><strong>Price</strong></td>
                                 <td>₹0</td>
-                                <td>₹1,499 (Lifetime)</td>
-                                <td class="col-privcloud"><strong>₹2,999 (Lifetime VIP)</strong></td>
+                                <td>₹49 (Lifetime · 80% OFF)</td>
+                                <td class="col-privcloud"><strong>₹199 (Lifetime VIP · 90% OFF)</strong></td>
                             </tr>
                             <tr>
                                 <td><strong>License Duration</strong></td>
